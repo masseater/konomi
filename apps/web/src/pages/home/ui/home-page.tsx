@@ -1,25 +1,20 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
-import { todoSummaryQuery } from "#/pages/home/api/summary";
+import { SITE_DESCRIPTION, SITE_NAME } from "#/shared/config";
 
-import { SessionBadge } from "./session-badge";
-import { TodoList } from "./todo-list";
+import { OwnerArea } from "./owner-area";
 
-const TITLE = "Todos";
+const MCP_HINT = "MCP クライアントには、このサイトの /mcp を登録する";
 
-const HomePage = (): ReactNode => {
-  const { data: summary } = useSuspenseQuery(todoSummaryQuery);
-  return (
-    <main className="mx-auto flex max-w-xl flex-col gap-6 p-8">
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{TITLE}</h1>
-        <SessionBadge />
-      </header>
-      {summary}
-      <TodoList />
-    </main>
-  );
-};
+const HomePage = (): ReactNode => (
+  <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4">
+    <header className="flex flex-col gap-2">
+      <h1 className="text-3xl font-bold">{SITE_NAME}</h1>
+      <p>{SITE_DESCRIPTION}</p>
+      <p className="text-muted-foreground text-sm">{MCP_HINT}</p>
+    </header>
+    <OwnerArea />
+  </main>
+);
 
 export { HomePage };

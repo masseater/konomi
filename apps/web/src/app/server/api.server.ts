@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { Effect, Option, pipe } from "effect";
 
-import { todoRoutes } from "#/pages/home/index.server";
+import { sourceRoutes } from "#/features/ingest/index.server";
 import { createRouter } from "#/shared/api/index.server";
 import { auth } from "#/shared/auth/index.server";
 
@@ -25,4 +25,4 @@ const rejectOverLimit = (request: Request): Promise<Response | undefined> =>
 export const api = createRouter("")
   .onRequest(({ request }) => rejectOverLimit(request))
   .mount(auth.handler)
-  .use(todoRoutes);
+  .use(sourceRoutes);

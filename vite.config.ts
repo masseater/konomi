@@ -72,8 +72,8 @@ export default defineConfig({
       "no-comments/disallowComments": ["error", { allow: ["oxlint-disable", "eslint-disable"] }],
       ...tanstackQueryRules,
       ...tanstackRouterRules,
-      "drizzle/enforce-delete-with-where": "error",
-      "drizzle/enforce-update-with-where": "error",
+      "drizzle/enforce-delete-with-where": ["error", { drizzleObjectName: ["db"] }],
+      "drizzle/enforce-update-with-where": ["error", { drizzleObjectName: ["db"] }],
       ...shadcnRules,
       ...baselineJsRules,
       ...baselineJs.configs.recommended().rules,
@@ -106,6 +106,7 @@ export default defineConfig({
               name: "AnalyticsEngineDataset",
             },
             { from: "package", package: "@tanstack/query-core", name: "QueryClient" },
+            { from: "package", package: "@modelcontextprotocol/server", name: "McpServer" },
             {
               from: "package",
               package: "react",

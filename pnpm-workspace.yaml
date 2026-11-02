@@ -38,6 +38,9 @@ catalog:
   "@tanstack/intent": 0.5.6
   "@yarnpkg/parsers": 3.1.0
   jose: 6.2.14
+  "@better-auth/mcp": 1.7.14
+  "@better-auth/oauth-provider": 1.7.14
+  "@modelcontextprotocol/server": 2.3.1
   markdownlint-cli2: 0.23.3
   chrome-launcher: 1.2.2
   lighthouse: 13.5.0
@@ -48,7 +51,6 @@ catalogs:
     "@effect/atom-react": 4.0.7
     "@effect/tsgo": 0.63.0
     "@elysiajs/eden": 1.4.9
-    "@openfeature/server-sdk": 1.23.0
     "@tanstack/react-query": 5.104.5
     "@tanstack/react-start": 1.169.4
     "@alchemy.run/cloudflare": 2.0.0-beta.84

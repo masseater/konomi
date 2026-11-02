@@ -1,75 +1,55 @@
-# typescript-template
+# konomi
 
-Cloudflare で動く TypeScript の Web アプリを、検査・CI・デプロイ・AI エージェントとの作業の決まりが
-そろった状態から始めるための GitHub テンプレートである。
-新しいリポジトリを作るたびに、lint や CI やデプロイの仕組みを組み直さずに済む。
+見た動画・聴いた曲・高評価・マイリスト・フォローを、サービスをまたいで自分の Cloudflare に集め、AI が MCP で読めるようにする。
+コーディング向けではなく、自分の好みを知ってほしいパーソナルエージェント向けの MCP サーバーである。
+
+ホスティングしたサービスとしては出さない。各自が自分の Cloudflare アカウントにデプロイして、自分の記録だけを入れて使う。
 
 ## 公開先
 
-- テンプレートのままのアプリ: <https://typescript-template-web-production-ntesuocc46gilfjl.masseater.workers.dev>
-- 静的な LP の見本: <https://typescript-template-landingpagjng25skxokz4cknxsbi3m7nu.masseater.workers.dev>
+- masseater のインスタンス: <https://konomi.masseater.dev>（MCP は <https://konomi.masseater.dev/mcp>。持ち主だけがログインできる）
 
-## 始めたときに入っているもの
+## MCP のツール
 
-- TanStack Start と Effect で書く Web アプリ。D1 のデータベースと better-auth のログインを使える
-- 型検査・lint・テスト・依存の監査を 1 回で流す `vp run verify`
-- main に push すると、verify が通ったあとに Cloudflare へデプロイする GitHub Actions
-- Claude Code で作業するときのフックと作業の決まり
+`search_activity` は、語・サービス・種類（見た・高評価・保存・フォロー）・期間で記録を引く。
+`taste_summary` は、投稿者ごとの件数と、サービスと種類ごとの件数をまとめる。
 
-`apps/lp` は公開ページの見本の LP である。ビルド時に作った HTML を、Worker を通さずに配る。
+## 取り込めるサービス
 
-## 使い方
+今はニコニコ動画の視聴履歴・いいね・マイリスト・フォローを取り込む。
+ログイン Cookie の `user_session` で、Web 版が使う nvapi を読む。
+Spotify と YouTube を次に足す。公式 API で取れるものは公式 API で読み、取れないものだけを非公開の API で補う。
 
-### 前提
+## 非公開 API を使う危険
 
-- [Vite+](https://viteplus.dev/guide/) の `vp` コマンド
-- `gh`、uv、Go、Python 3、jq。verify の一部がこれらで動く
-- Workers Paid プランの Cloudflare アカウント
-- OpenRouter の API キー。verify の lint の一部が使う
+ニコニコ動画のように公式の個人データ API が無いサービスは、ブラウザのログイン Cookie を預かり、Web 版が内部で使う API を読む。
 
-### 1. テンプレートからリポジトリを作る
+これには 3 つの危険がある。
+利用規約に反するとみなされ、アカウントを止められることがある。
+API の形は予告なく変わり、変わると取り込みが「取り込みに失敗した」になって、直すまで止まる。
+Cookie はそれだけでそのアカウントにログインできる鍵である。
+konomi は `CREDENTIAL_KEY` から導いた鍵で暗号化して D1 に置くが、
+Cloudflare アカウントを乗っ取られれば読まれる。
 
-```sh
-gh repo create <owner>/<name> --template masseater/typescript-template \
-  --private --clone
-cd <name>
-```
+konomi は 1 時間に 1 回、新しい分だけを読む。初回だけ 10 ページまで遡る。
+アクセスの量を増やす変更はしないでほしい。
 
-### 2. アプリ名を変える
+## 自分のアカウントに置く
 
-`apps/web/app-name.ts` の `APP_NAME` を、リポジトリの名前に変える。
-同じ Cloudflare アカウントにある別のリポジトリと名前が重なると、互いのリソースを置き換え合う。
+前提は [Vite+](https://viteplus.dev/guide/) の `vp`、
+Workers Paid プランの Cloudflare アカウント、Cloudflare に置いたドメインである。
 
-### 3. 手元で動かす
+1. このリポジトリを fork し、`apps/web/app-name.ts` の `APP_NAME` と
+   `apps/web/alchemy.run.ts` の `DEFAULT_DOMAIN` を自分のものに変える。
+   手元からデプロイするときは、`KONOMI_DOMAIN` を渡しても変えられる
+2. `vp install` のあと、次のコマンドで Cloudflare の認証情報を入れる。
+   `vp exec --filter web alchemy profile edit --add Cloudflare`
+   そのあと `apps/web` で `vp run deploy` を実行する
+3. デプロイしたサイトを開き、持ち主のアカウントを作る。アカウントを作れるのは最初の 1 人だけである
+4. サービスのログイン情報を貼る。サイトの各サービスの欄に、どこから取るかが書いてある
+5. MCP クライアント（claude.ai のコネクタなど）に `https://<ドメイン>/mcp` を登録し、OAuth でログインする
 
-```sh
-vp env on
-vp install
-cp .env.example .env
-vp exec --filter web alchemy profile edit --add Cloudflare
-```
+## 開発
 
-`vp env on` で、リポジトリが求める版の Node.js と pnpm を vp が用意する。
-`.env` の `OPENROUTER_API_KEY` にキーを書く。
-Cloudflare の認証情報は、最後のコマンドで作る Alchemy のプロファイルに入る。
-
-```sh
-vp run verify
-cd apps/web && vp run dev
-```
-
-verify が通り、dev が表示した URL を開いてアプリが出れば準備はできている。
-
-### 4. GitHub の設定をそろえる
-
-Actions の secrets、Actions による PR 作成の許可、既定ブランチのルールセットは、テンプレートから引き継がれない。
-[masseater/skills](https://github.com/masseater/skills) の `project-checklist` スキルの
-setup の手順で設定する。
-
-設定が済めば、main への push のたびに本番へデプロイされる。
-手元からデプロイするときは `apps/web` で `vp run deploy` を実行する。
-
-## テンプレートの更新を取り込む
-
-作ったリポジトリで Claude Code のセッションを始めると、テンプレートの新しいリリースがあれば知らせが出る。
-取り込むと答えれば、前のリリースとの差分を当てて verify を通すところまで進む。
+`vp run verify` が検査をまとめて流す。作業の決まりは CLAUDE.md と AGENTS.md にある。
+masseater/typescript-template から作ったので、テンプレートの更新を取り込める。
