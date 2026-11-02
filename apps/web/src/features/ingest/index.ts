@@ -1,1 +1,1 @@
-export { SourceList } from "./ui/source-list";
+export { ConnectionList } from "./ui/connection-list";

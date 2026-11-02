@@ -1,24 +1,18 @@
 import { Array as Arr, pipe } from "effect";
 import type { ReactNode } from "react";
 
-import type { ActivityKind } from "#/shared/config";
-
-const KIND_LABELS: Readonly<Record<ActivityKind, string>> = {
-  watched: "視聴",
-  liked: "高評価",
-  saved: "保存",
-  followed: "フォロー",
-};
+import { SIGNAL_LABELS } from "#/features/ingest/model/labels";
+import type { SignalKind } from "#/shared/config";
 
 const KindTotals = ({
   totals,
-}: Readonly<{ totals: readonly Readonly<{ kind: ActivityKind; items: number }>[] }>): ReactNode => (
+}: Readonly<{ totals: readonly Readonly<{ kind: SignalKind; signals: number }>[] }>): ReactNode => (
   <ul className="flex gap-3 text-sm">
     {pipe(
       totals,
-      Arr.map(({ kind, items }) => (
+      Arr.map(({ kind, signals }) => (
         <li key={kind}>
-          {KIND_LABELS[kind]} {items}
+          {SIGNAL_LABELS[kind]} {signals}
         </li>
       )),
     )}

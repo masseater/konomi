@@ -1,21 +1,24 @@
 import type { McpServer } from "@modelcontextprotocol/server";
 import { DateTime, Effect, Option, Schema, pipe } from "effect";
 
-import {
-  countByCreator,
-  countBySourceAndKind,
-  findActivities,
-} from "#/entities/activity/index.server";
-import type { ActivityFilter } from "#/entities/activity/index.server";
+import { listConnectionViews } from "#/entities/connection/index.server";
+import { countByKind, findSignals, topCreators, topTags } from "#/entities/signal/index.server";
+import type {
+  CreatorCount,
+  KindCount,
+  SignalFilter,
+  TagCount,
+} from "#/entities/signal/index.server";
 
 import { ToolError } from "./tool-error";
-import { SearchInput, SummaryInput } from "./tool-input";
+import { EmptyInput, ProfileInput, SearchInput } from "./tool-input";
 import { runTool } from "./tool-result.server";
 
-const DEFAULT_LIMIT = 50;
+const DEFAULT_LIMIT = 30;
 const READ_ONLY = { readOnlyHint: true, openWorldHint: false };
 const SEARCH_SCHEMA = SearchInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
-const SUMMARY_SCHEMA = SummaryInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
+const PROFILE_SCHEMA = ProfileInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
+const EMPTY_SCHEMA = EmptyInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
 
 type FilterInput = Readonly<Partial<typeof SearchInput.Type>>;
 
@@ -32,43 +35,62 @@ const optionalMillis = (
 ): Effect.Effect<Option.Option<number>, ToolError> =>
   pipe(Option.fromUndefinedOr(text), Option.map(epochMillisOf), Effect.transposeOption);
 
-const filterOf = (input: FilterInput): Effect.Effect<ActivityFilter, ToolError> =>
+const filterOf = (input: FilterInput): Effect.Effect<SignalFilter, ToolError> =>
   Effect.all({ sinceMs: optionalMillis(input.since), untilMs: optionalMillis(input.until) }).pipe(
     Effect.map(({ sinceMs, untilMs }) => ({
       keyword: Option.fromUndefinedOr(input.keyword),
-      sources: Option.fromUndefinedOr(input.sources),
       kinds: Option.fromUndefinedOr(input.kinds),
+      types: Option.fromUndefinedOr(input.types),
+      providers: Option.fromUndefinedOr(input.providers),
       sinceMs,
       untilMs,
       limit: input.limit ?? DEFAULT_LIMIT,
     })),
   );
 
-const summaryOf = (
-  filter: ActivityFilter,
-): Effect.Effect<Readonly<{ totals: unknown; topCreators: unknown }>> =>
-  Effect.all({ totals: countBySourceAndKind(), topCreators: countByCreator(filter) });
+type Profile = Readonly<{
+  counts: readonly KindCount[];
+  creators: readonly CreatorCount[];
+  tags: readonly TagCount[];
+}>;
+
+const profileOf = (filter: SignalFilter): Effect.Effect<Profile> =>
+  Effect.all({
+    counts: countByKind(filter),
+    creators: topCreators(filter),
+    tags: topTags(filter),
+  });
 
 const registerTools = (server: McpServer): McpServer => {
   server.registerTool(
-    "search_activity",
+    "search_signals",
     {
       description:
-        "持ち主が見た・高評価した・保存した・フォローした記録を、語・サービス・種類・期間で探す。語を省くと新しい順に返す。好みや最近の関心を知りたいときに使う",
+        "持ち主が見た・聴いた・高評価した・保存した・フォローした記録を、サービスをまたいで語・種類・期間で探す。語を省くと新しい順に返す。具体的に何を見ていたかを確かめるときに使う",
       inputSchema: SEARCH_SCHEMA,
       annotations: READ_ONLY,
     },
-    (input) => runTool(filterOf(input).pipe(Effect.flatMap(findActivities))),
+    (input) => runTool(filterOf(input).pipe(Effect.flatMap(findSignals))),
   );
   server.registerTool(
-    "taste_summary",
+    "taste_profile",
     {
       description:
-        "サービスと種類ごとの記録の件数と、よく見ている投稿者・アーティストの順位を返す。持ち主の好みの全体像をつかむときに最初に使う",
-      inputSchema: SUMMARY_SCHEMA,
+        "サービス・対象の種類・反応の種類ごとの件数と、よく反応した投稿者やアーティスト、よく付いているタグの順位を返す。持ち主の好みの全体像や、期間ごとの変化をつかむときに最初に使う",
+      inputSchema: PROFILE_SCHEMA,
       annotations: READ_ONLY,
     },
-    (input) => runTool(filterOf(input).pipe(Effect.flatMap(summaryOf))),
+    (input) => runTool(filterOf(input).pipe(Effect.flatMap(profileOf))),
+  );
+  server.registerTool(
+    "list_connections",
+    {
+      description:
+        "サービスごとの取り込みの状態を返す。status が rejected ならログインが切れているので、持ち主に konomi のサイトでログイン情報を入れ直すよう伝える",
+      inputSchema: EMPTY_SCHEMA,
+      annotations: READ_ONLY,
+    },
+    () => runTool(listConnectionViews),
   );
   return server;
 };

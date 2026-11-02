@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
-import { SourceList } from "#/features/ingest";
+import { ConnectionList } from "#/features/ingest";
 import { sessionQuery } from "#/pages/home/api/session";
 
 const SIGN_IN = "ログインしてサービスをつなぐ";
@@ -19,7 +19,7 @@ const OwnerArea = (): ReactNode => {
       </Link>
     );
   }
-  return <SourceList />;
+  return <ConnectionList />;
 };
 
 export { OwnerArea };

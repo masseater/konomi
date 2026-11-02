@@ -1,12 +1,12 @@
 import { Schema } from "effect";
 
-import { ACTIVITY_KINDS, SOURCE_IDS } from "#/shared/config";
+import { PROVIDER_IDS, SIGNAL_KINDS, SUBJECT_TYPES } from "#/shared/config";
 
-const MAX_LIMIT = 200;
+const MAX_LIMIT = 80;
 
 const Limit = Schema.optionalKey(
   Schema.Int.check(Schema.isBetween({ minimum: 1, maximum: MAX_LIMIT })).annotate({
-    description: `返す件数。既定は 50、最大 ${MAX_LIMIT}`,
+    description: `返す件数。既定は 30、最大 ${MAX_LIMIT}`,
   }),
 );
 
@@ -14,32 +14,46 @@ const Instant = Schema.optionalKey(
   Schema.String.annotate({ description: "ISO 8601 の日時か日付（例: 2026-10-01）" }),
 );
 
-const Sources = Schema.optionalKey(
-  Schema.Array(Schema.Literals(SOURCE_IDS)).annotate({ description: "絞り込むサービス" }),
+const Providers = Schema.optionalKey(
+  Schema.Array(Schema.Literals(PROVIDER_IDS)).annotate({ description: "絞り込むサービス" }),
 );
 
 const Kinds = Schema.optionalKey(
-  Schema.Array(Schema.Literals(ACTIVITY_KINDS)).annotate({
-    description: "watched=視聴、liked=高評価・いいね、saved=マイリストや保存、followed=フォロー",
+  Schema.Array(Schema.Literals(SIGNAL_KINDS)).annotate({
+    description:
+      "consumed=見た・聴いた、endorsed=高評価・いいね、collected=マイリストや再生リストに保存、followed=フォロー・登録",
+  }),
+);
+
+const Types = Schema.optionalKey(
+  Schema.Array(Schema.Literals(SUBJECT_TYPES)).annotate({
+    description: "対象の種類。video・track・album・playlist・episode・person・channel",
   }),
 );
 
 const SearchInput = Schema.Struct({
   keyword: Schema.optionalKey(
-    Schema.String.annotate({ description: "タイトルと投稿者の部分一致。省略すると新しい順" }),
+    Schema.String.annotate({
+      description: "題名・投稿者やアーティストの名前・タグの部分一致。省略すると新しい順",
+    }),
   ),
-  sources: Sources,
   kinds: Kinds,
+  types: Types,
+  providers: Providers,
   since: Instant,
   until: Instant,
   limit: Limit,
 });
 
-const SummaryInput = Schema.Struct({
-  sources: Sources,
+const ProfileInput = Schema.Struct({
   kinds: Kinds,
+  types: Types,
+  providers: Providers,
   since: Instant,
+  until: Instant,
   limit: Limit,
 });
 
-export { SearchInput, SummaryInput };
+const EmptyInput = Schema.Struct({});
+
+export { EmptyInput, ProfileInput, SearchInput };

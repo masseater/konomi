@@ -3,21 +3,21 @@ import { Effect } from "effect";
 
 import { browserClient, createQueries, serverClient } from "#/shared/api";
 
-import type { SourceRoutes } from "./routes.server";
+import type { ConnectionRoutes } from "./routes.server";
 
-const loadSourceRoutes = (): Promise<SourceRoutes> =>
+const loadConnectionRoutes = (): Promise<ConnectionRoutes> =>
   Effect.runPromise(
     Effect.promise(() => import("./routes.server")).pipe(
-      Effect.map((module) => module.sourceRoutes),
+      Effect.map((module) => module.connectionRoutes),
     ),
   );
 
 const client = createIsomorphicFn()
-  .server(() => serverClient<SourceRoutes>(loadSourceRoutes))
-  .client(() => browserClient<SourceRoutes>());
+  .server(() => serverClient<ConnectionRoutes>(loadConnectionRoutes))
+  .client(() => browserClient<ConnectionRoutes>());
 
-const sourceClient = client();
+const connectionClient = client();
 
-const sourceQueries = createQueries<SourceRoutes>(sourceClient);
+const connectionQueries = createQueries<ConnectionRoutes>(connectionClient);
 
-export { sourceClient, sourceQueries };
+export { connectionClient, connectionQueries };

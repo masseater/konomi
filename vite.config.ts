@@ -118,7 +118,16 @@ export default defineConfig({
             {
               from: "package",
               package: "effect",
-              name: ["Cause", "Context", "Effect", "Exit", "Layer", "Option"],
+              name: [
+                "Cause",
+                "Context",
+                "Effect",
+                "Exit",
+                "HttpClientRequest",
+                "HttpClientResponse",
+                "Layer",
+                "Option",
+              ],
             },
           ],
         },

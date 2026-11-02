@@ -13,7 +13,17 @@
         "name": "@effect/language-service",
         "allowedUnstableApis": [
           "@effect/atom-react",
+          "effect/http/Cookies#empty",
+          "effect/http/Cookies#getValue",
+          "effect/http/FetchHttpClient#RequestInit",
           "effect/http/FetchHttpClient#layer",
+          "effect/http/HttpClient#followRedirects",
+          "effect/http/HttpClient#withCookiesRef",
+          "effect/http/HttpClientRequest#HttpClientRequest",
+          "effect/http/HttpClientRequest#bodyUrlParams",
+          "effect/http/HttpClientRequest#get",
+          "effect/http/HttpClientRequest#post",
+          "effect/http/HttpClientResponse#HttpClientResponse",
           "effect/http/HttpClient#HttpClient",
           "effect/http/HttpClientResponse#schemaBodyJson",
           "effect/reactivity/Atom"

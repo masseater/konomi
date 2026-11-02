@@ -1,10 +1,24 @@
-const SOURCE_IDS = ["niconico"] as const;
+const PROVIDER_IDS = ["niconico"] as const;
 
-const ACTIVITY_KINDS = ["watched", "liked", "saved", "followed"] as const;
+const SIGNAL_KINDS = ["consumed", "endorsed", "collected", "followed"] as const;
 
-type SourceId = (typeof SOURCE_IDS)[number];
+const EVENT_SIGNAL_KINDS = ["consumed"] as const;
 
-type ActivityKind = (typeof ACTIVITY_KINDS)[number];
+const SUBJECT_TYPES = [
+  "video",
+  "track",
+  "album",
+  "playlist",
+  "episode",
+  "person",
+  "channel",
+] as const;
 
-export type { ActivityKind, SourceId };
-export { ACTIVITY_KINDS, SOURCE_IDS };
+type ProviderId = (typeof PROVIDER_IDS)[number];
+
+type SignalKind = (typeof SIGNAL_KINDS)[number];
+
+type SubjectType = (typeof SUBJECT_TYPES)[number];
+
+export type { ProviderId, SignalKind, SubjectType };
+export { EVENT_SIGNAL_KINDS, PROVIDER_IDS, SIGNAL_KINDS, SUBJECT_TYPES };

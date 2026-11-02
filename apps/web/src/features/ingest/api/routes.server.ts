@@ -1,33 +1,38 @@
-import { Array as Arr, Effect, Equal, Option, Schema, pipe } from "effect";
+import {
+  Array as Arr,
+  Effect,
+  Match,
+  Option,
+  Record as Rec,
+  Schema,
+  String as Str,
+  pipe,
+} from "effect";
 
-import { countBySourceAndKind } from "#/entities/activity/index.server";
-import type { KindCount } from "#/entities/activity/index.server";
-import type { SourceAccount } from "#/features/ingest/model/source-account";
-import type { SyncStatus } from "#/features/ingest/model/sync-status";
+import { forgetConnection, saveCredential } from "#/entities/connection/index.server";
 import { createRouter } from "#/shared/api/index.server";
 import { auth } from "#/shared/auth/index.server";
-import { SOURCE_IDS } from "#/shared/config";
-import type { ActivityKind, SourceId } from "#/shared/config";
+import { PROVIDER_IDS } from "#/shared/config";
+import type { ProviderId } from "#/shared/config";
 import { runRequest } from "#/shared/observability/index.server";
 
-import { syncAll } from "./run.server";
-import { forgetSecret, listAccounts, saveSecret } from "./store.server";
+import { PROVIDERS } from "./providers/index.server";
+import { statusOf } from "./status.server";
+import { syncAll } from "./sync.server";
 
 const UNAUTHORIZED = 401;
+const BAD_REQUEST = 400;
 
-const SourceParams = Schema.toStandardSchemaV1(
-  Schema.Struct({ source: Schema.Literals(SOURCE_IDS) }),
+const ProviderParams = Schema.toStandardSchemaV1(
+  Schema.Struct({ provider: Schema.Literals(PROVIDER_IDS) }),
 );
 
-const SecretBody = Schema.toStandardSchemaV1(Schema.Struct({ secret: Schema.NonEmptyString }));
-
-type SourceState = Readonly<{
-  source: SourceId;
-  connection:
-    | Readonly<{ status: "unconnected" }>
-    | Readonly<{ status: SyncStatus; failure: string; syncedAtMs: number }>;
-  totals: readonly Readonly<{ kind: ActivityKind; items: number }>[];
-}>;
+const CredentialBody = Schema.toStandardSchemaV1(
+  Schema.Struct({
+    method: Schema.NonEmptyString,
+    fields: Schema.Record(Schema.String, Schema.String),
+  }),
+);
 
 const isOwner = (request: Request): Effect.Effect<boolean> =>
   Effect.promise(() => auth.api.getSession({ headers: request.headers })).pipe(
@@ -51,53 +56,47 @@ const rejectStranger = <Rejection>({
     ),
   );
 
-const connectionOf = (account: Option.Option<SourceAccount>): SourceState["connection"] =>
-  Option.match(account, {
-    onNone: (): SourceState["connection"] => ({ status: "unconnected" }),
-    onSome: ({ status, failure, syncedAtMs }): SourceState["connection"] => ({
-      status,
-      failure,
-      syncedAtMs,
-    }),
-  });
+const knowsMethod = (provider: ProviderId, method: string): boolean =>
+  pipe(
+    PROVIDERS[provider].methods,
+    Arr.some(({ id }) => id === method),
+  );
 
-const stateOf =
-  (accounts: readonly SourceAccount[], totals: readonly KindCount[]) =>
-  (source: SourceId): SourceState => ({
-    source,
-    connection: pipe(
-      accounts,
-      Arr.findFirst((account) => Equal.equals(account.source, source)),
-      connectionOf,
-    ),
-    totals: pipe(
-      totals,
-      Arr.filter((total) => Equal.equals(total.source, source)),
-      Arr.map(({ kind, items }) => ({ kind, items })),
-    ),
-  });
+const filledFields = (fields: Readonly<Record<string, string>>): Record<string, string> =>
+  pipe(
+    fields,
+    Rec.map((value) => Str.trim(value)),
+    Rec.filter((value) => Str.isNonEmpty(value)),
+  );
 
-const statusOf = Effect.all({ accounts: listAccounts, totals: countBySourceAndKind() }).pipe(
-  Effect.map(({ accounts, totals }) => pipe(SOURCE_IDS, Arr.map(stateOf(accounts, totals)))),
-  Effect.withSpan("ingest.status"),
-);
-
-const sourceRoutes = createRouter("/api/sources")
+const connectionRoutes = createRouter("/api/connections")
   .onBeforeHandle(({ request, status }) =>
     rejectStranger({ request, reject: () => status(UNAUTHORIZED, "sign in first") }),
   )
   .get("/", () => runRequest(statusOf))
   .put(
-    "/:source",
-    ({ params, body }) => runRequest(saveSecret({ source: params.source, secret: body.secret })),
-    { params: SourceParams, body: SecretBody },
+    "/:provider",
+    ({ params, body, status }) =>
+      Match.value(knowsMethod(params.provider, body.method)).pipe(
+        Match.when(true, () =>
+          runRequest(
+            saveCredential({
+              provider: params.provider,
+              credential: { method: body.method, fields: filledFields(body.fields) },
+            }),
+          ),
+        ),
+        Match.orElse(() => status(BAD_REQUEST, "unknown method")),
+      ),
+    { params: ProviderParams, body: CredentialBody },
   )
-  .delete("/:source", ({ params }) => runRequest(forgetSecret(params.source)), {
-    params: SourceParams,
+  .delete("/:provider", ({ params }) => runRequest(forgetConnection(params.provider)), {
+    params: ProviderParams,
   })
   .post("/sync", () => runRequest(syncAll));
 
-type SourceRoutes = typeof sourceRoutes;
+type ConnectionRoutes = typeof connectionRoutes;
 
-export type { SourceRoutes, SourceState };
-export { sourceRoutes };
+export type { ProviderState } from "./status.server";
+export type { ConnectionRoutes };
+export { connectionRoutes };

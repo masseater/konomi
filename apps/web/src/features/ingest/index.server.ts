@@ -1,2 +1,2 @@
-export { syncAll } from "./api/run.server";
-export { sourceRoutes } from "./api/routes.server";
+export { syncAll } from "./api/sync.server";
+export { connectionRoutes } from "./api/routes.server";

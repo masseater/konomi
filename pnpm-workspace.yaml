@@ -38,6 +38,7 @@ catalog:
   "@tanstack/intent": 0.5.6
   "@yarnpkg/parsers": 3.1.0
   jose: 6.2.14
+  otpauth: 9.5.2
   "@better-auth/mcp": 1.7.14
   "@better-auth/oauth-provider": 1.7.14
   "@modelcontextprotocol/server": 2.3.1
