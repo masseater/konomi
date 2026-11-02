@@ -2,19 +2,16 @@ import type { McpServer } from "@modelcontextprotocol/server";
 import { DateTime, Effect, Option, Schema, pipe } from "effect";
 
 import { listConnectionViews } from "#/entities/connection/index.server";
-import { countByKind, findSignals, topCreators, topTags } from "#/entities/signal/index.server";
-import type {
-  CreatorCount,
-  KindCount,
-  SignalFilter,
-  TagCount,
-} from "#/entities/signal/index.server";
+import { countByKind, findSignals, tasteProfile } from "#/entities/signal/index.server";
+import type { KindCount, SignalFilter, Taste } from "#/entities/signal/index.server";
 
 import { ToolError } from "./tool-error";
 import { EmptyInput, ProfileInput, SearchInput } from "./tool-input";
 import { runTool } from "./tool-result.server";
 
 const DEFAULT_LIMIT = 30;
+const PROFILE_METHOD =
+  "lasting と recent は好みの度合いの占有率で、半減期 1 年と 30 日で古い反応を割り引いて足した。重みは見た・聴いた 1（同じ対象を何度も見ても対数で頭打ち）、高評価 2、保存 3、フォロー 3。投稿者とタグは、紐づく対象の度合いの合計。trend は recent が lasting の 1.5 倍以上で rising、2/3 以下で fading。rising は最近伸びているものの一覧";
 const READ_ONLY = { readOnlyHint: true, openWorldHint: false };
 const SEARCH_SCHEMA = SearchInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
 const PROFILE_SCHEMA = ProfileInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
@@ -49,16 +46,16 @@ const filterOf = (input: FilterInput): Effect.Effect<SignalFilter, ToolError> =>
   );
 
 type Profile = Readonly<{
+  method: string;
   counts: readonly KindCount[];
-  creators: readonly CreatorCount[];
-  tags: readonly TagCount[];
+  taste: Taste;
 }>;
 
 const profileOf = (filter: SignalFilter): Effect.Effect<Profile> =>
   Effect.all({
+    method: Effect.succeed(PROFILE_METHOD),
     counts: countByKind(filter),
-    creators: topCreators(filter),
-    tags: topTags(filter),
+    taste: tasteProfile(filter),
   });
 
 const registerTools = (server: McpServer): McpServer => {
@@ -76,7 +73,7 @@ const registerTools = (server: McpServer): McpServer => {
     "taste_profile",
     {
       description:
-        "サービス・対象の種類・反応の種類ごとの件数と、よく反応した投稿者やアーティスト、よく付いているタグの順位を返す。持ち主の好みの全体像や、期間ごとの変化をつかむときに最初に使う",
+        "持ち主の好みを、作品・投稿者やアーティスト・タグごとの度合いで返す。長く続く好み（lasting）と最近の好み（recent）、伸びているもの（rising）が分かる。好みの全体像や変化をつかむときに最初に使い、具体的な記録は search_signals で確かめる",
       inputSchema: PROFILE_SCHEMA,
       annotations: READ_ONLY,
     },
