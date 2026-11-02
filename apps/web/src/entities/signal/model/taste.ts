@@ -260,4 +260,4 @@ export type {
   TasteInput,
   Trend,
 };
-export { DAY_MS, tasteOf };
+export { tasteOf };

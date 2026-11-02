@@ -1,11 +1,13 @@
-import { Array as Arr, Record as Rec, pipe } from "effect";
+import { Array as Arr, Duration, Record as Rec, pipe } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { DAY_MS, tasteOf } from "./taste";
+import { tasteOf } from "./taste";
 import type { Link, SignalBucket, SubjectInfo, Taste } from "./taste";
 
 const NOW = 1_800_000_000_000;
 const LIMIT = 10;
+const YESTERDAY = 1;
+const daysAgoMs = (days: number): number => NOW - Duration.toMillis(Duration.days(days));
 
 type Play = Readonly<{ key: string; plays: number; daysAgo: number }>;
 
@@ -22,7 +24,7 @@ const played = ({ key, plays, daysAgo }: Play): SignalBucket => ({
   subjectKey: key,
   kind: "consumed",
   signals: plays,
-  atMs: NOW - daysAgo * DAY_MS,
+  atMs: daysAgoMs(daysAgo),
 });
 
 const tasteFrom = (
@@ -56,7 +58,7 @@ describe("tasteOf", () => {
           ["a1", "a2", "a3"],
           Arr.map((key) => played({ key, plays: 1, daysAgo: 1 })),
         ),
-        { subjectKey: "a1", kind: "endorsed", signals: 1, atMs: NOW - DAY_MS },
+        { subjectKey: "a1", kind: "endorsed", signals: 1, atMs: daysAgoMs(YESTERDAY) },
       ],
       subjects: [...Arr.map(["loop", "a1", "a2", "a3"], video), person("alice"), person("bob")],
       credits: [
@@ -95,7 +97,7 @@ describe("tasteOf", () => {
 describe("tasteOf facets", () => {
   it("counts a followed creator as a creator, not as a work", () => {
     const taste = tasteFrom({
-      buckets: [{ subjectKey: "carol", kind: "followed", signals: 1, atMs: NOW - DAY_MS }],
+      buckets: [{ subjectKey: "carol", kind: "followed", signals: 1, atMs: daysAgoMs(YESTERDAY) }],
       subjects: [person("carol")],
     });
     expect(titles(taste.creators.top)).toStrictEqual(["carol"]);
