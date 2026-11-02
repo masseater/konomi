@@ -42,7 +42,7 @@ catalog:
   "@better-auth/mcp": 1.7.14
   "@better-auth/oauth-provider": 1.7.14
   "@modelcontextprotocol/server": 2.4.0
-  markdownlint-cli2: 0.23.3
+  markdownlint-cli2: 0.24.0
   chrome-launcher: 1.2.2
   lighthouse: 13.6.0
   puppeteer-core: 25.14.0
