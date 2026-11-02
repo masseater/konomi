@@ -250,6 +250,7 @@ const tasteOf = (input: TasteInput): Taste => {
 
 export type {
   Affinity,
+  Facet,
   Link,
   SignalBucket,
   SubjectAffinity,
@@ -259,4 +260,4 @@ export type {
   TasteInput,
   Trend,
 };
-export { DAY_MS, HORIZONS, KIND_WEIGHTS, tasteOf };
+export { DAY_MS, tasteOf };
