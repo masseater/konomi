@@ -25,14 +25,32 @@ const OWNED_ZONE = Option.none<string>();
 
 const CF_BEACON_TOKEN = "47d660a773db4bb7a9b283aaf8f080ff";
 
+const INGEST_SCHEDULE = "17 * * * *";
+
+const DEFAULT_DOMAIN = "konomi.masseater.dev";
+
 const web = Effect.gen(function* web() {
   const DB = yield* D1.Database("DB", { migrations: "./drizzle" });
   const BETTER_AUTH_SECRET = yield* makeRandom("BetterAuthSecret");
+  const CREDENTIAL_KEY = yield* makeRandom("CredentialKey");
+  const domain = yield* Config.schema(Schema.NonEmptyString, "KONOMI_DOMAIN").pipe(
+    Config.withDefault(DEFAULT_DOMAIN),
+  );
   return yield* Website.Vite("Web", {
+    domain,
+    main: "src/app/server/main.worker.ts",
+    crons: [INGEST_SCHEDULE],
     compatibility: COMPATIBILITY,
     logpush: true,
     limits: WEB_LIMITS,
-    env: { API_RATE_LIMIT, BETTER_AUTH_SECRET, CF_BEACON_TOKEN, DB },
+    env: {
+      API_RATE_LIMIT,
+      BETTER_AUTH_SECRET,
+      CF_BEACON_TOKEN,
+      CREDENTIAL_KEY,
+      DB,
+      SITE_ORIGIN: `https://${domain}`,
+    },
     observability: {
       enabled: true,
       logs: {

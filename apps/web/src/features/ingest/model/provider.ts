@@ -1,0 +1,41 @@
+import type { Effect } from "effect";
+
+import type { Credential } from "#/entities/connection";
+import type { Observation } from "#/entities/signal";
+import type { ProviderId } from "#/shared/config";
+
+import type { ProviderError } from "./provider-error";
+
+type CredentialField = Readonly<{
+  name: string;
+  label: string;
+  secret: boolean;
+  optional: boolean;
+}>;
+
+type CredentialMethod = Readonly<{
+  id: string;
+  label: string;
+  howTo: string;
+  fields: readonly CredentialField[];
+  renews: boolean;
+}>;
+
+type PullInput = Readonly<{ credential: Credential; cursor: string }>;
+
+type Pulled = Readonly<{
+  observations: readonly Observation[];
+  cursor: string;
+  credential?: Credential;
+}>;
+
+type Provider = Readonly<{
+  id: ProviderId;
+  name: string;
+  methods: readonly CredentialMethod[];
+  pull: (input: PullInput) => Effect.Effect<Pulled, ProviderError>;
+  renew: (credential: Credential) => Effect.Effect<Credential, ProviderError>;
+}>;
+
+export type { ProviderError } from "./provider-error";
+export type { CredentialField, CredentialMethod, Provider, PullInput, Pulled };
