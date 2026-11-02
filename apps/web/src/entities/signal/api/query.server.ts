@@ -31,10 +31,6 @@ type FoundSignal = Readonly<{
   tags: readonly string[];
 }>;
 
-type CreatorCount = Readonly<{ title: string; url: string; type: SubjectType; signals: number }>;
-
-type TagCount = Readonly<{ tag: string; signals: number }>;
-
 type KindCount = Readonly<{
   provider: ProviderId;
   type: SubjectType;
@@ -184,38 +180,6 @@ const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundSignal[]
     Effect.withSpan("signal.find"),
   );
 
-const topCreators = (filter: SignalFilter): Effect.Effect<readonly CreatorCount[]> =>
-  Effect.promise(() =>
-    db
-      .select({
-        title: creator.title,
-        url: creator.url,
-        type: creator.type,
-        signals: count(signal.id),
-      })
-      .from(signal)
-      .innerJoin(subject, eq(subject.key, signal.subjectKey))
-      .innerJoin(credit, eq(credit.subjectKey, signal.subjectKey))
-      .innerJoin(creator, eq(creator.key, credit.creatorKey))
-      .where(conditionsOf(filter))
-      .groupBy(creator.key)
-      .orderBy(desc(count(signal.id)))
-      .limit(filter.limit),
-  ).pipe(Effect.withSpan("signal.top-creators"));
-
-const topTags = (filter: SignalFilter): Effect.Effect<readonly TagCount[]> =>
-  Effect.promise(() =>
-    db
-      .select({ tag: subjectTag.tag, signals: count(signal.id) })
-      .from(signal)
-      .innerJoin(subject, eq(subject.key, signal.subjectKey))
-      .innerJoin(subjectTag, eq(subjectTag.subjectKey, signal.subjectKey))
-      .where(conditionsOf(filter))
-      .groupBy(subjectTag.tag)
-      .orderBy(desc(count(signal.id)))
-      .limit(filter.limit),
-  ).pipe(Effect.withSpan("signal.top-tags"));
-
 const countByKind = (filter: SignalFilter): Effect.Effect<readonly KindCount[]> =>
   Effect.promise(() =>
     db
@@ -231,5 +195,5 @@ const countByKind = (filter: SignalFilter): Effect.Effect<readonly KindCount[]> 
       .groupBy(subject.provider, subject.type, signal.kind),
   ).pipe(Effect.withSpan("signal.count-by-kind"));
 
-export type { CreatorCount, FoundSignal, KindCount, SignalFilter, TagCount };
-export { countByKind, findSignals, topCreators, topTags };
+export type { FoundSignal, KindCount, SignalFilter };
+export { conditionsOf, countByKind, findSignals };
