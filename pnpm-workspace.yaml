@@ -45,7 +45,7 @@ catalog:
   markdownlint-cli2: 0.24.0
   chrome-launcher: 1.2.2
   lighthouse: 13.6.0
-  puppeteer-core: 25.14.0
+  puppeteer-core: 25.16.0
 catalogs:
   stack:
     "@distilled.cloud/cloudflare": 1.0.0-rc.17
@@ -98,6 +98,7 @@ overrides:
   seroval@<1.6.11: ^1.6.11
   glob@>=9.0.0 <=14.0.1: ^14.0.2
   minimatch@<11.0.1: ^11.0.1
+  re2js@>=2.2.0 <2.8.7: ^2.8.7
 peerDependencyRules:
   allowAny:
     - vite
