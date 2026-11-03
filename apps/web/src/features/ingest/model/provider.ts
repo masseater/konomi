@@ -4,6 +4,7 @@ import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
 import type { ProviderId } from "#/shared/config";
 
+import type { ImportRejected } from "./import-rejected";
 import type { ProviderError } from "./provider-error";
 
 type CredentialField = Readonly<{
@@ -34,6 +35,21 @@ type CredentialMethod = Readonly<{
   authorizePath?: string;
 }>;
 
+type ImportRow = Readonly<Record<string, string>>;
+
+type ImportInput = Readonly<{
+  rows: readonly ImportRow[];
+  fields: Readonly<Record<string, string>>;
+}>;
+
+type ImportFormat = Readonly<{
+  id: string;
+  label: string;
+  howTo: string;
+  fields: readonly CredentialField[];
+  observe: (input: ImportInput) => Effect.Effect<readonly Observation[], ImportRejected>;
+}>;
+
 type PullInput = Readonly<{ credential: Credential; cursor: string }>;
 
 type Pulled = Readonly<{
@@ -48,6 +64,7 @@ type Provider = Readonly<{
   methods: readonly CredentialMethod[];
   pull: (input: PullInput) => Effect.Effect<Pulled, ProviderError>;
   renew: (credential: Credential) => Effect.Effect<Credential, ProviderError>;
+  imports?: readonly ImportFormat[];
 }>;
 
 export type { ProviderError } from "./provider-error";
@@ -56,6 +73,9 @@ export type {
   CredentialField,
   Discovery,
   CredentialMethod,
+  ImportFormat,
+  ImportInput,
+  ImportRow,
   Provider,
   PullInput,
   Pulled,

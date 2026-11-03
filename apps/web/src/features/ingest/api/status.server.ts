@@ -4,7 +4,7 @@ import type { ConnectionView, SyncStatus } from "#/entities/connection";
 import { listConnectionViews } from "#/entities/connection/index.server";
 import { countByKind } from "#/entities/signal/index.server";
 import type { KindCount, SignalFilter } from "#/entities/signal/index.server";
-import type { CredentialMethod } from "#/features/ingest/model/provider";
+import type { CredentialMethod, ImportFormat } from "#/features/ingest/model/provider";
 import { PROVIDER_IDS, SIGNAL_KINDS } from "#/shared/config";
 import type { ProviderId, SignalKind } from "#/shared/config";
 
@@ -21,10 +21,13 @@ const ALL_SIGNALS: SignalFilter = {
   limit: 0,
 };
 
+type ImportView = Omit<ImportFormat, "observe">;
+
 type ProviderState = Readonly<{
   provider: ProviderId;
   name: string;
   methods: readonly CredentialMethod[];
+  imports: readonly ImportView[];
   redirectUri: string;
   connection:
     | Readonly<{ status: "unconnected" }>
@@ -45,6 +48,20 @@ const connectionOf = (found: Option.Option<ConnectionView>): ProviderState["conn
 
 const NONE = 0;
 
+const importViewOf = ({ id, label, howTo, fields }: ImportFormat): ImportView => ({
+  id,
+  label,
+  howTo,
+  fields,
+});
+
+const importViewsOf = (imports: readonly ImportFormat[] | undefined): readonly ImportView[] =>
+  pipe(
+    Option.fromUndefinedOr(imports),
+    Option.map(Arr.map(importViewOf)),
+    Option.getOrElse((): readonly ImportView[] => []),
+  );
+
 const totalsOf = (counts: readonly KindCount[], provider: ProviderId): ProviderState["totals"] =>
   pipe(
     SIGNAL_KINDS,
@@ -62,10 +79,11 @@ const totalsOf = (counts: readonly KindCount[], provider: ProviderId): ProviderS
 
 const stateOf =
   (connections: readonly ConnectionView[], counts: readonly KindCount[]) =>
-  ({ id, name, methods }: (typeof PROVIDERS)[ProviderId]): ProviderState => ({
+  ({ id, name, methods, imports }: (typeof PROVIDERS)[ProviderId]): ProviderState => ({
     provider: id,
     name,
     methods,
+    imports: importViewsOf(imports),
     redirectUri: redirectUriOf(id),
     connection: pipe(
       connections,
@@ -88,5 +106,5 @@ const statusOf = Effect.all({
   Effect.withSpan("ingest.status"),
 );
 
-export type { ProviderState };
+export type { ImportView, ProviderState };
 export { statusOf };

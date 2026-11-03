@@ -12,6 +12,7 @@ const PROVIDER_IDS = [
   "mastodon",
   "misskey",
   "myanimelist",
+  "netflix",
   "niconico",
   "openlibrary",
   "pinterest",

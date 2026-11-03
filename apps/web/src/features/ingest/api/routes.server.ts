@@ -20,6 +20,8 @@ import {
   appleDeveloperTokenResponse,
   authorizeResponse,
   callbackResponse,
+  ImportBody,
+  importResponse,
   saveAppleUserTokenResponse,
 } from "./handlers.server";
 import { PROVIDERS } from "./providers/index.server";
@@ -108,6 +110,14 @@ const connectionRoutes = createRouter("/api/connections")
   .delete("/:provider", ({ params }) => runRequest(forgetConnection(params.provider)), {
     params: ProviderParams,
   })
+  .post(
+    "/:provider/imports",
+    ({ params, body }) =>
+      runRequest(
+        importResponse({ provider: params.provider, ...body, fields: filledFields(body.fields) }),
+      ),
+    { params: ProviderParams, body: ImportBody },
+  )
   .get("/:provider/authorize", ({ params }) => runRequest(authorizeResponse(params.provider)), {
     params: ProviderParams,
   })
@@ -131,6 +141,6 @@ const connectionRoutes = createRouter("/api/connections")
 
 type ConnectionRoutes = typeof connectionRoutes;
 
-export type { ProviderState } from "./status.server";
+export type { ImportView, ProviderState } from "./status.server";
 export type { ConnectionRoutes };
 export { connectionRoutes };
