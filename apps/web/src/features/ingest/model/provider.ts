@@ -27,6 +27,7 @@ type CredentialMethod = Readonly<{
   fields: readonly CredentialField[];
   renews: boolean;
   authorization?: Authorization;
+  authorizePath?: string;
 }>;
 
 type PullInput = Readonly<{ credential: Credential; cursor: string }>;

@@ -10,6 +10,7 @@ import { Button } from "#/shared/ui/button";
 import { Input } from "#/shared/ui/input";
 
 import { AuthorizeLink } from "./authorize-link";
+import { AuthorizePageLink } from "./authorize-page-link";
 
 const SAVE = "保存する";
 const SAVED = "保存した。次の取り込みで使う";
@@ -87,6 +88,9 @@ const CredentialForm = ({
       {status === "success" && <p className="text-sm">{SAVED}</p>}
       {Option.isSome(Option.fromUndefinedOr(method.authorization)) && (
         <AuthorizeLink provider={provider} redirectUri={redirectUri} />
+      )}
+      {Option.isSome(Option.fromUndefinedOr(method.authorizePath)) && (
+        <AuthorizePageLink path={method.authorizePath ?? ""} />
       )}
       {status === "error" && (
         <p role="alert" className="text-destructive text-sm">

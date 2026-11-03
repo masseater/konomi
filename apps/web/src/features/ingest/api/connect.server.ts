@@ -98,4 +98,4 @@ const finishAuthorization = ({
     return HOME;
   }).pipe(Effect.withSpan("connect.finish", { attributes: { provider } }));
 
-export { finishAuthorization, redirectUriOf, startAuthorization };
+export { connectionOf, finishAuthorization, redirectUriOf, startAuthorization };

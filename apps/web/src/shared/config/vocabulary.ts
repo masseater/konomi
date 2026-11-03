@@ -1,4 +1,4 @@
-const PROVIDER_IDS = ["niconico", "soundcloud", "spotify", "youtube"] as const;
+const PROVIDER_IDS = ["apple-music", "niconico", "soundcloud", "spotify", "youtube"] as const;
 
 const SIGNAL_KINDS = ["consumed", "endorsed", "collected", "followed"] as const;
 
