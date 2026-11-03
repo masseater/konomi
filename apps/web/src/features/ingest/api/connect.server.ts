@@ -1,32 +1,25 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Connection, Credential } from "#/entities/connection";
+import type { Connection } from "#/entities/connection";
 import {
   listConnections,
   openCredential,
   replaceCredential,
 } from "#/entities/connection/index.server";
 import { CredentialRejected } from "#/features/ingest/model/credential-rejected";
-import type { Authorization, ProviderError } from "#/features/ingest/model/provider";
+import type { ProviderError } from "#/features/ingest/model/provider";
 import type { ProviderId } from "#/shared/config";
 import { SITE_ORIGIN } from "#/shared/config/index.server";
 
-import { requireField } from "./providers/credential-field";
+import { exchangeFor, startByDiscovery, startByEndpoints } from "./authorization-flows.server";
+import type { Authorizing } from "./authorization-flows.server";
 import { PROVIDERS } from "./providers/index.server";
-import {
-  OAUTH_FIELD,
-  authorizeUrlOf,
-  exchangeCode,
-  newState,
-  stateMatches,
-} from "./providers/oauth.server";
+import { stateMatches } from "./providers/oauth.server";
 
 const HOME = "/";
 
 const redirectUriOf = (provider: ProviderId): string =>
   `${SITE_ORIGIN}/api/connections/${provider}/callback`;
-
-type Authorizing = Readonly<{ authorization: Authorization; credential: Credential }>;
 
 const rejected = (message: string): CredentialRejected => CredentialRejected.make({ message });
 
@@ -56,24 +49,25 @@ const authorizingOf = (provider: ProviderId): Effect.Effect<Authorizing, Credent
   );
 
 const startAuthorization = (provider: ProviderId): Effect.Effect<string, ProviderError> =>
-  Effect.gen(function* start() {
-    const { authorization, credential } = yield* authorizingOf(provider);
-    const clientId = yield* requireField(credential, OAUTH_FIELD.clientId);
-    const state = newState();
-    yield* replaceCredential({
-      provider,
-      credential: {
-        method: credential.method,
-        fields: { ...credential.fields, [OAUTH_FIELD.state]: state },
-      },
-    });
-    return authorizeUrlOf({
-      authorization,
-      clientId,
-      redirectUri: redirectUriOf(provider),
-      state,
-    });
-  }).pipe(Effect.withSpan("connect.start", { attributes: { provider } }));
+  authorizingOf(provider).pipe(
+    Effect.flatMap((authorizing) =>
+      pipe(
+        Option.fromUndefinedOr(authorizing.authorization.discovery),
+        Option.match({
+          onNone: () =>
+            startByEndpoints({ provider, redirectUri: redirectUriOf(provider), ...authorizing }),
+          onSome: (discovery) =>
+            startByDiscovery({
+              provider,
+              redirectUri: redirectUriOf(provider),
+              discovery,
+              ...authorizing,
+            }),
+        }),
+      ),
+    ),
+    Effect.withSpan("connect.start", { attributes: { provider } }),
+  );
 
 const finishAuthorization = ({
   provider,
@@ -88,12 +82,8 @@ const finishAuthorization = ({
     if (!stateMatches(credential, state)) {
       return yield* rejected("許可の画面から戻った値が合わない。やり直す");
     }
-    const authorized = yield* exchangeCode({
-      authorization,
-      credential,
-      code,
-      redirectUri: redirectUriOf(provider),
-    });
+    const redirectUri = redirectUriOf(provider);
+    const authorized = yield* exchangeFor({ authorization, credential, code, redirectUri });
     yield* replaceCredential({ provider, credential: authorized });
     return HOME;
   }).pipe(Effect.withSpan("connect.finish", { attributes: { provider } }));

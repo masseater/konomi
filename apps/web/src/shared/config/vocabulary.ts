@@ -16,6 +16,7 @@ const PROVIDER_IDS = [
   "spotify",
   "steam",
   "trakt",
+  "twilog",
   "twitch",
   "vocadb",
   "youtube",
