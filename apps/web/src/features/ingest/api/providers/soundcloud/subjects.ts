@@ -2,10 +2,10 @@ import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { withRelations } from "#/features/ingest/api/providers/observe";
+import { durationFromMs, publishedOf } from "#/features/ingest/api/providers/subject-fields";
 
 import type { SoundcloudPlaylist, SoundcloudTrack, SoundcloudUser } from "./schemas";
 
-const MS_PER_SECOND = 1000;
 const TAG = /"(?<quoted>[^"]+)"|(?<bare>\S+)/gu;
 
 const userOf = (user: SoundcloudUser): CreatorInput => ({
@@ -47,32 +47,22 @@ const tagsOf = (
     Arr.dedupe,
   );
 
-const durationOf = (track: SoundcloudTrack): Readonly<{ durationSec?: number }> =>
-  pipe(
-    Option.fromNullishOr(track.full_duration),
-    Option.orElse(() => Option.fromNullishOr(track.duration)),
-    Option.map((ms) => ({ durationSec: Math.round(ms / MS_PER_SECOND) })),
-    Option.getOrElse(() => ({})),
-  );
-
-const publishedOf = (track: SoundcloudTrack): Readonly<{ publishedAtMs?: number }> =>
-  pipe(
-    Option.fromNullishOr(track.display_date),
-    Option.orElse(() => Option.fromNullishOr(track.created_at)),
-    Option.map((text) => Date.parse(text)),
-    Option.filter(Number.isFinite),
-    Option.map((publishedAtMs) => ({ publishedAtMs })),
-    Option.getOrElse(() => ({})),
-  );
-
 const trackOf = (track: SoundcloudTrack): SubjectInput => ({
   provider: "soundcloud",
   externalId: String(track.id),
   type: "track",
   title: track.title,
   url: track.permalink_url,
-  ...durationOf(track),
-  ...publishedOf(track),
+  ...durationFromMs(
+    Option.orElse(Option.fromNullishOr(track.full_duration), () =>
+      Option.fromNullishOr(track.duration),
+    ),
+  ),
+  ...publishedOf(
+    Option.orElse(Option.fromNullishOr(track.display_date), () =>
+      Option.fromNullishOr(track.created_at),
+    ),
+  ),
   credits: creditsOf(track.user),
   tags: tagsOf(track),
 });
@@ -90,4 +80,4 @@ const playlistOf = (playlist: SoundcloudPlaylist): SubjectInput => ({
 const followedUserOf = (user: SoundcloudUser): SubjectInput =>
   withRelations({ credits: [], tags: [] })(userOf(user));
 
-export { followedUserOf, playlistOf, tagListOf, trackOf };
+export { followedUserOf, playlistOf, trackOf };

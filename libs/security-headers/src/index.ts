@@ -73,6 +73,7 @@ const assetHeaders = (pageHeaders: Readonly<Record<string, string>>): string =>
     Arr.join("\n"),
   );
 
+export type { PolicySources };
 export {
   SECURITY_HEADERS,
   STATIC_PAGE_HEADERS,

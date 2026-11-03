@@ -1,8 +1,9 @@
-import { Array as Arr, Clock, Effect, Match, Option, Schema, String as Str, pipe } from "effect";
+import { Array as Arr, Clock, Effect, Option, Schema, String as Str, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest/api/providers/http.server";
+import { pagesUpTo } from "#/features/ingest/api/providers/paging.server";
 import { CredentialRejected } from "#/features/ingest/model/credential-rejected";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest/model/provider";
 import type { SignalKind } from "#/shared/config";
@@ -129,11 +130,7 @@ const pullFollowing = ({
     ),
   );
 
-const pagesFor = (backfilled: boolean): number =>
-  Match.value(backfilled).pipe(
-    Match.when(true, () => FIRST_PAGE),
-    Match.orElse(() => BACKFILL_PAGES),
-  );
+const pagesFor = pagesUpTo(BACKFILL_PAGES);
 
 const pullNiconico = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* niconico() {

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Array as Arr, Effect, Match, Option, Record, Schema, pipe } from "effect";
+import { Array as Arr, Effect, Match, Record, Schema, pipe } from "effect";
 import { useCallback } from "react";
 import type { ReactNode } from "react";
 
@@ -9,8 +9,7 @@ import type { ProviderId } from "#/shared/config";
 import { Button } from "#/shared/ui/button";
 import { Input } from "#/shared/ui/input";
 
-import { AuthorizeLink } from "./authorize-link";
-import { AuthorizePageLink } from "./authorize-page-link";
+import { MethodLinks } from "./method-links";
 
 const SAVE = "保存する";
 const SAVED = "保存した。次の取り込みで使う";
@@ -86,12 +85,7 @@ const CredentialForm = ({
         {SAVE}
       </Button>
       {status === "success" && <p className="text-sm">{SAVED}</p>}
-      {Option.isSome(Option.fromUndefinedOr(method.authorization)) && (
-        <AuthorizeLink provider={provider} redirectUri={redirectUri} />
-      )}
-      {Option.isSome(Option.fromUndefinedOr(method.authorizePath)) && (
-        <AuthorizePageLink path={method.authorizePath ?? ""} />
-      )}
+      <MethodLinks provider={provider} method={method} redirectUri={redirectUri} />
       {status === "error" && (
         <p role="alert" className="text-destructive text-sm">
           {FAILED}

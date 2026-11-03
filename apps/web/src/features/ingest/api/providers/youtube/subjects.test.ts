@@ -1,16 +1,13 @@
 import { Option } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { clockSecondsOf, isoSecondsOf, likedVideoOf, playlistVideoOf } from "./subjects";
+import { clockSecondsOf, likedVideoOf, playlistVideoOf } from "./subjects";
 
 const HOUR_MINUTE_SECOND = 3723;
-const FORTY_FIVE = 45;
 const FOUR_FIVE = 245;
 
 describe("durations", () => {
-  it("reads ISO 8601 and clock durations", () => {
-    expect(isoSecondsOf("PT1H2M3S")).toStrictEqual(Option.some(HOUR_MINUTE_SECOND));
-    expect(isoSecondsOf("PT45S")).toStrictEqual(Option.some(FORTY_FIVE));
+  it("reads clock durations", () => {
     expect(clockSecondsOf("1:02:03")).toStrictEqual(Option.some(HOUR_MINUTE_SECOND));
     expect(clockSecondsOf("4:05")).toStrictEqual(Option.some(FOUR_FIVE));
     expect(clockSecondsOf("ライブ")).toStrictEqual(Option.none());

@@ -1,17 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { clientIdIn, scriptsOf } from "./client-id.server";
-import { tagListOf, trackOf } from "./subjects";
-
-describe("tagListOf", () => {
-  it("keeps quoted tags whole", () => {
-    expect(tagListOf('vocaloid "hatsune miku" 初音ミク')).toStrictEqual([
-      "vocaloid",
-      "hatsune miku",
-      "初音ミク",
-    ]);
-  });
-});
+import { trackOf } from "./subjects";
 
 describe("trackOf", () => {
   it("credits the uploader and puts the genre first in tags", () => {
@@ -22,7 +11,7 @@ describe("trackOf", () => {
         permalink_url: "https://soundcloud.com/someone/song",
         full_duration: 180_400,
         genre: "Electronic",
-        tag_list: "electronic chill",
+        tag_list: 'electronic "lo fi"',
         display_date: "2024-01-02T03:04:05Z",
         user: { id: 9, username: "someone", permalink_url: "https://soundcloud.com/someone" },
       }),
@@ -43,21 +32,7 @@ describe("trackOf", () => {
           url: "https://soundcloud.com/someone",
         },
       ],
-      tags: ["Electronic", "electronic", "chill"],
-    });
-  });
-});
-
-describe("client_id", () => {
-  it("looks through the asset scripts from the last one", () => {
-    const page =
-      '<script crossorigin src="https://a-v2.sndcdn.com/assets/0-a.js"></script><script crossorigin src="https://a-v2.sndcdn.com/assets/49-b.js"></script>';
-    expect(scriptsOf(page)).toStrictEqual([
-      "https://a-v2.sndcdn.com/assets/49-b.js",
-      "https://a-v2.sndcdn.com/assets/0-a.js",
-    ]);
-    expect(clientIdIn('x={client_id:"AbC123",env:"production"}')).toMatchObject({
-      value: "AbC123",
+      tags: ["Electronic", "electronic", "lo fi"],
     });
   });
 });

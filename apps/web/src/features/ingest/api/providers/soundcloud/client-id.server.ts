@@ -40,4 +40,4 @@ const scrapeClientId: Effect.Effect<string, ProviderError> = Effect.gen(function
   });
 }).pipe(Effect.withSpan("soundcloud.client-id"));
 
-export { clientIdIn, scrapeClientId, scriptsOf };
+export { scrapeClientId };

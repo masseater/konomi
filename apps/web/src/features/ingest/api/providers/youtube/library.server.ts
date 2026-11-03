@@ -1,14 +1,12 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
-import { fetchJson } from "#/features/ingest/api/providers/http.server";
 import { epochOr, observeAt } from "#/features/ingest/api/providers/observe";
 import type { Fetching } from "#/features/ingest/api/providers/observe";
-import { collectPages } from "#/features/ingest/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest/model/provider";
 
 import { API, LIMIT } from "./api";
-import { tokenPageOf } from "./page";
+import { collectTokenPages } from "./page";
 import { Subscriptions, Videos } from "./schemas";
 import { likedVideoOf, subscribedChannelOf } from "./subjects";
 
@@ -17,11 +15,11 @@ const pullLiked = ({
   fetchedAt,
   pages,
 }: Fetching & Readonly<{ pages: number }>): Effect.Effect<readonly Observation[], ProviderError> =>
-  collectPages({
+  collectTokenPages({
     first: `${API}/videos?myRating=like&part=snippet,contentDetails&maxResults=${LIMIT}`,
+    headers,
     pages,
-    fetchPage: (url) =>
-      fetchJson({ url, headers, schema: Videos }).pipe(Effect.map(tokenPageOf(url))),
+    schema: Videos,
   }).pipe(
     Effect.map(
       Arr.map((video): Observation => ({
@@ -38,11 +36,11 @@ const pullSubscriptions = ({
   pages,
 }: Fetching & Readonly<{ pages: number }>): Effect.Effect<readonly Observation[], ProviderError> =>
   Effect.gen(function* subscriptions() {
-    const items = yield* collectPages({
+    const items = yield* collectTokenPages({
       first: `${API}/subscriptions?mine=true&part=snippet&maxResults=${LIMIT}`,
+      headers,
       pages,
-      fetchPage: (url) =>
-        fetchJson({ url, headers, schema: Subscriptions }).pipe(Effect.map(tokenPageOf(url))),
+      schema: Subscriptions,
     });
     const followed = observeAt({
       kind: "followed",

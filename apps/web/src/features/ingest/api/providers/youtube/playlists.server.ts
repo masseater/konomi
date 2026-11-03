@@ -1,14 +1,13 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
-import { fetchJson } from "#/features/ingest/api/providers/http.server";
 import { epochOr, observeAt } from "#/features/ingest/api/providers/observe";
 import type { Fetching } from "#/features/ingest/api/providers/observe";
-import { collectPages, pagesFor } from "#/features/ingest/api/providers/paging.server";
+import { pagesFor } from "#/features/ingest/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest/model/provider";
 
 import { API, LIMIT } from "./api";
-import { tokenPageOf } from "./page";
+import { collectTokenPages } from "./page";
 import { PlaylistItems, Playlists } from "./schemas";
 import { playlistVideoOf } from "./subjects";
 
@@ -17,11 +16,11 @@ const pullPlaylist = (
   { id, title }: Readonly<{ id: string; title: string }>,
 ): Effect.Effect<readonly Observation[], ProviderError> =>
   Effect.gen(function* playlist() {
-    const items = yield* collectPages({
+    const items = yield* collectTokenPages({
       first: `${API}/playlistItems?playlistId=${id}&part=snippet,contentDetails&maxResults=${LIMIT}`,
+      headers,
       pages: pagesFor(false),
-      fetchPage: (url) =>
-        fetchJson({ url, headers, schema: PlaylistItems }).pipe(Effect.map(tokenPageOf(url))),
+      schema: PlaylistItems,
     });
     const collected = observeAt({
       kind: "collected",
@@ -39,13 +38,11 @@ const pullPlaylist = (
 
 const pullPlaylists = (fetching: Fetching): Effect.Effect<readonly Observation[], ProviderError> =>
   Effect.gen(function* playlists() {
-    const owned = yield* collectPages({
+    const owned = yield* collectTokenPages({
       first: `${API}/playlists?mine=true&part=snippet&maxResults=${LIMIT}`,
+      headers: fetching.headers,
       pages: pagesFor(false),
-      fetchPage: (url) =>
-        fetchJson({ url, headers: fetching.headers, schema: Playlists }).pipe(
-          Effect.map(tokenPageOf(url)),
-        ),
+      schema: Playlists,
     });
     const lists = yield* pipe(
       owned,

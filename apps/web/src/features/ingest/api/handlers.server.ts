@@ -57,5 +57,6 @@ export {
   appleDeveloperTokenResponse,
   authorizeResponse,
   callbackResponse,
-  saveAppleUserTokenResponse as saveAppleUserToken,
+  saveAppleUserTokenResponse,
 };
+export type { Callback };

@@ -2,6 +2,7 @@ import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { withRelations } from "#/features/ingest/api/providers/observe";
+import { durationOf, publishedOf } from "#/features/ingest/api/providers/subject-fields";
 
 import type { YoutubePlaylistItem, YoutubeSubscription, YoutubeVideo } from "./schemas";
 
@@ -10,8 +11,8 @@ const MAX_TAGS = 10;
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
 const NO_SECONDS = 0;
-const ISO_DURATION = String.raw`^PT(?:(?<hours>\d+)H)?(?:(?<minutes>\d+)M)?(?:(?<seconds>\d+)S)?$`;
-const CLOCK_DURATION = String.raw`^(?:(?<hours>\d+):)?(?<minutes>\d+):(?<seconds>\d{2})$`;
+const ISO_DURATION = /^PT(?:(?<hours>\d+)H)?(?:(?<minutes>\d+)M)?(?:(?<seconds>\d+)S)?$/u;
+const CLOCK_DURATION = /^(?:(?<hours>\d+):)?(?<minutes>\d+):(?<seconds>\d{2})$/u;
 
 type Channel = Readonly<{ id: string; title: string }>;
 
@@ -32,11 +33,10 @@ const numberOf = (text: string | undefined): number =>
   );
 
 const secondsOf = (
-  source: string,
+  exec: (value: string) => RegExpExecArray | null,
 ): ((text: string | null | undefined) => Option.Option<number>) => {
-  const pattern = new RegExp(source, "u");
   const matchOf = (value: string): Option.Option<RegExpExecArray> =>
-    Option.fromNullishOr(pattern.exec(value));
+    Option.fromNullishOr(exec(value));
   return (text) =>
     pipe(
       Option.fromNullishOr(text),
@@ -51,9 +51,9 @@ const secondsOf = (
     );
 };
 
-const isoSecondsOf = secondsOf(ISO_DURATION);
+const isoSecondsOf = secondsOf((value) => ISO_DURATION.exec(value));
 
-const clockSecondsOf = secondsOf(CLOCK_DURATION);
+const clockSecondsOf = secondsOf((value) => CLOCK_DURATION.exec(value));
 
 const channelCreatorOf = ({ id, title }: Channel): CreatorInput => ({
   provider: "youtube",
@@ -71,22 +71,6 @@ const channelOf = ({
   title: string | null | undefined;
 }>): Option.Option<Channel> =>
   Option.all({ id: Option.fromNullishOr(id), title: Option.fromNullishOr(title) });
-
-const publishedOf = (publishedAt: Option.Option<string>): Readonly<{ publishedAtMs?: number }> =>
-  pipe(
-    publishedAt,
-    Option.map((text) => Date.parse(text)),
-    Option.filter(Number.isFinite),
-    Option.map((publishedAtMs) => ({ publishedAtMs })),
-    Option.getOrElse(() => ({})),
-  );
-
-const durationOf = (durationSec: Option.Option<number>): Readonly<{ durationSec?: number }> =>
-  pipe(
-    durationSec,
-    Option.map((seconds) => ({ durationSec: seconds })),
-    Option.getOrElse(() => ({})),
-  );
 
 const videoSubjectOf = (parts: VideoParts): SubjectInput => ({
   provider: "youtube",
@@ -154,7 +138,6 @@ export type { Channel, VideoParts };
 export {
   channelOf,
   clockSecondsOf,
-  isoSecondsOf,
   likedVideoOf,
   playlistVideoOf,
   subscribedChannelOf,

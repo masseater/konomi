@@ -101,4 +101,4 @@ const pullHistory = (cookie: string): Effect.Effect<readonly VideoParts[], Provi
     return historyVideosOf(page);
   }).pipe(Effect.withSpan("youtube.history"));
 
-export { cookieOf, pullHistory };
+export { pullHistory };

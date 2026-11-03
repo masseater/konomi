@@ -8,6 +8,7 @@ import { collectPages } from "#/features/ingest/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest/model/provider";
 
 import { API, LIMIT } from "./api";
+import { collectOffsetPages } from "./page";
 import { FollowedArtists, RecentlyPlayed, SavedTracks } from "./schemas";
 import { followedArtistOf, trackOf } from "./subjects";
 
@@ -41,10 +42,11 @@ const pullSaved = ({
   pages,
 }: Fetching & Readonly<{ pages: number }>): Effect.Effect<readonly Observation[], ProviderError> =>
   Effect.gen(function* saved() {
-    const items = yield* collectPages({
+    const items = yield* collectOffsetPages({
       first: `${API}/me/tracks?limit=${LIMIT}`,
+      headers,
       pages,
-      fetchPage: (url) => fetchJson({ url, headers, schema: SavedTracks }).pipe(Effect.map(pageOf)),
+      schema: SavedTracks,
     });
     const endorsed = observeAt({
       kind: "endorsed",

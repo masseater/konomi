@@ -7,11 +7,15 @@ type Page<Item> = Readonly<{ items: readonly Item[]; next: Option.Option<string>
 const FIRST_PAGE = 1;
 const BACKFILL_PAGES = 20;
 
-const pagesFor = (backfilled: boolean): number =>
-  Match.value(backfilled).pipe(
-    Match.when(true, () => FIRST_PAGE),
-    Match.orElse(() => BACKFILL_PAGES),
-  );
+const pagesUpTo =
+  (backfill: number) =>
+  (backfilled: boolean): number =>
+    Match.value(backfilled).pipe(
+      Match.when(true, () => FIRST_PAGE),
+      Match.orElse(() => backfill),
+    );
+
+const pagesFor = pagesUpTo(BACKFILL_PAGES);
 
 const collectPages = <Item>({
   first,
@@ -34,4 +38,4 @@ const collectPages = <Item>({
   });
 
 export type { Page };
-export { collectPages, pagesFor };
+export { collectPages, pagesFor, pagesUpTo };

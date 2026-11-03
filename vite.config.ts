@@ -124,6 +124,7 @@ export default defineConfig({
               name: [
                 "Cause",
                 "Context",
+                "Decoder",
                 "Effect",
                 "Exit",
                 "HttpClientRequest",

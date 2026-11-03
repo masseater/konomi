@@ -4,9 +4,11 @@ import type { Authorization, Provider } from "#/features/ingest/model/provider";
 import { HISTORY_FIELD } from "./api";
 import { pullYoutube } from "./pull.server";
 
+const GOOGLE_OAUTH_ORIGIN = "https://oauth2.googleapis.com";
+
 const AUTHORIZATION: Authorization = {
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-  tokenUrl: "https://oauth2.googleapis.com/token",
+  tokenUrl: `${GOOGLE_OAUTH_ORIGIN}/token`,
   scopes: ["https://www.googleapis.com/auth/youtube.readonly"],
   params: { access_type: "offline", prompt: "consent" },
 };

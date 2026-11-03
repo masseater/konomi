@@ -20,7 +20,7 @@ import {
   appleDeveloperTokenResponse,
   authorizeResponse,
   callbackResponse,
-  saveAppleUserToken,
+  saveAppleUserTokenResponse,
 } from "./handlers.server";
 import { PROVIDERS } from "./providers/index.server";
 import { statusOf } from "./status.server";
@@ -120,9 +120,13 @@ const connectionRoutes = createRouter("/api/connections")
     },
   )
   .get("/apple-music/developer-token", () => runRequest(appleDeveloperTokenResponse))
-  .put("/apple-music/user-token", ({ body }) => runRequest(saveAppleUserToken(body.token)), {
-    body: UserTokenBody,
-  })
+  .put(
+    "/apple-music/user-token",
+    ({ body }) => runRequest(saveAppleUserTokenResponse(body.token)),
+    {
+      body: UserTokenBody,
+    },
+  )
   .post("/sync", () => runRequest(syncAll));
 
 type ConnectionRoutes = typeof connectionRoutes;

@@ -2,12 +2,13 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest/api/providers/http.server";
-import { epochOr, observeAt, pageOf } from "#/features/ingest/api/providers/observe";
+import { epochOr, observeAt } from "#/features/ingest/api/providers/observe";
 import type { Fetching } from "#/features/ingest/api/providers/observe";
-import { collectPages, pagesFor } from "#/features/ingest/api/providers/paging.server";
+import { pagesFor } from "#/features/ingest/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest/model/provider";
 
 import { API, LIMIT } from "./api";
+import { collectOffsetPages } from "./page";
 import { Me, PlaylistItems, Playlists } from "./schemas";
 import type { SpotifyPlaylistEntry } from "./schemas";
 import { trackOf } from "./subjects";
@@ -24,11 +25,11 @@ const pullPlaylist = (
   { id, name }: Readonly<{ id: string; name: string }>,
 ): Effect.Effect<readonly Observation[], ProviderError> =>
   Effect.gen(function* playlist() {
-    const entries = yield* collectPages({
+    const entries = yield* collectOffsetPages({
       first: `${API}/playlists/${id}/items?limit=${LIMIT}`,
+      headers,
       pages: pagesFor(false),
-      fetchPage: (url) =>
-        fetchJson({ url, headers, schema: PlaylistItems }).pipe(Effect.map(pageOf)),
+      schema: PlaylistItems,
     });
     const collected = observeAt({
       kind: "collected",
@@ -45,11 +46,11 @@ const pullPlaylist = (
 const pullPlaylists = (fetching: Fetching): Effect.Effect<readonly Observation[], ProviderError> =>
   Effect.gen(function* playlists() {
     const me = yield* fetchJson({ url: `${API}/me`, headers: fetching.headers, schema: Me });
-    const owned = yield* collectPages({
+    const owned = yield* collectOffsetPages({
       first: `${API}/me/playlists?limit=${LIMIT}`,
+      headers: fetching.headers,
       pages: pagesFor(false),
-      fetchPage: (url) =>
-        fetchJson({ url, headers: fetching.headers, schema: Playlists }).pipe(Effect.map(pageOf)),
+      schema: Playlists,
     });
     const mine = pipe(
       owned,

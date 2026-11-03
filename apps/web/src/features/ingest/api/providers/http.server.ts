@@ -207,5 +207,5 @@ const fetchText = ({
     ),
   ).pipe(Effect.withSpan("provider.fetch-text", { attributes: { url } }));
 
-export type { Browser };
+export type { Browser, Headers };
 export { browse, fetchJson, fetchText, postForm, postJson };

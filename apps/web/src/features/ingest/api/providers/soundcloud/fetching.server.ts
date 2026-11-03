@@ -4,6 +4,7 @@ import type { Schema } from "effect";
 import type { Credential } from "#/entities/connection";
 import { requireField } from "#/features/ingest/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest/api/providers/http.server";
+import { collectPages } from "#/features/ingest/api/providers/paging.server";
 import type { Page } from "#/features/ingest/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest/model/provider";
 
@@ -64,5 +65,24 @@ const collectionPageOf = <Item>({
   next: Option.fromNullishOr(nextHref),
 });
 
+const collectFrom = <Item>({
+  session,
+  path,
+  pages,
+  schema,
+}: Readonly<{
+  session: Session;
+  path: string;
+  pages: number;
+  schema: Schema.Decoder<
+    Readonly<{ collection: readonly Item[]; next_href?: string | null | undefined }>
+  >;
+}>): Effect.Effect<readonly Item[], ProviderError> =>
+  collectPages({
+    first: firstUrlOf(path),
+    pages,
+    fetchPage: (url) => fetchFrom({ session, schema })(url).pipe(Effect.map(collectionPageOf)),
+  });
+
 export type { Session };
-export { collectionPageOf, fetchFrom, firstUrlOf, sessionOf };
+export { collectFrom, fetchFrom, firstUrlOf, sessionOf };

@@ -22,18 +22,35 @@
 
 ## 取り込めるサービス
 
-今はニコニコ動画の視聴履歴・いいね・マイリスト・フォローを取り込む。
-Web 版が内部で使う nvapi を、ログインした状態で読む。
-ログインは 2 通りから選べる。
-メールアドレスとパスワードを預けると、ログインが切れるたびに konomi がログインし直す。
-二段階認証を認証アプリで使っているなら、そのシークレットも預ける。
-預けたくなければ `user_session` の Cookie を貼る。この場合は切れるたびに貼り直す。
+ニコニコ動画は、視聴履歴・いいね・マイリスト・フォローを、Web 版が内部で使う nvapi で読む。
+YouTube は、高評価・登録チャンネル・自分の再生リストを YouTube Data API v3 で読む。
+視聴履歴は Data API に無いので、Cookie を入れたときだけ Web 版の InnerTube で読む。
+Spotify は、最近聴いた曲・保存した曲・フォローしたアーティスト・自分のプレイリストを
+Spotify Web API で読む。
+SoundCloud は、再生履歴・いいねした曲とプレイリスト・フォローを、
+Web 版が内部で使う api-v2 で読む。
+Apple Music は、最近聴いた曲とライブラリの曲を Apple Music API で読む。
 
-Spotify と YouTube を次に足す。公式 API で取れるものは公式 API で読み、取れないものだけを非公開の API で補う。
+OAuth で許可するサービスは、Client ID と Client Secret を保存してから、画面の「許可する」から許可の画面へ進む。
+アプリの設定には、画面に出るリダイレクト URI を登録しておく。
+
+- YouTube は、Google Cloud で YouTube Data API v3 を有効にし、種類が「ウェブ アプリケーション」の OAuth クライアントを作る。
+  同意画面の公開ステータスが「テスト」のままだと、許可は 7 日で切れる。「本番環境」にしておく
+- Spotify は、[開発者のダッシュボード](https://developer.spotify.com/dashboard)で Web API のアプリを作る。
+  開発モードのアプリは、持ち主が Premium でないと使えない
+- Apple Music は、Apple Developer Program の Certificates, Identifiers & Profiles で
+  Media Services の鍵を作る。
+  鍵を保存したら `/connect/apple-music` の画面で Apple ID の許可を取る。許可はおよそ 6 か月で切れる
+
+ニコニコ動画はメールアドレスとパスワードを預けると、ログインが切れるたびに konomi がログインし直す。
+預けたくなければ `user_session` の Cookie を貼る。この場合は切れるたびに貼り直す。
+SoundCloud の `client_id` は、soundcloud.com のスクリプトから konomi が自分で取り直す。
 
 ## 非公開 API を使う危険
 
-ニコニコ動画のように公式の個人データ API が無いサービスは、ブラウザのログイン Cookie を預かり、Web 版が内部で使う API を読む。
+ニコニコ動画・SoundCloud と YouTube の視聴履歴は、公式に読む手段が無い。
+ブラウザのログイン Cookie を預かり、Web 版が内部で使う API を読む。
+YouTube の視聴履歴は、Cookie を入れたときだけ読む。
 
 これには 3 つの危険がある。
 利用規約に反するとみなされ、アカウントを止められることがある。
@@ -42,7 +59,11 @@ API の形は予告なく変わり、変わると取り込みが「取り込み�
 konomi は `CREDENTIAL_KEY` から導いた鍵で暗号化して D1 に置くが、
 Cloudflare アカウントを乗っ取られれば読まれる。
 
-konomi は 1 時間に 1 回、新しい分だけを読む。初回だけ 10 ページまで遡る。
+YouTube の Cookie は、ブラウザで使い続けると回されて切れることがある。
+シークレットウィンドウでログインして Cookie を取り、そのウィンドウを閉じておくと長持ちする。
+
+konomi は 1 時間に 1 回、新しい分だけを読む。初回だけ遡って読む。
+再生リストとライブラリの全体は 1 日 1 回だけ読む。
 アクセスの量を増やす変更はしないでほしい。
 
 ## 自分のアカウントに置く

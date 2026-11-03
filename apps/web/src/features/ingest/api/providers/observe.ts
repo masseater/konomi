@@ -68,5 +68,5 @@ const pageOf = <Item>({
   next: Option.fromNullishOr(next),
 });
 
-export type { Fetching, Observed };
-export { epochOr, observeAt, observed, pageOf, withRelations };
+export type { Fetching };
+export { epochOr, observeAt, pageOf, withRelations };

@@ -51,4 +51,5 @@ const pullWatched = ({
     onSome: (value) => pullHistory(value).pipe(Effect.map(watchedOf({ previous, fetchedAt }))),
   });
 
+export type { Watched };
 export { pullWatched };

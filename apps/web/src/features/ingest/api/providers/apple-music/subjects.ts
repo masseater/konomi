@@ -1,12 +1,12 @@
 import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
+import { durationFromMs, publishedOf } from "#/features/ingest/api/providers/subject-fields";
 import type { SubjectType } from "#/shared/config";
 
 import { WEB_ORIGIN } from "./api";
 import type { AppleSong } from "./schemas";
 
-const MS_PER_SECOND = 1000;
 const FULL_DATE_LENGTH = 10;
 const GENERIC_GENRES: ReadonlySet<string> = new Set(["Music", "ミュージック"]);
 
@@ -38,23 +38,6 @@ const catalogIdOf = (song: AppleSong): string =>
     Option.getOrElse(() => song.id),
   );
 
-const durationOf = (millis: number | null | undefined): Readonly<{ durationSec?: number }> =>
-  pipe(
-    Option.fromNullishOr(millis),
-    Option.map((ms) => ({ durationSec: Math.round(ms / MS_PER_SECOND) })),
-    Option.getOrElse(() => ({})),
-  );
-
-const releasedOf = (date: string | null | undefined): Readonly<{ publishedAtMs?: number }> =>
-  pipe(
-    Option.fromNullishOr(date),
-    Option.filter((text) => text.length === FULL_DATE_LENGTH),
-    Option.map((text) => Date.parse(text)),
-    Option.filter(Number.isFinite),
-    Option.map((publishedAtMs) => ({ publishedAtMs })),
-    Option.getOrElse(() => ({})),
-  );
-
 type Attributes = NonNullable<AppleSong["attributes"]>;
 
 const subjectOf = ({
@@ -72,8 +55,13 @@ const subjectOf = ({
       Option.fromNullishOr(attributes.url),
       Option.getOrElse(() => `${WEB_ORIGIN}/${storefront}/song/${externalId}`),
     ),
-    ...durationOf(attributes.durationInMillis),
-    ...releasedOf(attributes.releaseDate),
+    ...durationFromMs(Option.fromNullishOr(attributes.durationInMillis)),
+    ...publishedOf(
+      pipe(
+        Option.fromNullishOr(attributes.releaseDate),
+        Option.filter((text) => text.length === FULL_DATE_LENGTH),
+      ),
+    ),
     credits: pipe(
       Option.fromNullishOr(attributes.artistName),
       Option.map((name) => artistOf({ name, storefront })),
@@ -93,4 +81,5 @@ const songOf = ({ song, storefront }: Song): Option.Option<SubjectInput> =>
     Option.map((attributes) => subjectOf({ song, storefront, attributes })),
   );
 
+export type { Song };
 export { catalogIdOf, songOf };

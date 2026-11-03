@@ -3,6 +3,7 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 import type { Credential } from "#/entities/connection";
 import { requireField } from "#/features/ingest/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest/api/providers/http.server";
+import type { Headers } from "#/features/ingest/api/providers/http.server";
 import type { Page } from "#/features/ingest/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest/model/provider";
 
@@ -12,8 +13,6 @@ import { Songs, Storefronts } from "./schemas";
 import type { AppleSong } from "./schemas";
 
 const API_ORIGIN = new URL(API).origin;
-
-type Headers = Readonly<Record<string, string>>;
 
 const headersOf = (credential: Credential): Effect.Effect<Headers, ProviderError> =>
   Effect.all({
