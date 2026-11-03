@@ -7,9 +7,9 @@ import { collectPages } from "#/features/ingest/api/providers/paging.server";
 import type { Page } from "#/features/ingest/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest/model/provider";
 
-const FIRST_PAGE = 1;
+const NEXT = 1;
 
-type Numbering = Readonly<{ param: string; limit: number }>;
+type Numbering = Readonly<{ param: string; limit: number; start: number }>;
 
 const numberedPageOf =
   ({ url, param, limit }: Numbering & Readonly<{ url: string }>) =>
@@ -20,32 +20,37 @@ const numberedPageOf =
       Option.map(() => {
         const next = new URL(url);
         const current = Number(next.searchParams.get(param));
-        next.searchParams.set(param, String(current + FIRST_PAGE));
+        next.searchParams.set(param, String(current + NEXT));
         return next.toString();
       }),
     ),
   });
 
-const collectNumberedPages = <Item>({
+const collectNumberedPages = <Body, Item>({
   base,
   numbering,
   headers,
   pages,
   schema,
+  itemsOf,
 }: Readonly<{
   base: string;
   numbering: Numbering;
   headers: Headers;
   pages: number;
-  schema: Schema.Decoder<readonly Item[]>;
+  schema: Schema.Decoder<Body>;
+  itemsOf: (body: Body) => readonly Item[];
 }>): Effect.Effect<readonly Item[], ProviderError> => {
   const first = new URL(base);
-  first.searchParams.set(numbering.param, String(FIRST_PAGE));
+  first.searchParams.set(numbering.param, String(numbering.start));
   return collectPages({
     first: first.toString(),
     pages,
     fetchPage: (url) =>
-      fetchJson({ url, headers, schema }).pipe(Effect.map(numberedPageOf({ url, ...numbering }))),
+      fetchJson({ url, headers, schema }).pipe(
+        Effect.map(itemsOf),
+        Effect.map(numberedPageOf({ url, ...numbering })),
+      ),
   });
 };
 

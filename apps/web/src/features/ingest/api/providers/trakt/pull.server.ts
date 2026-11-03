@@ -1,4 +1,4 @@
-import { Clock, Effect } from "effect";
+import { Clock, Effect, Function as Fn } from "effect";
 
 import { BACKFILLED, pagesOf } from "#/features/ingest/api/providers/backfill-cursor";
 import { requireField } from "#/features/ingest/api/providers/credential-field";
@@ -9,7 +9,7 @@ import { API, FIELD, LIMIT } from "./api";
 import { History, Ratings } from "./schemas";
 import { historyObservationsOf, ratingObservationsOf } from "./subjects";
 
-const NUMBERING = { param: "page", limit: LIMIT } as const;
+const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
 
 const pullTrakt = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* trakt() {
@@ -30,6 +30,7 @@ const pullTrakt = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pro
       headers,
       pages,
       schema: History,
+      itemsOf: Fn.identity,
     });
     const ratings = yield* collectNumberedPages({
       base: `${API}/users/${account.user}/ratings?limit=${LIMIT}`,
@@ -37,6 +38,7 @@ const pullTrakt = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pro
       headers,
       pages,
       schema: Ratings,
+      itemsOf: Fn.identity,
     });
     return {
       observations: [

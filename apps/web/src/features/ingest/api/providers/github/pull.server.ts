@@ -1,4 +1,4 @@
-import { Clock, Effect } from "effect";
+import { Clock, Effect, Function as Fn } from "effect";
 
 import { BACKFILLED, pagesOf } from "#/features/ingest/api/providers/backfill-cursor";
 import { requireField } from "#/features/ingest/api/providers/credential-field";
@@ -10,7 +10,7 @@ import { headersOf } from "./headers";
 import { Accounts, Stars } from "./schemas";
 import { followObservationsOf, starObservationsOf } from "./subjects";
 
-const NUMBERING = { param: "page", limit: LIMIT } as const;
+const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
 
 const pullGitHub = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* github() {
@@ -24,6 +24,7 @@ const pullGitHub = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
       headers,
       pages,
       schema: Stars,
+      itemsOf: Fn.identity,
     });
     const following = yield* collectNumberedPages({
       base: `${API}/users/${user}/following?per_page=${LIMIT}`,
@@ -31,6 +32,7 @@ const pullGitHub = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
       headers,
       pages,
       schema: Accounts,
+      itemsOf: Fn.identity,
     });
     const observations = [
       ...starObservationsOf(fetchedAt)(stars),
