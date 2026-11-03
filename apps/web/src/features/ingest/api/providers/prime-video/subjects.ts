@@ -18,8 +18,6 @@ const FIRST_MONTH = 1;
 const UNMETERED = 0;
 const SERIES_NAME_PARTS = 1;
 
-const valueOf = cellOf;
-
 const zonedOf = (iso: string): string =>
   Match.value(ZONED.test(iso)).pipe(
     Match.when(true, () => iso),
@@ -55,17 +53,17 @@ const playbackHourEpochOf = (text: string): Option.Option<number> =>
 
 const startedAtOf = (row: ViewingRow): Option.Option<number> =>
   pipe(
-    valueOf(row[VIEWING_COLUMN.startedAt]),
+    cellOf(row[VIEWING_COLUMN.startedAt]),
     Option.flatMap(isoEpochOf),
     Option.orElse(() =>
-      pipe(valueOf(row[VIEWING_COLUMN.playbackHour]), Option.flatMap(playbackHourEpochOf)),
+      pipe(cellOf(row[VIEWING_COLUMN.playbackHour]), Option.flatMap(playbackHourEpochOf)),
     ),
   );
 
 const isViewing = (row: ViewingRow): boolean =>
   pipe(
-    valueOf(row[VIEWING_COLUMN.material]),
-    Option.orElse(() => valueOf(row[VIEWING_COLUMN.videoType])),
+    cellOf(row[VIEWING_COLUMN.material]),
+    Option.orElse(() => cellOf(row[VIEWING_COLUMN.videoType])),
     Option.match({
       onNone: () => true,
       onSome: (type) =>
@@ -78,14 +76,14 @@ const isViewing = (row: ViewingRow): boolean =>
 
 const sessionSecondsOf = (row: ViewingRow, startedAtMs: number): Option.Option<number> =>
   pipe(
-    valueOf(row[VIEWING_COLUMN.endedAt]),
+    cellOf(row[VIEWING_COLUMN.endedAt]),
     Option.flatMap(isoEpochOf),
     Option.map((endedAtMs) => (endedAtMs - startedAtMs) / MS_PER_SECOND),
   );
 
 const watchedLongEnough = (row: ViewingRow, startedAtMs: number): boolean =>
   pipe(
-    valueOf(row[VIEWING_COLUMN.secondsViewed]),
+    cellOf(row[VIEWING_COLUMN.secondsViewed]),
     Option.map(Number),
     Option.filter(Number.isFinite),
     Option.map((seconds) =>
@@ -127,7 +125,7 @@ const titleSubjectOf = (title: string): SubjectInput => {
 
 const viewingObservationOf = (row: ViewingRow): Option.Option<Observation> =>
   Option.all({
-    title: valueOf(row[VIEWING_COLUMN.title]),
+    title: cellOf(row[VIEWING_COLUMN.title]),
     occurredAtMs: startedAtOf(row),
   }).pipe(
     Option.filter(({ occurredAtMs }) => isViewing(row) && watchedLongEnough(row, occurredAtMs)),

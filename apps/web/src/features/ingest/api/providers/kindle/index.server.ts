@@ -1,16 +1,7 @@
-import { Effect } from "effect";
-
-import type { Provider } from "#/features/ingest/model/provider";
+import { fileImportProvider } from "#/features/ingest/api/providers/file-import.server";
 
 import { KINDLE_IMPORTS } from "./imports.server";
 
-const kindle: Provider = {
-  id: "kindle",
-  name: "Kindle",
-  methods: [],
-  pull: ({ cursor }) => Effect.succeed({ observations: [], cursor }),
-  renew: Effect.succeed,
-  imports: KINDLE_IMPORTS,
-};
+const kindle = fileImportProvider({ id: "kindle", name: "Kindle", imports: KINDLE_IMPORTS });
 
 export { kindle };
