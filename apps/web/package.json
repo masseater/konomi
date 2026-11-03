@@ -25,6 +25,7 @@
     "@better-auth/oauth-provider": "catalog:",
     "@effect/atom-react": "catalog:stack",
     "@elysiajs/eden": "catalog:stack",
+    "@modelcontextprotocol/client": "catalog:",
     "@modelcontextprotocol/server": "catalog:",
     "@tanstack/react-devtools": "0.10.14",
     "@tanstack/react-query": "catalog:stack",

@@ -44,6 +44,8 @@ Misskey は、お気に入り・リアクション・フォローを、サーバ
 Reddit は、upvote した投稿と保存した投稿を Reddit API で読む。
 Raindrop.io は、保存したブックマークを、テストトークンで読む。
 Pinterest は、自分のピンを Pinterest API v5 で読む。
+X は、いいねとブックマークを、[twilog](https://twilog.togetter.com/) の公式 MCP から読む。
+twilog に X のアカウントを登録しておき、何も入れずに保存してから「許可する」を押す。
 
 OAuth で許可するサービスは、Client ID と Client Secret を保存してから、画面の「許可する」から許可の画面へ進む。
 アプリの設定には、画面に出るリダイレクト URI を登録しておく。
