@@ -13,12 +13,20 @@ type CredentialField = Readonly<{
   optional: boolean;
 }>;
 
+type Authorization = Readonly<{
+  authorizeUrl: string;
+  tokenUrl: string;
+  scopes: readonly string[];
+  params: Readonly<Record<string, string>>;
+}>;
+
 type CredentialMethod = Readonly<{
   id: string;
   label: string;
   howTo: string;
   fields: readonly CredentialField[];
   renews: boolean;
+  authorization?: Authorization;
 }>;
 
 type PullInput = Readonly<{ credential: Credential; cursor: string }>;
@@ -38,4 +46,4 @@ type Provider = Readonly<{
 }>;
 
 export type { ProviderError } from "./provider-error";
-export type { CredentialField, CredentialMethod, Provider, PullInput, Pulled };
+export type { Authorization, CredentialField, CredentialMethod, Provider, PullInput, Pulled };

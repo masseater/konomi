@@ -8,6 +8,7 @@ import type { CredentialMethod } from "#/features/ingest/model/provider";
 import { PROVIDER_IDS, SIGNAL_KINDS } from "#/shared/config";
 import type { ProviderId, SignalKind } from "#/shared/config";
 
+import { redirectUriOf } from "./connect.server";
 import { PROVIDERS } from "./providers/index.server";
 
 const ALL_SIGNALS: SignalFilter = {
@@ -24,6 +25,7 @@ type ProviderState = Readonly<{
   provider: ProviderId;
   name: string;
   methods: readonly CredentialMethod[];
+  redirectUri: string;
   connection:
     | Readonly<{ status: "unconnected" }>
     | Readonly<{ status: SyncStatus; method: string; failure: string; syncedAtMs: number }>;
@@ -64,6 +66,7 @@ const stateOf =
     provider: id,
     name,
     methods,
+    redirectUri: redirectUriOf(id),
     connection: pipe(
       connections,
       Arr.findFirst((found) => Equal.equals(found.provider, id)),

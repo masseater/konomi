@@ -18,8 +18,7 @@ const UNAUTHORIZED = 401;
 const FORBIDDEN = 403;
 
 type JsonRequest<Body extends Schema.Top> = Readonly<{
-  url: string;
-  headers: Readonly<Record<string, string>>;
+  request: HttpClientRequest.HttpClientRequest;
   schema: Body;
 }>;
 
@@ -32,31 +31,40 @@ const failureOf = (url: string, status: number): ProviderError =>
     Match.orElse(() => ProviderUnavailable.make({ message: `${url} answered ${status}` })),
   );
 
+const okResponse = (
+  request: HttpClientRequest.HttpClientRequest,
+): Effect.Effect<HttpClientResponse.HttpClientResponse, ProviderError, HttpClient.HttpClient> =>
+  HttpClient.HttpClient.pipe(
+    Effect.flatMap((client) => client.execute(request)),
+    Effect.catchTag("HttpClientError", () =>
+      Effect.fail(ProviderUnavailable.make({ message: `${request.url} did not answer` })),
+    ),
+    Effect.filterOrFail(
+      ({ status }) => status >= OK_MIN && status <= OK_MAX,
+      ({ status }) => failureOf(request.url, status),
+    ),
+  );
+
 const requestJson = <Body extends Schema.Top>({
-  url,
-  headers,
+  request,
   schema,
 }: JsonRequest<Body>): Effect.Effect<
   Body["Type"],
   ProviderError,
   HttpClient.HttpClient | Body["DecodingServices"]
 > =>
-  HttpClient.HttpClient.pipe(
-    Effect.flatMap((client) => client.get(url, { headers })),
-    Effect.catchTag("HttpClientError", () =>
-      Effect.fail(ProviderUnavailable.make({ message: `${url} did not answer` })),
-    ),
-    Effect.filterOrFail(
-      ({ status }) => status >= OK_MIN && status <= OK_MAX,
-      ({ status }) => failureOf(url, status),
-    ),
+  okResponse(request).pipe(
     Effect.flatMap((response) =>
       HttpClientResponse.schemaBodyJson(schema)(response).pipe(
         Effect.catchTags({
           HttpClientError: () =>
-            Effect.fail(ProviderUnavailable.make({ message: `${url} returned a non-JSON body` })),
+            Effect.fail(
+              ProviderUnavailable.make({ message: `${request.url} returned a non-JSON body` }),
+            ),
           SchemaError: () =>
-            Effect.fail(ProviderUnavailable.make({ message: `${url} changed its response shape` })),
+            Effect.fail(
+              ProviderUnavailable.make({ message: `${request.url} changed its response shape` }),
+            ),
         }),
       ),
     ),
@@ -124,12 +132,57 @@ const browse = <Value, Failure>(
     Effect.provideService(FetchHttpClient.RequestInit, { redirect: "manual" }),
   );
 
-const fetchJson = <Body extends Schema.Top>(
-  request: Readonly<{ url: string; headers: Readonly<Record<string, string>>; schema: Body }>,
+type Headers = Readonly<Record<string, string>>;
+
+const sendJson = <Body extends Schema.Top>(
+  request: HttpClientRequest.HttpClientRequest,
+  schema: Body,
 ): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"]> =>
-  withFetch(requestJson(request)).pipe(
-    Effect.withSpan("provider.fetch", { attributes: { url: request.url } }),
+  withFetch(requestJson({ request, schema })).pipe(
+    Effect.withSpan("provider.fetch", {
+      attributes: { url: request.url, method: request.method },
+    }),
   );
 
+const fetchJson = <Body extends Schema.Top>({
+  url,
+  headers,
+  schema,
+}: Readonly<{ url: string; headers: Headers; schema: Body }>): Effect.Effect<
+  Body["Type"],
+  ProviderError,
+  Body["DecodingServices"]
+> => sendJson(HttpClientRequest.get(url, { headers }), schema);
+
+const postForm = <Body extends Schema.Top>({
+  url,
+  headers,
+  fields,
+  schema,
+}: Readonly<{
+  url: string;
+  headers: Headers;
+  fields: Readonly<Record<string, string>>;
+  schema: Body;
+}>): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"]> =>
+  sendJson(
+    HttpClientRequest.post(url, { headers }).pipe(HttpClientRequest.bodyUrlParams(fields)),
+    schema,
+  );
+
+const fetchText = ({
+  url,
+  headers,
+}: Readonly<{ url: string; headers: Headers }>): Effect.Effect<string, ProviderError> =>
+  withFetch(
+    okResponse(HttpClientRequest.get(url, { headers })).pipe(
+      Effect.flatMap((response) =>
+        response.text.pipe(
+          Effect.mapError(() => ProviderUnavailable.make({ message: `${url} was unreadable` })),
+        ),
+      ),
+    ),
+  ).pipe(Effect.withSpan("provider.fetch-text", { attributes: { url } }));
+
 export type { Browser };
-export { browse, fetchJson };
+export { browse, fetchJson, fetchText, postForm };

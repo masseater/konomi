@@ -22,7 +22,12 @@ const ProviderCard = ({ state }: Readonly<{ state: ProviderState }>): ReactNode 
       {pipe(
         state.methods,
         Arr.map((method) => (
-          <CredentialForm key={method.id} provider={state.provider} method={method} />
+          <CredentialForm
+            key={method.id}
+            provider={state.provider}
+            method={method}
+            redirectUri={state.redirectUri}
+          />
         )),
       )}
     </article>

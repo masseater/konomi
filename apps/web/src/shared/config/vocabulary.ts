@@ -1,4 +1,4 @@
-const PROVIDER_IDS = ["niconico"] as const;
+const PROVIDER_IDS = ["niconico", "spotify"] as const;
 
 const SIGNAL_KINDS = ["consumed", "endorsed", "collected", "followed"] as const;
 

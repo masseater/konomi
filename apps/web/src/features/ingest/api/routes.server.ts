@@ -16,12 +16,14 @@ import { PROVIDER_IDS } from "#/shared/config";
 import type { ProviderId } from "#/shared/config";
 import { runRequest } from "#/shared/observability/index.server";
 
+import { finishAuthorization, startAuthorization } from "./connect.server";
 import { PROVIDERS } from "./providers/index.server";
 import { statusOf } from "./status.server";
 import { syncAll } from "./sync.server";
 
 const UNAUTHORIZED = 401;
 const BAD_REQUEST = 400;
+const FOUND = 302;
 
 const ProviderParams = Schema.toStandardSchemaV1(
   Schema.Struct({ provider: Schema.Literals(PROVIDER_IDS) }),
@@ -33,6 +35,37 @@ const CredentialBody = Schema.toStandardSchemaV1(
     fields: Schema.Record(Schema.String, Schema.String),
   }),
 );
+
+const CallbackQuery = Schema.toStandardSchemaV1(
+  Schema.Struct({
+    code: Schema.optional(Schema.String),
+    state: Schema.optional(Schema.String),
+  }),
+);
+
+const redirectTo = (
+  location: Effect.Effect<string, Readonly<{ message: string }>>,
+): Effect.Effect<Response> =>
+  location.pipe(
+    Effect.match({
+      onSuccess: (to) => new Response("", { status: FOUND, headers: { Location: to } }),
+      onFailure: ({ message }) => new Response(message, { status: BAD_REQUEST }),
+    }),
+  );
+
+type Callback = Readonly<{ code?: string | undefined; state?: string | undefined }>;
+
+const callbackOf = (provider: ProviderId, query: Callback): Effect.Effect<Response> =>
+  pipe(
+    Option.all({
+      code: Option.fromUndefinedOr(query.code),
+      state: Option.fromUndefinedOr(query.state),
+    }),
+    Effect.fromOption,
+    Effect.mapError(() => ({ message: "許可されなかった。やり直す" })),
+    Effect.flatMap(({ code, state }) => finishAuthorization({ provider, code, state })),
+    redirectTo,
+  );
 
 const isOwner = (request: Request): Effect.Effect<boolean> =>
   Effect.promise(() => auth.api.getSession({ headers: request.headers })).pipe(
@@ -93,6 +126,19 @@ const connectionRoutes = createRouter("/api/connections")
   .delete("/:provider", ({ params }) => runRequest(forgetConnection(params.provider)), {
     params: ProviderParams,
   })
+  .get(
+    "/:provider/authorize",
+    ({ params }) => startAuthorization(params.provider).pipe(redirectTo, runRequest),
+    { params: ProviderParams },
+  )
+  .get(
+    "/:provider/callback",
+    ({ params, query }) => runRequest(callbackOf(params.provider, query)),
+    {
+      params: ProviderParams,
+      query: CallbackQuery,
+    },
+  )
   .post("/sync", () => runRequest(syncAll));
 
 type ConnectionRoutes = typeof connectionRoutes;
