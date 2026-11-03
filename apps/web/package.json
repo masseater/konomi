@@ -23,6 +23,7 @@
     "@better-auth/drizzle-adapter": "1.7.14",
     "@better-auth/mcp": "catalog:",
     "@better-auth/oauth-provider": "catalog:",
+    "@book000/pixivts": "catalog:",
     "@effect/atom-react": "catalog:stack",
     "@elysiajs/eden": "catalog:stack",
     "@modelcontextprotocol/client": "catalog:",

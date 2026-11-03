@@ -49,6 +49,7 @@ catalog:
   lighthouse: 13.6.0
   puppeteer-core: 25.16.0
   papaparse: 5.7.0
+  "@book000/pixivts": 0.64.0
   "@types/papaparse": 5.5.2
 catalogs:
   stack:
