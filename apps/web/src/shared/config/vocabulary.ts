@@ -29,6 +29,7 @@ const PROVIDER_IDS = [
   "twitch",
   "vocadb",
   "vrchat",
+  "xbox",
   "youtube",
 ] as const;
 

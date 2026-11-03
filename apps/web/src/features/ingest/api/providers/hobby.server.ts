@@ -8,6 +8,7 @@ import { pixiv } from "./pixiv/index.server";
 import { playstation } from "./playstation/index.server";
 import { steam } from "./steam/index.server";
 import { vrchat } from "./vrchat/index.server";
+import { xbox } from "./xbox/index.server";
 
 const HOBBY_PROVIDERS = {
   anilist,
@@ -18,6 +19,7 @@ const HOBBY_PROVIDERS = {
   playstation,
   steam,
   vrchat,
+  xbox,
 } as const satisfies Readonly<Record<string, Provider>>;
 
 export { HOBBY_PROVIDERS };
