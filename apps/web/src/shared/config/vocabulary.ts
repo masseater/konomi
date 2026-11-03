@@ -1,13 +1,20 @@
 const PROVIDER_IDS = [
+  "anilist",
   "annict",
   "apple-music",
   "bluesky",
+  "github",
   "lastfm",
+  "mastodon",
+  "misskey",
+  "myanimelist",
   "niconico",
   "soundcloud",
   "spotify",
   "steam",
+  "trakt",
   "twitch",
+  "vocadb",
   "youtube",
 ] as const;
 
