@@ -14,6 +14,9 @@
 `search_signals` は、見た・聴いた・高評価・保存・フォローの記録を、サービスをまたいで語・種類・期間で引く。
 `taste_profile` は、作品・投稿者やアーティスト・タグごとの好みの度合いを、長く続く好みと最近の好みに分けて返す。
 計算の仕方は [docs/design.md](docs/design.md) にある。
+`find_similar` は、文か記録の対象から、意味の近いものを記録の中から探す。
+`read_taste_note` と `write_taste_note` は、AI が書いた好みのメモを読み書きする。
+メモの文にはそれぞれ根拠の記録が付く。
 `list_connections` は、サービスごとの取り込みの状態を返す。ログインが切れていれば、AI が持ち主に伝えられる。
 記録の形とプロバイダーの境目は [docs/design.md](docs/design.md) にある。
 

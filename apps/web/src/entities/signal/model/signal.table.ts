@@ -19,8 +19,12 @@ const subject = sqliteTable(
     url: text().notNull(),
     durationSec: integer(),
     publishedAtMs: integer(),
+    vectorId: text(),
   },
-  (table) => [index("subject_provider_type").on(table.provider, table.type)],
+  (table) => [
+    index("subject_provider_type").on(table.provider, table.type),
+    uniqueIndex("subject_vector_id").on(table.vectorId),
+  ],
 );
 
 const credit = sqliteTable(
