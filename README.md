@@ -41,6 +41,9 @@ Trakt は、映画とドラマの視聴履歴と評価を、ユーザー名と C
 VocaDB は、評価した曲を、ユーザー名で読む。
 Mastodon は、お気に入り・ブックマーク・フォローを、サーバーの URL とアクセストークンで読む。
 Misskey は、お気に入り・リアクション・フォローを、サーバーの URL とアクセストークンで読む。
+Reddit は、upvote した投稿と保存した投稿を Reddit API で読む。
+Raindrop.io は、保存したブックマークを、テストトークンで読む。
+Pinterest は、自分のピンを Pinterest API v5 で読む。
 
 OAuth で許可するサービスは、Client ID と Client Secret を保存してから、画面の「許可する」から許可の画面へ進む。
 アプリの設定には、画面に出るリダイレクト URI を登録しておく。
@@ -54,6 +57,9 @@ OAuth で許可するサービスは、Client ID と Client Secret を保存し�
   鍵を保存したら `/connect/apple-music` の画面で Apple ID の許可を取る。許可はおよそ 6 か月で切れる
 - Twitch は、[開発者のコンソール](https://dev.twitch.tv/console)で、
   種類が Confidential のアプリを作る
+- Reddit は、[アプリの設定](https://www.reddit.com/prefs/apps)で種類が web app のアプリを作る
+- Pinterest は、[開発者のアプリ](https://developers.pinterest.com/apps/)でアプリを作る。
+  試用のアクセスのままだと、読めるのは自分のピンだけである
 
 ニコニコ動画はメールアドレスとパスワードを預けると、ログインが切れるたびに konomi がログインし直す。
 預けたくなければ `user_session` の Cookie を貼る。この場合は切れるたびに貼り直す。
