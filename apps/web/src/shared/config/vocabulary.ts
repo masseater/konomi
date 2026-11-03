@@ -1,4 +1,15 @@
-const PROVIDER_IDS = ["apple-music", "niconico", "soundcloud", "spotify", "youtube"] as const;
+const PROVIDER_IDS = [
+  "annict",
+  "apple-music",
+  "bluesky",
+  "lastfm",
+  "niconico",
+  "soundcloud",
+  "spotify",
+  "steam",
+  "twitch",
+  "youtube",
+] as const;
 
 const SIGNAL_KINDS = ["consumed", "endorsed", "collected", "followed"] as const;
 
@@ -12,6 +23,16 @@ const SUBJECT_TYPES = [
   "episode",
   "person",
   "channel",
+  "game",
+  "series",
+  "movie",
+  "book",
+  "post",
+  "artwork",
+  "item",
+  "world",
+  "repository",
+  "page",
 ] as const;
 
 type ProviderId = (typeof PROVIDER_IDS)[number];

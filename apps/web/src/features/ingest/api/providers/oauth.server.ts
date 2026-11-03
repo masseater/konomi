@@ -1,4 +1,13 @@
-import { Array as Arr, Effect, Function as Fn, Option, Record as Rec, Schema, pipe } from "effect";
+import {
+  Array as Arr,
+  Effect,
+  Function as Fn,
+  Match,
+  Option,
+  Record as Rec,
+  Schema,
+  pipe,
+} from "effect";
 import { Base64, Hex } from "effect/encoding";
 
 import type { Credential } from "#/entities/connection";
@@ -48,17 +57,40 @@ const withTokens = (credential: Credential, tokens: typeof TokenResponse.Type): 
   },
 });
 
+type TokenRequest = Readonly<{
+  headers: Readonly<Record<string, string>>;
+  fields: Readonly<Record<string, string>>;
+}>;
+
+const clientAuthOf = (
+  authorization: Authorization,
+  credential: Credential,
+): Effect.Effect<TokenRequest, ProviderError> =>
+  Match.value(authorization.clientAuthentication).pipe(
+    Match.when("body", () =>
+      Effect.all({
+        client_id: requireField(credential, OAUTH_FIELD.clientId),
+        client_secret: requireField(credential, OAUTH_FIELD.clientSecret),
+      }).pipe(Effect.map((fields): TokenRequest => ({ headers: {}, fields }))),
+    ),
+    Match.orElse(() =>
+      basicAuthOf(credential).pipe(
+        Effect.map((basic): TokenRequest => ({ headers: { Authorization: basic }, fields: {} })),
+      ),
+    ),
+  );
+
 const requestTokens = (
   authorization: Authorization,
   credential: Credential,
   fields: Readonly<Record<string, string>>,
 ): Effect.Effect<Credential, ProviderError> =>
-  basicAuthOf(credential).pipe(
-    Effect.flatMap((basic) =>
+  clientAuthOf(authorization, credential).pipe(
+    Effect.flatMap((client) =>
       postForm({
         url: authorization.tokenUrl,
-        headers: { Authorization: basic },
-        fields,
+        headers: client.headers,
+        fields: { ...fields, ...client.fields },
         schema: TokenResponse,
       }),
     ),
