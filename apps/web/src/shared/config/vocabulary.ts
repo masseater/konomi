@@ -13,6 +13,7 @@ const PROVIDER_IDS = [
   "myanimelist",
   "niconico",
   "pinterest",
+  "playstation",
   "raindrop",
   "reddit",
   "soundcloud",

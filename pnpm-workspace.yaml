@@ -42,6 +42,7 @@ catalog:
   fast-xml-parser: 5.11.2
   "@nodable/entities": 3.1.0
   node-html-parser: 9.0.6
+  psn-api: 2.18.1
   "@modelcontextprotocol/server": 2.4.0
   markdownlint-cli2: 0.24.0
   chrome-launcher: 1.2.2
