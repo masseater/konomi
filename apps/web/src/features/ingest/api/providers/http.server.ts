@@ -154,6 +154,29 @@ const fetchJson = <Body extends Schema.Top>({
   Body["DecodingServices"]
 > => sendJson(HttpClientRequest.get(url, { headers }), schema);
 
+const postJson = <Payload extends Schema.Top, Body extends Schema.Top>({
+  url,
+  headers,
+  payload,
+  body,
+  schema,
+}: Readonly<{
+  url: string;
+  headers: Headers;
+  payload: Payload;
+  body: Payload["Type"];
+  schema: Body;
+}>): Effect.Effect<
+  Body["Type"],
+  ProviderError,
+  Body["DecodingServices"] | Payload["EncodingServices"]
+> =>
+  HttpClientRequest.post(url, { headers }).pipe(
+    HttpClientRequest.schemaBodyJson(payload)(body),
+    Effect.mapError(() => ProviderUnavailable.make({ message: `${url} body was not JSON` })),
+    Effect.flatMap((request) => sendJson(request, schema)),
+  );
+
 const postForm = <Body extends Schema.Top>({
   url,
   headers,
@@ -185,4 +208,4 @@ const fetchText = ({
   ).pipe(Effect.withSpan("provider.fetch-text", { attributes: { url } }));
 
 export type { Browser };
-export { browse, fetchJson, fetchText, postForm };
+export { browse, fetchJson, fetchText, postForm, postJson };
