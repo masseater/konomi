@@ -1,16 +1,11 @@
-import { Effect } from "effect";
-
-import type { Provider } from "#/features/ingest/model/provider";
+import { fileImportProvider } from "#/features/ingest/api/providers/file-import.server";
 
 import { PRIME_VIDEO_IMPORTS } from "./imports.server";
 
-const primeVideo: Provider = {
+const primeVideo = fileImportProvider({
   id: "prime-video",
   name: "Prime Video",
-  methods: [],
-  pull: ({ cursor }) => Effect.succeed({ observations: [], cursor }),
-  renew: Effect.succeed,
   imports: PRIME_VIDEO_IMPORTS,
-};
+});
 
 export { primeVideo };

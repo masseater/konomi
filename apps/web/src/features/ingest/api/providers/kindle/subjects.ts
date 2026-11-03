@@ -8,11 +8,9 @@ import type { LibraryRow, SessionRow } from "./schemas";
 
 const MS_PER_DAY = 86_400_000;
 
-const valueOf = cellOf;
-
 const epochOf = (text: string | undefined): Option.Option<number> =>
   pipe(
-    valueOf(text),
+    cellOf(text),
     Option.map((value) => Date.parse(value)),
     Option.filter(Number.isFinite),
   );
@@ -37,13 +35,13 @@ const isOwned = (row: LibraryRow): boolean =>
 
 const ownedObservationOf = (row: LibraryRow): Option.Option<Observation> =>
   Option.all({
-    asin: valueOf(row[LIBRARY_COLUMN.asin]),
-    title: valueOf(row[LIBRARY_COLUMN.title]),
+    asin: cellOf(row[LIBRARY_COLUMN.asin]),
+    title: cellOf(row[LIBRARY_COLUMN.title]),
     occurredAtMs: epochOf(row[LIBRARY_COLUMN.acquiredAt]),
   }).pipe(
     Option.map(({ asin, title, occurredAtMs }) => ({
       kind: "collected" as const,
-      subject: bookOf({ asin, title, series: valueOf(row[LIBRARY_COLUMN.series]) }),
+      subject: bookOf({ asin, title, series: cellOf(row[LIBRARY_COLUMN.series]) }),
       occurredAtMs,
     })),
   );
@@ -57,7 +55,7 @@ const libraryObservationsOf = (rows: readonly LibraryRow[]): readonly Observatio
 
 const readLongEnough = (row: SessionRow): boolean =>
   pipe(
-    valueOf(row[SESSION_COLUMN.readMs]),
+    cellOf(row[SESSION_COLUMN.readMs]),
     Option.map(Number),
     Option.filter(Number.isFinite),
     Option.match({ onNone: () => true, onSome: (readMs) => readMs >= MIN_READ_MS }),
@@ -65,8 +63,8 @@ const readLongEnough = (row: SessionRow): boolean =>
 
 const sessionObservationOf = (row: SessionRow): Option.Option<Observation> =>
   Option.all({
-    asin: valueOf(row[SESSION_COLUMN.asin]),
-    title: valueOf(row[SESSION_COLUMN.title]),
+    asin: cellOf(row[SESSION_COLUMN.asin]),
+    title: cellOf(row[SESSION_COLUMN.title]),
     occurredAtMs: epochOf(row[SESSION_COLUMN.startedAt]),
   }).pipe(
     Option.filter(() => readLongEnough(row)),
