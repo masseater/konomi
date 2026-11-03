@@ -1,4 +1,13 @@
-import { Array as Arr, Effect, Number as Num, Option, Schema, String as Str, pipe } from "effect";
+import {
+  Array as Arr,
+  Effect,
+  Number as Num,
+  Option,
+  Predicate,
+  Schema,
+  String as Str,
+  pipe,
+} from "effect";
 import Papa from "papaparse";
 
 import { IMPORT_ROWS_PER_REQUEST } from "#/features/ingest/model/import-limits";
@@ -30,7 +39,8 @@ const failureOf = (error: Readonly<{ value: unknown }> | null): ImportFailed =>
   ImportFailed.make({
     message: pipe(
       Option.fromNullishOr(error),
-      Option.map(({ value }) => String(value)),
+      Option.map(({ value }) => value),
+      Option.filter(Predicate.isString),
       Option.getOrElse(() => UNKNOWN_FAILURE),
     ),
   });

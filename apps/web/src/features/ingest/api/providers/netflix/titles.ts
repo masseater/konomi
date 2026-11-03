@@ -1,6 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { SubjectInput } from "#/entities/signal";
+import { titleSubjectOf as sharedTitleSubjectOf } from "#/features/ingest/api/providers/title-subject";
 
 import { WEB } from "./api";
 
@@ -11,29 +12,14 @@ const searchUrlOf = (query: string): string => `${WEB}/search?q=${encodeURICompo
 
 const titleSubjectOf = (title: string): SubjectInput => {
   const parts = Str.split(title, SEPARATOR);
-  const series = pipe(
-    Arr.head(parts),
-    Option.filter(() => parts.length >= EPISODE_PARTS),
-  );
-  return Option.match(series, {
-    onNone: () => ({
-      provider: "netflix" as const,
-      externalId: `title:${title}`,
-      type: "video" as const,
-      title,
-      url: searchUrlOf(title),
-      credits: [],
-      tags: [],
-    }),
-    onSome: (name) => ({
-      provider: "netflix" as const,
-      externalId: `title:${title}`,
-      type: "episode" as const,
-      title,
-      url: searchUrlOf(name),
-      credits: [],
-      tags: [name],
-    }),
+  return sharedTitleSubjectOf({
+    provider: "netflix",
+    title,
+    series: pipe(
+      Arr.head(parts),
+      Option.filter(() => parts.length >= EPISODE_PARTS),
+    ),
+    searchUrlOf,
   });
 };
 
