@@ -46,6 +46,9 @@ Raindrop.io は、保存したブックマークを、テストトークンで�
 Pinterest は、自分のピンを Pinterest API v5 で読む。
 X は、いいねとブックマークを、[twilog](https://twilog.togetter.com/) の公式 MCP から読む。
 twilog に X のアカウントを登録しておき、何も入れずに保存してから「許可する」を押す。
+はてなブックマークは、公開しているブックマークとコメントを、はてな ID で RSS から読む。
+Letterboxd は、日記に付けた視聴記録・評価・いいねを、ユーザー名で RSS から読む。
+Filmarks は、映画とドラマの Mark と Clip を、ユーザー ID で公開ページから読む。
 
 OAuth で許可するサービスは、Client ID と Client Secret を保存してから、画面の「許可する」から許可の画面へ進む。
 アプリの設定には、画面に出るリダイレクト URI を登録しておく。

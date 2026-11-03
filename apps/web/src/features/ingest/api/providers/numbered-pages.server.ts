@@ -26,6 +26,26 @@ const numberedPageOf =
     ),
   });
 
+const collectNumbered = <Item>({
+  base,
+  numbering,
+  pages,
+  fetchItems,
+}: Readonly<{
+  base: string;
+  numbering: Numbering;
+  pages: number;
+  fetchItems: (url: string) => Effect.Effect<readonly Item[], ProviderError>;
+}>): Effect.Effect<readonly Item[], ProviderError> => {
+  const first = new URL(base);
+  first.searchParams.set(numbering.param, String(numbering.start));
+  return collectPages({
+    first: first.toString(),
+    pages,
+    fetchPage: (url) => fetchItems(url).pipe(Effect.map(numberedPageOf({ url, ...numbering }))),
+  });
+};
+
 const collectNumberedPages = <Body, Item>({
   base,
   numbering,
@@ -40,19 +60,13 @@ const collectNumberedPages = <Body, Item>({
   pages: number;
   schema: Schema.Decoder<Body>;
   itemsOf: (body: Body) => readonly Item[];
-}>): Effect.Effect<readonly Item[], ProviderError> => {
-  const first = new URL(base);
-  first.searchParams.set(numbering.param, String(numbering.start));
-  return collectPages({
-    first: first.toString(),
+}>): Effect.Effect<readonly Item[], ProviderError> =>
+  collectNumbered({
+    base,
+    numbering,
     pages,
-    fetchPage: (url) =>
-      fetchJson({ url, headers, schema }).pipe(
-        Effect.map(itemsOf),
-        Effect.map(numberedPageOf({ url, ...numbering })),
-      ),
+    fetchItems: (url) => fetchJson({ url, headers, schema }).pipe(Effect.map(itemsOf)),
   });
-};
 
 export type { Numbering };
-export { collectNumberedPages };
+export { collectNumbered, collectNumberedPages };
