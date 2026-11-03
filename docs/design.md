@@ -37,6 +37,14 @@ consumed は出来事なので、同じ対象でも時刻が違えば別の反�
 
 プロバイダーを足すときは、`apps/web/src/features/ingest/api/providers/` に 1 つ置き、一覧に加える。
 
+OAuth の許可は、方式に authorization（許可の URL・トークンの URL・スコープ）を宣言すれば、
+共通の `/api/connections/:provider/authorize` と `/callback` が受け持つ。
+トークンの更新は renew で行う。
+
+YouTube の視聴履歴と Apple Music の最近聴いた曲には、聴いた時刻が無い。
+前回の取り込みで見た並びをカーソルに残し、今回の並びのうち前回の先頭より前に出てきたものだけを、
+取り込んだ時刻の consumed にする。同じものを聴き直すと先頭に戻るので、聴き直しも 1 回として数える。
+
 ## 好みの分析
 
 konomi の目的は、記録を並べることではなく、AI が持ち主の好みを正しくつかめるようにすることである。

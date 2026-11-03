@@ -16,6 +16,12 @@ import { PROVIDER_IDS } from "#/shared/config";
 import type { ProviderId } from "#/shared/config";
 import { runRequest } from "#/shared/observability/index.server";
 
+import {
+  appleDeveloperTokenResponse,
+  authorizeResponse,
+  callbackResponse,
+  saveAppleUserTokenResponse,
+} from "./handlers.server";
 import { PROVIDERS } from "./providers/index.server";
 import { statusOf } from "./status.server";
 import { syncAll } from "./sync.server";
@@ -31,6 +37,15 @@ const CredentialBody = Schema.toStandardSchemaV1(
   Schema.Struct({
     method: Schema.NonEmptyString,
     fields: Schema.Record(Schema.String, Schema.String),
+  }),
+);
+
+const UserTokenBody = Schema.toStandardSchemaV1(Schema.Struct({ token: Schema.NonEmptyString }));
+
+const CallbackQuery = Schema.toStandardSchemaV1(
+  Schema.Struct({
+    code: Schema.optional(Schema.String),
+    state: Schema.optional(Schema.String),
   }),
 );
 
@@ -93,6 +108,25 @@ const connectionRoutes = createRouter("/api/connections")
   .delete("/:provider", ({ params }) => runRequest(forgetConnection(params.provider)), {
     params: ProviderParams,
   })
+  .get("/:provider/authorize", ({ params }) => runRequest(authorizeResponse(params.provider)), {
+    params: ProviderParams,
+  })
+  .get(
+    "/:provider/callback",
+    ({ params, query }) => runRequest(callbackResponse({ provider: params.provider, query })),
+    {
+      params: ProviderParams,
+      query: CallbackQuery,
+    },
+  )
+  .get("/apple-music/developer-token", () => runRequest(appleDeveloperTokenResponse))
+  .put(
+    "/apple-music/user-token",
+    ({ body }) => runRequest(saveAppleUserTokenResponse(body.token)),
+    {
+      body: UserTokenBody,
+    },
+  )
   .post("/sync", () => runRequest(syncAll));
 
 type ConnectionRoutes = typeof connectionRoutes;

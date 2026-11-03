@@ -24,17 +24,27 @@ const webAnalyticsBeacon = (token: string) =>
     "data-cf-beacon": JSON.stringify({ token }),
   }) as const;
 
+type PolicySources = Readonly<{
+  script: readonly string[];
+  style: readonly string[];
+  connect?: readonly string[];
+  frame?: readonly string[];
+}>;
+
 const contentSecurityPolicy = ({
   script,
   style,
-}: Readonly<{ script: readonly string[]; style: readonly string[] }>): string =>
+  connect = [],
+  frame = [],
+}: PolicySources): string =>
   pipe(
     [
       "default-src 'self'",
       pipe(["script-src 'self'", WEB_ANALYTICS_SCRIPT_ORIGIN, ...script], Arr.join(" ")),
       pipe(["style-src 'self'", ...style], Arr.join(" ")),
       "img-src 'self' data:",
-      `connect-src 'self' ${WEB_ANALYTICS_REPORT_ORIGIN}`,
+      pipe(["connect-src 'self'", WEB_ANALYTICS_REPORT_ORIGIN, ...connect], Arr.join(" ")),
+      pipe(["frame-src 'self'", ...frame], Arr.join(" ")),
       "object-src 'none'",
       "base-uri 'none'",
       "form-action 'self'",
@@ -63,6 +73,7 @@ const assetHeaders = (pageHeaders: Readonly<Record<string, string>>): string =>
     Arr.join("\n"),
   );
 
+export type { PolicySources };
 export {
   SECURITY_HEADERS,
   STATIC_PAGE_HEADERS,

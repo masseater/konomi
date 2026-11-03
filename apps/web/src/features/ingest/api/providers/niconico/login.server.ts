@@ -2,6 +2,7 @@ import { Clock, Effect, Option, String as Str, pipe } from "effect";
 import { Secret, TOTP } from "otpauth";
 
 import type { Credential } from "#/entities/connection";
+import { fieldOf } from "#/features/ingest/api/providers/credential-field";
 import { browse } from "#/features/ingest/api/providers/http.server";
 import type { Browser } from "#/features/ingest/api/providers/http.server";
 import { CredentialRejected } from "#/features/ingest/model/credential-rejected";
@@ -17,13 +18,6 @@ const FORM_ACTION = /<form[^>]+action="(?<action>[^"]+)"/u;
 const DEVICE_NAME = "konomi";
 
 type Login = Readonly<{ mail: string; password: string; totpSecret: Option.Option<string> }>;
-
-const fieldOf = (credential: Credential, name: string): Option.Option<string> =>
-  pipe(
-    Option.fromUndefinedOr(credential.fields[name]),
-    Option.map(Str.trim),
-    Option.filter(Str.isNonEmpty),
-  );
 
 const loginOf = (credential: Credential): Effect.Effect<Login, CredentialRejected> =>
   pipe(

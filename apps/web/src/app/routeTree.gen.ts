@@ -15,6 +15,7 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as DotwellKnownSplatRouteImport } from './routes/[.]well-known/$'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
+import { Route as ConnectAppleMusicRouteImport } from './routes/connect.apple-music'
 import { Route as McpConsentRouteImport } from './routes/mcp_.consent'
 
 const IndexRoute = IndexRouteImport.update({
@@ -47,6 +48,11 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConnectAppleMusicRoute = ConnectAppleMusicRouteImport.update({
+  id: '/connect/apple-music',
+  path: '/connect/apple-music',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpConsentRoute = McpConsentRouteImport.update({
   id: '/mcp_/consent',
   path: '/mcp/consent',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/.well-known/$': typeof DotwellKnownSplatRoute
   '/api/$': typeof ApiSplatRoute
+  '/connect/apple-music': typeof ConnectAppleMusicRoute
   '/mcp/consent': typeof McpConsentRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/.well-known/$': typeof DotwellKnownSplatRoute
   '/api/$': typeof ApiSplatRoute
+  '/connect/apple-music': typeof ConnectAppleMusicRoute
   '/mcp/consent': typeof McpConsentRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/.well-known/$': typeof DotwellKnownSplatRoute
   '/api/$': typeof ApiSplatRoute
+  '/connect/apple-music': typeof ConnectAppleMusicRoute
   '/mcp_/consent': typeof McpConsentRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/.well-known/$'
     | '/api/$'
+    | '/connect/apple-music'
     | '/mcp/consent'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/.well-known/$'
     | '/api/$'
+    | '/connect/apple-music'
     | '/mcp/consent'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/.well-known/$'
     | '/api/$'
+    | '/connect/apple-music'
     | '/mcp_/consent'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   DotwellKnownSplatRoute: typeof DotwellKnownSplatRoute
   ApiSplatRoute: typeof ApiSplatRoute
+  ConnectAppleMusicRoute: typeof ConnectAppleMusicRoute
   McpConsentRoute: typeof McpConsentRoute
 }
 
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/connect/apple-music': {
+      id: '/connect/apple-music'
+      path: '/connect/apple-music'
+      fullPath: '/connect/apple-music'
+      preLoaderRoute: typeof ConnectAppleMusicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mcp_/consent': {
       id: '/mcp_/consent'
       path: '/mcp/consent'
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   DotwellKnownSplatRoute: DotwellKnownSplatRoute,
   ApiSplatRoute: ApiSplatRoute,
+  ConnectAppleMusicRoute: ConnectAppleMusicRoute,
   McpConsentRoute: McpConsentRoute,
 }
 export const routeTree = rootRouteImport

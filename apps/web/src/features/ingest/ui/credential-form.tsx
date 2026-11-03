@@ -9,6 +9,8 @@ import type { ProviderId } from "#/shared/config";
 import { Button } from "#/shared/ui/button";
 import { Input } from "#/shared/ui/input";
 
+import { MethodLinks } from "./method-links";
+
 const SAVE = "保存する";
 const SAVED = "保存した。次の取り込みで使う";
 const FAILED = "保存できなかった";
@@ -34,13 +36,12 @@ const saveCredential =
       ),
     );
 
-const CredentialForm = ({
-  provider,
-  method,
-}: Readonly<{ provider: ProviderId; method: CredentialMethod }>): ReactNode => {
+const useSaveCredential = (
+  target: Readonly<{ provider: ProviderId; method: string }>,
+): Readonly<{ submit: (form: Readonly<FormData>) => void; status: string }> => {
   const queryClient = useQueryClient();
   const { mutate, status } = useMutation({
-    mutationFn: saveCredential({ provider, method: method.id }),
+    mutationFn: saveCredential(target),
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: connectionQueries.api.connections.get.queryKey() }),
   });
@@ -50,6 +51,19 @@ const CredentialForm = ({
     },
     [mutate],
   );
+  return { submit, status };
+};
+
+const CredentialForm = ({
+  provider,
+  method,
+  redirectUri,
+}: Readonly<{
+  provider: ProviderId;
+  method: CredentialMethod;
+  redirectUri: string;
+}>): ReactNode => {
+  const { submit, status } = useSaveCredential({ provider, method: method.id });
   return (
     <form className="flex flex-col gap-2" action={submit}>
       <h3 className="font-bold">{method.label}</h3>
@@ -71,6 +85,7 @@ const CredentialForm = ({
         {SAVE}
       </Button>
       {status === "success" && <p className="text-sm">{SAVED}</p>}
+      <MethodLinks provider={provider} method={method} redirectUri={redirectUri} />
       {status === "error" && (
         <p role="alert" className="text-destructive text-sm">
           {FAILED}

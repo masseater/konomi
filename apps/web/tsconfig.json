@@ -23,6 +23,7 @@
           "effect/http/HttpClientRequest#bodyUrlParams",
           "effect/http/HttpClientRequest#get",
           "effect/http/HttpClientRequest#post",
+          "effect/http/HttpClientRequest#schemaBodyJson",
           "effect/http/HttpClientResponse#HttpClientResponse",
           "effect/http/HttpClient#HttpClient",
           "effect/http/HttpClientResponse#schemaBodyJson",
