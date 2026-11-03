@@ -20,6 +20,7 @@ type SignalFilter = Readonly<{
 }>;
 
 type FoundSignal = Readonly<{
+  key: string;
   kind: SignalKind;
   context: string;
   occurredAtMs: number;
@@ -27,7 +28,7 @@ type FoundSignal = Readonly<{
   type: SubjectType;
   title: string;
   url: string;
-  credits: readonly Readonly<{ title: string; url: string; type: SubjectType }>[];
+  credits: readonly Readonly<{ key: string; title: string; url: string; type: SubjectType }>[];
   tags: readonly string[];
 }>;
 
@@ -92,12 +93,19 @@ const conditionsOf = (filter: SignalFilter): SQL | undefined => {
 const creditsOf = (
   keys: readonly string[],
 ): Effect.Effect<
-  readonly Readonly<{ subjectKey: string; title: string; url: string; type: SubjectType }>[]
+  readonly Readonly<{
+    subjectKey: string;
+    key: string;
+    title: string;
+    url: string;
+    type: SubjectType;
+  }>[]
 > =>
   Effect.promise(() =>
     db
       .select({
         subjectKey: credit.subjectKey,
+        key: creator.key,
         title: creator.title,
         url: creator.url,
         type: creator.type,
@@ -117,7 +125,7 @@ const tagsOf = (
       .where(inArray(subjectTag.subjectKey, [...keys])),
   );
 
-type SignalRow = Omit<FoundSignal, "credits" | "tags"> & Readonly<{ key: string }>;
+type SignalRow = Omit<FoundSignal, "credits" | "tags">;
 
 const signalRows = (filter: SignalFilter): Effect.Effect<readonly SignalRow[]> =>
   Effect.promise(() =>
@@ -157,6 +165,7 @@ const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundSignal[]
       pipe(
         rows,
         Arr.map((row): FoundSignal => ({
+          key: row.key,
           kind: row.kind,
           context: row.context,
           occurredAtMs: row.occurredAtMs,
@@ -167,7 +176,7 @@ const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundSignal[]
           credits: pipe(
             credits,
             Arr.filter(({ subjectKey }) => subjectKey === row.key),
-            Arr.map(({ title, url, type }) => ({ title, url, type })),
+            Arr.map(({ key, title, url, type }) => ({ key, title, url, type })),
           ),
           tags: pipe(
             tags,
@@ -195,5 +204,13 @@ const countByKind = (filter: SignalFilter): Effect.Effect<readonly KindCount[]> 
       .groupBy(subject.provider, subject.type, signal.kind),
   ).pipe(Effect.withSpan("signal.count-by-kind"));
 
+const existingSubjectKeys = (keys: readonly string[]): Effect.Effect<readonly string[]> =>
+  Effect.promise(() =>
+    db
+      .select({ key: subject.key })
+      .from(subject)
+      .where(inArray(subject.key, [...keys])),
+  ).pipe(Effect.map(Arr.map(({ key }) => key)));
+
 export type { FoundSignal, KindCount, SignalFilter };
-export { conditionsOf, countByKind, findSignals };
+export { conditionsOf, countByKind, creditsOf, existingSubjectKeys, findSignals, tagsOf };

@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 
+import { StatementSchema } from "#/features/mcp/model/statement";
 import { PROVIDER_IDS, SIGNAL_KINDS, SUBJECT_TYPES } from "#/shared/config";
 
 const MAX_LIMIT = 80;
@@ -54,6 +55,28 @@ const ProfileInput = Schema.Struct({
   limit: Limit,
 });
 
+const SimilarInput = Schema.Struct({
+  text: Schema.optionalKey(
+    Schema.NonEmptyString.annotate({
+      description:
+        "似たものを探す元の文。曲名・雰囲気・ジャンルなど何でもよい。subjectKey と同時には指定しない",
+    }),
+  ),
+  subjectKey: Schema.optionalKey(
+    Schema.NonEmptyString.annotate({
+      description: "似たものを探す元の対象の key。taste_profile や search_signals が返したもの",
+    }),
+  ),
+  limit: Limit,
+});
+
+const NoteInput = Schema.Struct({
+  statements: Schema.NonEmptyArray(StatementSchema).annotate({
+    description: "好みを述べた文の並び。1 文ごとに根拠の対象を付ける",
+  }),
+  coversUntil: Instant,
+});
+
 const EmptyInput = Schema.Struct({});
 
-export { EmptyInput, ProfileInput, SearchInput };
+export { EmptyInput, NoteInput, ProfileInput, SearchInput, SimilarInput };

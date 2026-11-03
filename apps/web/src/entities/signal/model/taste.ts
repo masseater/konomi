@@ -54,7 +54,7 @@ type Affinity = Readonly<{
   lastAtMs: number;
 }>;
 
-type SubjectAffinity = Affinity & Omit<SubjectInfo, "key">;
+type SubjectAffinity = Affinity & SubjectInfo;
 
 type TagAffinity = Affinity & Readonly<{ tag: string }>;
 
@@ -222,8 +222,7 @@ const tasteOf = (input: TasteInput): Taste => {
     Arr.map((found): readonly [string, SubjectInfo] => [found.key, found]),
     Rec.fromEntries,
   );
-  const describeSubject = (key: string): Option.Option<Omit<SubjectAffinity, keyof Affinity>> =>
-    Option.map(Rec.get(info, key), ({ title, url, type }) => ({ title, url, type }));
+  const describeSubject = (key: string): Option.Option<SubjectInfo> => Rec.get(info, key);
   const isCreator = (key: string): boolean =>
     Option.exists(Rec.get(info, key), ({ type }) => Arr.contains(CREATOR_TYPES, type));
   const creatorScores = Rec.union(

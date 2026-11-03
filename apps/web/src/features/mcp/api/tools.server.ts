@@ -1,11 +1,13 @@
 import type { McpServer } from "@modelcontextprotocol/server";
-import { DateTime, Effect, Option, Schema, pipe } from "effect";
+import { Effect, Option, Schema } from "effect";
 
 import { listConnectionViews } from "#/entities/connection/index.server";
 import { countByKind, findSignals, tasteProfile } from "#/entities/signal/index.server";
 import type { KindCount, SignalFilter, Taste } from "#/entities/signal/index.server";
 
-import { ToolError } from "./tool-error";
+import { optionalMillis } from "./instant";
+import { registerTasteTools } from "./taste-tools.server";
+import type { ToolError } from "./tool-error";
 import { EmptyInput, ProfileInput, SearchInput } from "./tool-input";
 import { runTool } from "./tool-result.server";
 
@@ -18,19 +20,6 @@ const PROFILE_SCHEMA = ProfileInput.pipe(Schema.toStandardSchemaV1, Schema.toSta
 const EMPTY_SCHEMA = EmptyInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
 
 type FilterInput = Readonly<Partial<typeof SearchInput.Type>>;
-
-const epochMillisOf = (text: string): Effect.Effect<number, ToolError> =>
-  Effect.fromOption(DateTime.make(text)).pipe(
-    Effect.mapBoth({
-      onSuccess: DateTime.toEpochMillis,
-      onFailure: () => ToolError.make({ message: `not a date: ${text}` }),
-    }),
-  );
-
-const optionalMillis = (
-  text: string | undefined,
-): Effect.Effect<Option.Option<number>, ToolError> =>
-  pipe(Option.fromUndefinedOr(text), Option.map(epochMillisOf), Effect.transposeOption);
 
 const filterOf = (input: FilterInput): Effect.Effect<SignalFilter, ToolError> =>
   Effect.all({ sinceMs: optionalMillis(input.since), untilMs: optionalMillis(input.until) }).pipe(
@@ -59,6 +48,7 @@ const profileOf = (filter: SignalFilter): Effect.Effect<Profile> =>
   });
 
 const registerTools = (server: McpServer): McpServer => {
+  registerTasteTools(server);
   server.registerTool(
     "search_signals",
     {

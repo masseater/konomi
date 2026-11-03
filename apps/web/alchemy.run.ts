@@ -1,4 +1,4 @@
-import { D1, Website, Workers, providers, state } from "@alchemy.run/cloudflare";
+import { D1, Vectorize, Website, Workers, providers, state } from "@alchemy.run/cloudflare";
 import type { InferEnv } from "@alchemy.run/cloudflare";
 import { Stack, makeRandom } from "alchemy";
 import { Config, Effect, Hash, Option, Schema } from "effect";
@@ -7,6 +7,7 @@ import { SECURITY_HEADERS, STATIC_PAGE_HEADERS, assetHeaders } from "security-he
 import { APP_NAME, CI_TELEMETRY_AUDIENCE, requireAppPrefix } from "./app-name.ts";
 import { edgeGuard } from "./edge-guard.ts";
 import { logArchive } from "./log-archive.ts";
+import { EMBEDDING_DIMENSIONS } from "./src/shared/config/embedding.ts";
 
 const TRACE_SAMPLING_RATE = 0.1;
 
@@ -31,6 +32,10 @@ const DEFAULT_DOMAIN = "konomi.masseater.dev";
 
 const web = Effect.gen(function* web() {
   const DB = yield* D1.Database("DB", { migrations: "./drizzle" });
+  const SUBJECT_VECTORS = yield* Vectorize.Index("SubjectVectors", {
+    dimensions: EMBEDDING_DIMENSIONS,
+    metric: "cosine",
+  });
   const BETTER_AUTH_SECRET = yield* makeRandom("BetterAuthSecret");
   const CREDENTIAL_KEY = yield* makeRandom("CredentialKey");
   const domain = yield* Config.schema(Schema.NonEmptyString, "KONOMI_DOMAIN").pipe(
@@ -44,12 +49,14 @@ const web = Effect.gen(function* web() {
     logpush: true,
     limits: WEB_LIMITS,
     env: {
+      AI: Workers.AI(),
       API_RATE_LIMIT,
       BETTER_AUTH_SECRET,
       CF_BEACON_TOKEN,
       CREDENTIAL_KEY,
       DB,
       SITE_ORIGIN: `https://${domain}`,
+      SUBJECT_VECTORS,
     },
     observability: {
       enabled: true,
