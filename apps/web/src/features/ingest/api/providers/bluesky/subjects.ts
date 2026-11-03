@@ -2,13 +2,12 @@ import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { withRelations } from "#/features/ingest/api/providers/observe";
+import { postTitleOf } from "#/features/ingest/api/providers/post-title";
 import { publishedOf } from "#/features/ingest/api/providers/subject-fields";
 
 import { WEB } from "./api";
 import type { BlueskyPost, BlueskyProfile } from "./schemas";
 
-const TITLE_LENGTH = 120;
-const TITLE_START = 0;
 const PATH_SEPARATOR = "/";
 
 const personOf = (profile: BlueskyProfile): CreatorInput => ({
@@ -38,12 +37,7 @@ const postOf = (post: BlueskyPost): SubjectInput => ({
   provider: "bluesky",
   externalId: post.uri,
   type: "post",
-  title: pipe(
-    Option.fromNullishOr(post.record.text),
-    Option.map(Str.slice(TITLE_START, TITLE_LENGTH)),
-    Option.filter(Str.isNonEmpty),
-    Option.getOrElse(() => postUrlOf(post)),
-  ),
+  title: postTitleOf({ text: Option.fromNullishOr(post.record.text), fallback: postUrlOf(post) }),
   url: postUrlOf(post),
   ...publishedOf(Option.fromNullishOr(post.record.createdAt)),
   credits: [personOf(post.author)],
