@@ -3,7 +3,7 @@ import { Match } from "effect";
 import { useCallback } from "react";
 import type { ReactNode } from "react";
 
-import { connectAppleMusic } from "#/pages/apple-music-connect/api/connect";
+import { connectAppleMusicMutation } from "#/pages/apple-music-connect/api/connect";
 import { MUSICKIT_SRC } from "#/pages/apple-music-connect/api/musickit-src";
 import { Button } from "#/shared/ui/button";
 
@@ -27,7 +27,7 @@ const resultOf = (status: "idle" | "pending" | "success" | "error"): ReactNode =
   );
 
 const AppleMusicConnectPage = (): ReactNode => {
-  const { mutate, status } = useMutation({ mutationFn: connectAppleMusic });
+  const { mutate, status } = useMutation(connectAppleMusicMutation);
   const authorize = useCallback(() => {
     mutate();
   }, [mutate]);
