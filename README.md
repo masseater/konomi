@@ -55,6 +55,7 @@ Open Library は、読んだ・読んでいる・読みたい本を、ユーザ�
 Qiita は、ストックした記事を、ユーザー名で読む。
 VRChat は、お気に入りのワールドとアバター、フレンドを、ログインの Cookie で読む。
 pixiv は、ブックマークしたイラストと小説、フォローを、スマホアプリの refresh token で読む。
+Xbox は、遊んだゲームと最後に遊んだ日時、フレンドを、[OpenXBL](https://xbl.io/) の API キーで読む。
 Netflix は、視聴履歴の CSV を画面から取り込む。
 データの書き出しの ViewingActivity.csv と、視聴履歴のページから落とす NetflixViewingHistory.csv のどちらかを使う。
 
