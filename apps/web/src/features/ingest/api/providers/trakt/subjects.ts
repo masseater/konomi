@@ -99,5 +99,4 @@ const ratingObservationsOf =
     return pipe(ratings, Arr.map(observe), Arr.getSomes);
   };
 
-export type { Watchable };
-export { historyObservationsOf, ratingObservationsOf, watchableOf };
+export { historyObservationsOf, ratingObservationsOf };

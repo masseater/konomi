@@ -55,4 +55,4 @@ const followObservationsOf =
       })),
     );
 
-export { followObservationsOf, repositoryOf, starObservationsOf };
+export { followObservationsOf, starObservationsOf };

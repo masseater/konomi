@@ -76,4 +76,4 @@ const entryObservationsOf =
     return [collected, ...liked, ...completed];
   };
 
-export { entryObservationsOf, mediaOf };
+export { entryObservationsOf };

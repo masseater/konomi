@@ -58,4 +58,4 @@ const ratedObservationsOf =
     return pipe(rated, Arr.map(observe));
   };
 
-export { ratedObservationsOf, songOf };
+export { ratedObservationsOf };

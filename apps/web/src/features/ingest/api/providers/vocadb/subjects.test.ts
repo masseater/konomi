@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { songOf } from "./subjects";
+import { ratedObservationsOf } from "./subjects";
 
 const SONG_ID = 1_023_163;
 const ARTIST_ID = 161;
 const LENGTH = 222;
+const FETCHED_AT = 0;
 
-describe("songOf", () => {
+describe("ratedObservationsOf", () => {
   it("credits the artists and keeps the length and publish date", () => {
-    expect(
-      songOf({
+    const observations = ratedObservationsOf(FETCHED_AT)([
+      {
         date: "2026-09-10T08:50:14.307",
         rating: "Favorite",
         song: {
@@ -20,25 +21,30 @@ describe("songOf", () => {
           songType: "Original",
           artists: [{ artist: { id: ARTIST_ID, name: "無力P" }, categories: "Producer" }],
         },
-      }),
-    ).toStrictEqual({
-      provider: "vocadb",
-      externalId: "song:1023163",
-      type: "track",
-      title: "Anemone",
-      url: "https://vocadb.net/S/1023163",
-      durationSec: 222,
-      publishedAtMs: 1_787_875_200_000,
-      credits: [
-        {
+      },
+    ]);
+    expect(observations).toMatchObject([
+      {
+        subject: {
           provider: "vocadb",
-          externalId: "artist:161",
-          type: "person",
-          title: "無力P",
-          url: "https://vocadb.net/Ar/161",
+          externalId: "song:1023163",
+          type: "track",
+          title: "Anemone",
+          url: "https://vocadb.net/S/1023163",
+          durationSec: 222,
+          publishedAtMs: 1_787_875_200_000,
+          credits: [
+            {
+              provider: "vocadb",
+              externalId: "artist:161",
+              type: "person",
+              title: "無力P",
+              url: "https://vocadb.net/Ar/161",
+            },
+          ],
+          tags: ["Original"],
         },
-      ],
-      tags: ["Original"],
-    });
+      },
+    ]);
   });
 });

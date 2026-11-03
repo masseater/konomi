@@ -82,4 +82,4 @@ const entryObservationsOf =
   };
 
 export type { MalList };
-export { entryObservationsOf, entryOf };
+export { entryObservationsOf };
