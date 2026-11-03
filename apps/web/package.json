@@ -46,6 +46,7 @@
     "jose": "catalog:",
     "node-html-parser": "catalog:",
     "otpauth": "catalog:",
+    "psn-api": "catalog:",
     "radix-ui": "catalog:stack",
     "react": "19.3.1",
     "react-dom": "19.3.1",

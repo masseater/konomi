@@ -49,6 +49,7 @@ twilog に X のアカウントを登録しておき、何も入れずに保存�
 はてなブックマークは、公開しているブックマークとコメントを、はてな ID で RSS から読む。
 Letterboxd は、日記に付けた視聴記録・評価・いいねを、ユーザー名で RSS から読む。
 Filmarks は、映画とドラマの Mark と Clip を、ユーザー ID で公開ページから読む。
+PlayStation は、遊んだゲームと最初と最後に遊んだ日時を、NPSSO で読む。
 
 OAuth で許可するサービスは、Client ID と Client Secret を保存してから、画面の「許可する」から許可の画面へ進む。
 アプリの設定には、画面に出るリダイレクト URI を登録しておく。
@@ -72,8 +73,8 @@ SoundCloud の `client_id` は、soundcloud.com のスクリプトから konomi 
 
 ## 非公開 API を使う危険
 
-ニコニコ動画・SoundCloud と YouTube の視聴履歴は、公式に読む手段が無い。
-ブラウザのログイン Cookie を預かり、Web 版が内部で使う API を読む。
+ニコニコ動画・SoundCloud・PlayStation と YouTube の視聴履歴は、公式に読む手段が無い。
+ブラウザのログイン Cookie を預かり、Web 版やアプリが内部で使う API を読む。
 YouTube の視聴履歴は、Cookie を入れたときだけ読む。
 
 これには 3 つの危険がある。
