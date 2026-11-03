@@ -30,6 +30,11 @@ Spotify Web API で読む。
 SoundCloud は、再生履歴・いいねした曲とプレイリスト・フォローを、
 Web 版が内部で使う api-v2 で読む。
 Apple Music は、最近聴いた曲とライブラリの曲を Apple Music API で読む。
+Last.fm は、scrobble の記録と Loved Tracks を、ユーザー名と API キーで読む。
+Steam は、持っているゲームと最後に遊んだ日時を、Steam ID と Web API キーで読む。
+Bluesky は、いいねした投稿とフォローを、ハンドルとアプリパスワードで読む。
+Annict は、視聴記録と見てる・見たのアニメを、個人用アクセストークンで読む。
+Twitch は、フォローしたチャンネルを Helix API で読む。
 
 OAuth で許可するサービスは、Client ID と Client Secret を保存してから、画面の「許可する」から許可の画面へ進む。
 アプリの設定には、画面に出るリダイレクト URI を登録しておく。
@@ -41,6 +46,8 @@ OAuth で許可するサービスは、Client ID と Client Secret を保存し�
 - Apple Music は、Apple Developer Program の Certificates, Identifiers & Profiles で
   Media Services の鍵を作る。
   鍵を保存したら `/connect/apple-music` の画面で Apple ID の許可を取る。許可はおよそ 6 か月で切れる
+- Twitch は、[開発者のコンソール](https://dev.twitch.tv/console)で、
+  種類が Confidential のアプリを作る
 
 ニコニコ動画はメールアドレスとパスワードを預けると、ログインが切れるたびに konomi がログインし直す。
 預けたくなければ `user_session` の Cookie を貼る。この場合は切れるたびに貼り直す。

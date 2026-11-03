@@ -1,18 +1,16 @@
 import type { Provider } from "#/features/ingest/model/provider";
 import type { ProviderId } from "#/shared/config";
 
-import { appleMusic } from "./apple-music/index.server";
-import { niconico } from "./niconico/index.server";
-import { soundcloud } from "./soundcloud/index.server";
-import { spotify } from "./spotify/index.server";
-import { youtube } from "./youtube/index.server";
+import { HOBBY_PROVIDERS } from "./hobby.server";
+import { MUSIC_PROVIDERS } from "./music.server";
+import { SOCIAL_PROVIDERS } from "./social.server";
+import { VIDEO_PROVIDERS } from "./video.server";
 
 const PROVIDERS: Readonly<Record<ProviderId, Provider>> = {
-  "apple-music": appleMusic,
-  niconico,
-  soundcloud,
-  spotify,
-  youtube,
+  ...HOBBY_PROVIDERS,
+  ...MUSIC_PROVIDERS,
+  ...SOCIAL_PROVIDERS,
+  ...VIDEO_PROVIDERS,
 };
 
 export { PROVIDERS };

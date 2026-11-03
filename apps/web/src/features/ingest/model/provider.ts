@@ -18,6 +18,7 @@ type Authorization = Readonly<{
   tokenUrl: string;
   scopes: readonly string[];
   params: Readonly<Record<string, string>>;
+  clientAuthentication?: "basic" | "body";
 }>;
 
 type CredentialMethod = Readonly<{
