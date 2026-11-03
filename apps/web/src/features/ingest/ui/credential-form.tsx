@@ -1,15 +1,14 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Array as Arr, Effect, Match, Record, Schema, pipe } from "effect";
-import { useCallback } from "react";
 import type { ReactNode } from "react";
 
-import { connectionClient, connectionQueries } from "#/features/ingest/api/queries";
+import { connectionClient } from "#/features/ingest/api/queries";
 import type { CredentialMethod } from "#/features/ingest/model/provider";
 import type { ProviderId } from "#/shared/config";
 import { Button } from "#/shared/ui/button";
 import { Input } from "#/shared/ui/input";
 
 import { MethodLinks } from "./method-links";
+import { useConnectionForm } from "./use-connection-form";
 
 const SAVE = "保存する";
 const SAVED = "保存した。次の取り込みで使う";
@@ -36,24 +35,6 @@ const saveCredential =
       ),
     );
 
-const useSaveCredential = (
-  target: Readonly<{ provider: ProviderId; method: string }>,
-): Readonly<{ submit: (form: Readonly<FormData>) => void; status: string }> => {
-  const queryClient = useQueryClient();
-  const { mutate, status } = useMutation({
-    mutationFn: saveCredential(target),
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: connectionQueries.api.connections.get.queryKey() }),
-  });
-  const submit = useCallback(
-    (form: Readonly<FormData>) => {
-      mutate(form);
-    },
-    [mutate],
-  );
-  return { submit, status };
-};
-
 const CredentialForm = ({
   provider,
   method,
@@ -63,7 +44,7 @@ const CredentialForm = ({
   method: CredentialMethod;
   redirectUri: string;
 }>): ReactNode => {
-  const { submit, status } = useSaveCredential({ provider, method: method.id });
+  const { submit, status } = useConnectionForm(saveCredential({ provider, method: method.id }));
   return (
     <form className="flex flex-col gap-2" action={submit}>
       <h3 className="font-bold">{method.label}</h3>

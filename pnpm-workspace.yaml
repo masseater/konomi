@@ -48,6 +48,8 @@ catalog:
   chrome-launcher: 1.2.2
   lighthouse: 13.6.0
   puppeteer-core: 25.16.0
+  papaparse: 5.7.0
+  "@types/papaparse": 5.5.2
 catalogs:
   stack:
     "@distilled.cloud/cloudflare": 1.0.0-rc.17

@@ -5,6 +5,7 @@ import type { ProviderState } from "#/features/ingest/api/routes.server";
 import { STATUS_LABELS } from "#/features/ingest/model/labels";
 
 import { CredentialForm } from "./credential-form";
+import { ImportForm } from "./import-form";
 import { KindTotals } from "./kind-totals";
 
 const ProviderCard = ({ state }: Readonly<{ state: ProviderState }>): ReactNode => {
@@ -16,7 +17,9 @@ const ProviderCard = ({ state }: Readonly<{ state: ProviderState }>): ReactNode 
   return (
     <article className="flex flex-col gap-3 rounded-lg border p-4">
       <h2 className="text-lg font-bold">{state.name}</h2>
-      <p className="text-sm">{STATUS_LABELS[connection.status]}</p>
+      {Arr.isReadonlyArrayNonEmpty(state.methods) && (
+        <p className="text-sm">{STATUS_LABELS[connection.status]}</p>
+      )}
       {failure !== "" && <p className="text-destructive text-sm">{failure}</p>}
       <KindTotals totals={state.totals} />
       {pipe(
@@ -28,6 +31,12 @@ const ProviderCard = ({ state }: Readonly<{ state: ProviderState }>): ReactNode 
             method={method}
             redirectUri={state.redirectUri}
           />
+        )),
+      )}
+      {pipe(
+        state.imports,
+        Arr.map((format) => (
+          <ImportForm key={format.id} provider={state.provider} format={format} />
         )),
       )}
     </article>

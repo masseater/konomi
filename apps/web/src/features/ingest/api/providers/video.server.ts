@@ -2,6 +2,7 @@ import type { Provider } from "#/features/ingest/model/provider";
 
 import { filmarks } from "./filmarks/index.server";
 import { letterboxd } from "./letterboxd/index.server";
+import { netflix } from "./netflix/index.server";
 import { niconico } from "./niconico/index.server";
 import { trakt } from "./trakt/index.server";
 import { youtube } from "./youtube/index.server";
@@ -9,6 +10,7 @@ import { youtube } from "./youtube/index.server";
 const VIDEO_PROVIDERS = {
   filmarks,
   letterboxd,
+  netflix,
   niconico,
   trakt,
   youtube,
