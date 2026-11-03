@@ -16,6 +16,7 @@ const PROVIDER_IDS = [
   "niconico",
   "openlibrary",
   "pinterest",
+  "pixiv",
   "playstation",
   "qiita",
   "raindrop",
@@ -27,6 +28,7 @@ const PROVIDER_IDS = [
   "twilog",
   "twitch",
   "vocadb",
+  "vrchat",
   "youtube",
 ] as const;
 

@@ -9,10 +9,10 @@ import type { ProviderError } from "#/features/ingest/model/provider";
 
 const NEXT = 1;
 
-type Numbering = Readonly<{ param: string; limit: number; start: number }>;
+type Numbering = Readonly<{ param: string; limit: number; start: number; step?: number }>;
 
 const numberedPageOf =
-  ({ url, param, limit }: Numbering & Readonly<{ url: string }>) =>
+  ({ url, param, limit, step }: Numbering & Readonly<{ url: string }>) =>
   <Item>(items: readonly Item[]): Page<Item> => ({
     items,
     next: pipe(
@@ -20,7 +20,11 @@ const numberedPageOf =
       Option.map(() => {
         const next = new URL(url);
         const current = Number(next.searchParams.get(param));
-        next.searchParams.set(param, String(current + NEXT));
+        const advance = pipe(
+          Option.fromUndefinedOr(step),
+          Option.getOrElse(() => NEXT),
+        );
+        next.searchParams.set(param, String(current + advance));
         return next.toString();
       }),
     ),

@@ -53,6 +53,8 @@ PlayStation は、遊んだゲームと最初と最後に遊んだ日時を、NP
 ListenBrainz は、聴いた曲とハートを付けた曲を、ユーザー名で読む。
 Open Library は、読んだ・読んでいる・読みたい本を、ユーザー名で読む。
 Qiita は、ストックした記事を、ユーザー名で読む。
+VRChat は、お気に入りのワールドとアバター、フレンドを、ログインの Cookie で読む。
+pixiv は、ブックマークしたイラストと小説、フォローを、スマホアプリの refresh token で読む。
 Netflix は、視聴履歴の CSV を画面から取り込む。
 データの書き出しの ViewingActivity.csv と、視聴履歴のページから落とす NetflixViewingHistory.csv のどちらかを使う。
 
@@ -81,7 +83,7 @@ SoundCloud の `client_id` は、soundcloud.com のスクリプトから konomi 
 
 ## 非公開 API を使う危険
 
-ニコニコ動画・SoundCloud・PlayStation と YouTube の視聴履歴は、公式に読む手段が無い。
+ニコニコ動画・SoundCloud・PlayStation・VRChat・pixiv と YouTube の視聴履歴は、公式に読む手段が無い。
 ブラウザのログイン Cookie を預かり、Web 版やアプリが内部で使う API を読む。
 YouTube の視聴履歴は、Cookie を入れたときだけ読む。
 
