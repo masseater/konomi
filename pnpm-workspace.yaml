@@ -8,7 +8,7 @@ packages:
 catalogMode: prefer
 
 catalog:
-  "@r_masseater/oxlint-typed-rules": 0.0.2
+  "@r_masseater/oxlint-typed-rules": 0.1.0
   "@ast-grep/cli": 0.51.0
   "@cloudflare/workers-types": 5.20261101.1
   "@effect/platform-node": 4.1.2
@@ -22,7 +22,7 @@ catalog:
   oxlint-plugin-eslint: 1.90.0
   syncpack: 15.3.3
   vite: npm:@voidzero-dev/vite-plus-core@1.4.0
-  "@r_masseater/oxlint-plugin-decision": 0.0.4
+  "@r_masseater/oxlint-plugin-decision": 0.1.0
   eslint-plugin-no-comments: 1.2.1
   eslint-plugin-baseline-js: 0.7.7
   "@html-eslint/eslint-plugin-react": 0.67.0
@@ -36,8 +36,8 @@ catalog:
   "@yarnpkg/parsers": 3.1.0
   jose: 6.2.14
   otpauth: 9.5.2
-  "@better-auth/mcp": 1.7.14
-  "@better-auth/oauth-provider": 1.7.14
+  "@better-auth/mcp": 1.7.15
+  "@better-auth/oauth-provider": 1.7.15
   "@modelcontextprotocol/client": 2.4.0
   fast-xml-parser: 5.11.2
   "@nodable/entities": 3.1.0
@@ -60,7 +60,7 @@ catalogs:
     "@alchemy.run/cloudflare": 2.0.0-beta.85
     "@alchemy.run/fly": 2.0.0-beta.85
     alchemy: 2.0.0-beta.85
-    better-auth: 1.7.14
+    better-auth: 1.7.15
     drizzle-kit: 1.0.0-rc.5-ab785fc
     drizzle-orm: 1.0.0-rc.5-ab785fc
     eden-tanstack-react-query: 0.5.1
@@ -77,9 +77,6 @@ catalogs:
 overrides:
   effect: "catalog:stack"
   "@effect/platform-node": "catalog:"
-  "@r_masseater/oxlint-plugin-decision>effect": 4.0.0
-  "@r_masseater/oxlint-plugin-decision>@effect/platform-node": 4.0.0
-  "@effect/platform-node@4.0.0>@effect/platform-node-shared": 4.0.0
   "@effect/platform-node-shared": 4.1.2
   "@effect/sql-d1": 4.1.2
   "@effect/sql-sqlite-do": 4.1.2
@@ -144,8 +141,8 @@ minimumReleaseAgeExclude:
   - "@distilled.cloud/fly-io@1.0.0-rc.18"
   - "@distilled.cloud/iceberg@1.0.0-rc.18"
   - alchemy@2.0.0-beta.85
-  - "@r_masseater/oxlint-typed-rules@0.0.2"
-  - "@r_masseater/oxlint-plugin-decision@0.0.4"
+  - "@r_masseater/oxlint-typed-rules@0.1.0"
+  - "@r_masseater/oxlint-plugin-decision@0.1.0"
   - "@r_masseater/web-vitals-flow@0.0.0"
 audit:
   ignorePrune: true
