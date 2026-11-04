@@ -1,12 +1,7 @@
 import type { Schema, Option } from "effect";
-import { Effect, Layer, Match, Ref } from "effect";
-import {
-  Cookies,
-  FetchHttpClient,
-  HttpClient,
-  HttpClientRequest,
-  HttpClientResponse,
-} from "effect/http";
+import { Array as Arr, Effect, Layer, Match, Option as Opt, Ref } from "effect";
+import type { Cookies } from "effect/http";
+import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } from "effect/http";
 
 import { CredentialRejected } from "#/features/ingest/model/credential-rejected";
 import type { ProviderError } from "#/features/ingest/model/provider";
@@ -101,9 +96,11 @@ const pageOf =
       }),
     );
 
+type StoredCookie = (typeof Cookies.empty.cookies)[string];
+
 const openBrowser: Effect.Effect<Browser, never, HttpClient.HttpClient> = Effect.gen(
   function* browser() {
-    const jar = yield* Ref.make(Cookies.empty);
+    const jar = yield* Ref.make<readonly StoredCookie[]>([]);
     const client = (yield* HttpClient.HttpClient).pipe(
       HttpClient.withCookiesRef(jar),
       HttpClient.followRedirects(MAX_REDIRECTS),
@@ -120,7 +117,14 @@ const openBrowser: Effect.Effect<Browser, never, HttpClient.HttpClient> = Effect
       open: (url) => send(url, HttpClientRequest.get(url)),
       submit: ({ url, fields }) =>
         send(url, HttpClientRequest.post(url).pipe(HttpClientRequest.bodyUrlParams(fields))),
-      cookie: (name) => Ref.get(jar).pipe(Effect.map((cookies) => Cookies.getValue(cookies, name))),
+      cookie: (name) =>
+        Ref.get(jar).pipe(
+          Effect.map((cookies) =>
+            Arr.findFirst(cookies, (stored) => stored.name === name).pipe(
+              Opt.map((stored) => stored.value),
+            ),
+          ),
+        ),
     };
   },
 );
