@@ -36,8 +36,8 @@ catalog:
   "@yarnpkg/parsers": 3.1.0
   jose: 6.2.14
   otpauth: 9.5.2
-  "@better-auth/mcp": 1.7.14
-  "@better-auth/oauth-provider": 1.7.14
+  "@better-auth/mcp": 1.7.15
+  "@better-auth/oauth-provider": 1.7.15
   "@modelcontextprotocol/client": 2.4.0
   fast-xml-parser: 5.11.2
   "@nodable/entities": 3.1.0
@@ -60,7 +60,7 @@ catalogs:
     "@alchemy.run/cloudflare": 2.0.0-beta.85
     "@alchemy.run/fly": 2.0.0-beta.85
     alchemy: 2.0.0-beta.85
-    better-auth: 1.7.14
+    better-auth: 1.7.15
     drizzle-kit: 1.0.0-rc.5-ab785fc
     drizzle-orm: 1.0.0-rc.5-ab785fc
     eden-tanstack-react-query: 0.5.1
