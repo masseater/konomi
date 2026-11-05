@@ -142,11 +142,7 @@ const sendJson = <Body extends Schema.Top>(
   request: HttpClientRequest.HttpClientRequest,
   schema: Body,
 ): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"]> =>
-  withFetch(requestJson({ request, schema })).pipe(
-    Effect.withSpan("provider.fetch", {
-      attributes: { url: request.url, method: request.method },
-    }),
-  );
+  withFetch(requestJson({ request, schema }));
 
 const fetchJson = <Body extends Schema.Top>({
   url,
@@ -209,7 +205,7 @@ const fetchText = ({
         ),
       ),
     ),
-  ).pipe(Effect.withSpan("provider.fetch-text", { attributes: { url } }));
+  );
 
 export type { Browser, Headers };
 export { browse, fetchJson, fetchText, postForm, postJson };
