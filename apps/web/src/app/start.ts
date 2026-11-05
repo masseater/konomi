@@ -1,3 +1,4 @@
+import { requestSpan, serverFnSpan } from "@r_masseater/workers-tracing/tanstack-start";
 import { createMiddleware, createStart } from "@tanstack/react-start";
 import { Effect, Match, Option, Record as Rec } from "effect";
 import { Base64 } from "effect/encoding";
@@ -50,7 +51,8 @@ const responseHeaders = createMiddleware().server(({ next, request }) =>
 );
 
 const startInstance = createStart(() => ({
-  requestMiddleware: [responseHeaders],
+  requestMiddleware: [requestSpan, responseHeaders],
+  functionMiddleware: [serverFnSpan],
 }));
 
 export { startInstance };

@@ -30,6 +30,7 @@
     "@modelcontextprotocol/client": "catalog:",
     "@modelcontextprotocol/server": "catalog:",
     "@nodable/entities": "catalog:",
+    "@r_masseater/workers-tracing": "catalog:",
     "@tanstack/react-devtools": "0.10.14",
     "@tanstack/react-query": "catalog:stack",
     "@tanstack/react-query-devtools": "catalog:",

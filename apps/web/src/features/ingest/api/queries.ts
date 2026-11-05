@@ -5,15 +5,15 @@ import { browserClient, createQueries, serverClient } from "#/shared/api";
 
 import type { ConnectionRoutes } from "./routes.server";
 
-const loadConnectionRoutes = (): Promise<ConnectionRoutes> =>
+const loadConnectionHandle = (): Promise<(request: Request) => Promise<Response>> =>
   Effect.runPromise(
-    Effect.promise(() => import("./routes.server")).pipe(
-      Effect.map((module) => module.connectionRoutes),
+    Effect.promise(() => import("./handle.server")).pipe(
+      Effect.map((module) => module.handleConnections),
     ),
   );
 
 const client = createIsomorphicFn()
-  .server(() => serverClient<ConnectionRoutes>(loadConnectionRoutes))
+  .server(() => serverClient<ConnectionRoutes>(loadConnectionHandle))
   .client(() => browserClient<ConnectionRoutes>());
 
 const connectionClient = client();
