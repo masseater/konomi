@@ -19,21 +19,30 @@ MCP の URL は <https://konomi.masseater.dev/mcp> になる。ログインで�
 
 ## 取り込めるサービス
 
-動画は YouTube・Twitch・ニコニコ動画・Netflix・Prime Video に対応する。
-映画とアニメの記録は Trakt・Letterboxd・Filmarks・Annict・AniList・MyAnimeList から集める。
-音楽では Spotify・Apple Music・Last.fm・ListenBrainz・VocaDB・SoundCloud が使える。
-ゲームは Steam・Xbox・PlayStation・VRChat を読む。
-本は Open Library と Kindle、イラストは Pinterest と pixiv が対象になる。
-SNS の Bluesky・Mastodon・Misskey・Reddit・X と、
-ブックマークのはてなブックマーク・Raindrop.io・GitHub のスター・Qiita のストックも入る。
+- 動画は YouTube・Twitch・ニコニコ動画・Netflix・Prime Video
+- 映画とアニメは Trakt・Letterboxd・Filmarks・Annict・AniList・MyAnimeList
+- 音楽は Spotify・Apple Music・Last.fm・ListenBrainz・VocaDB・SoundCloud
+- ゲームは Steam・Xbox・PlayStation・VRChat
+- 本は Open Library・Kindle
+- イラストは Pinterest・pixiv
+- SNS は Bluesky・Mastodon・Misskey・Reddit・X
+- ブックマークは はてなブックマーク・Raindrop.io・GitHub のスター・Qiita のストック
 
 X は twilog の MCP を、Xbox は OpenXBL を経由して読む。
-ニコニコ動画・YouTube の視聴履歴・SoundCloud・PlayStation・VRChat・pixiv は非公式の API で読むので、
-[非公式の API の危険](#非公式の-api-の危険)を承知のうえでつなぐ。
-Netflix・Prime Video・Kindle には API が無く、サービスが書き出した CSV をサイトから取り込む。
 
-API で読むサービスは、つないだときに過去へ遡り、そのあとは 1 時間ごとに新しい分を読む。
-書き出しファイルは自動では読み直さないので、新しい分は書き出し直して取り込む。
+### 公式の API と公開データで読むサービス
+
+つないだときに過去へ遡り、そのあとは 1 時間ごとに新しい分を読む。
+
+### 非公式の API で読むサービス
+
+ニコニコ動画・YouTube の視聴履歴・SoundCloud・PlayStation・VRChat・pixiv が当たる。
+1 時間ごとに読むのは同じだが、[非公式の API の危険](#非公式の-api-の危険)を承知のうえでつなぐ。
+
+### 書き出しファイルを取り込むサービス
+
+Netflix・Prime Video・Kindle には API が無く、サービスが書き出した CSV をサイトから取り込む。
+自動では読み直さないので、新しい分は書き出し直して取り込む。
 同じ記録を何度取り込んでも二重にはならない。
 
 ## 非公式の API の危険
