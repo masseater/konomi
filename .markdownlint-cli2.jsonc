@@ -1,4 +1,7 @@
 {
+  "config": {
+    "MD013": { "tables": false },
+  },
   "gitignore": true,
   "ignores": [".claude/skills/**", ".local-agents/**", "AGENTS.md", "CHANGELOG.md"],
 }
