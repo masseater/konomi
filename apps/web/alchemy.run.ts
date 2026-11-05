@@ -7,8 +7,6 @@ import { SECURITY_HEADERS, STATIC_PAGE_HEADERS, assetHeaders } from "security-he
 import { APP_NAME, requireAppPrefix } from "./app-name.ts";
 import { EMBEDDING_DIMENSIONS } from "./src/shared/config/embedding.ts";
 
-const TRACE_SAMPLING_RATE = 0.1;
-
 const COMPATIBILITY = { date: "2026-08-25" } as const;
 
 const WEB_LIMITS = { cpuMs: 1000 } as const;
@@ -59,7 +57,7 @@ const web = Effect.gen(function* web() {
         invocationLogs: true,
         persist: true,
       },
-      traces: { enabled: true, headSamplingRate: TRACE_SAMPLING_RATE, persist: true },
+      traces: { enabled: true, persist: true },
     },
     viteEnvironments: { entry: "ssr", children: ["rsc"] },
     assets: { headers: assetHeaders(SECURITY_HEADERS) },

@@ -1,14 +1,12 @@
-import { Effect, Logger, ManagedRuntime } from "effect";
+import { layer as workersTracing } from "@r_masseater/workers-tracing/effect";
+import { Effect, ManagedRuntime } from "effect";
 
-import { cloudflareLogger, withCloudflareTracing } from "./tracing.server";
-
-const runtime = ManagedRuntime.make(Logger.layer([cloudflareLogger]));
+const runtime = ManagedRuntime.make(workersTracing);
 
 const runRequest = <Success>(effect: Effect.Effect<Success>): Promise<Success> =>
   effect.pipe(
     Effect.tapCause((cause) => Effect.logError("request failed", cause)),
-    withCloudflareTracing,
-    (traced) => runtime.runPromise(traced),
+    (logged) => runtime.runPromise(logged),
   );
 
 export { runRequest };
