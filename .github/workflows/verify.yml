@@ -18,7 +18,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: $/.github/actions/setup
-      - uses: masseater/typescript-template/.github/actions/verify@77af7f61aed85a96f10d17fa52c46a91d89aa388
+      - uses: masseater/typescript-template/.github/actions/verify@b3f71994bfe791783b8cb290f532f1494bac58bc
         with:
           github-token: ${{ github.token }}
 
@@ -65,7 +65,7 @@ jobs:
       - if: steps.head.outputs.latest == 'true'
         uses: $/.github/actions/setup
       - if: steps.head.outputs.latest == 'true'
-        uses: masseater/typescript-template/.github/actions/credentials@77af7f61aed85a96f10d17fa52c46a91d89aa388
+        uses: masseater/typescript-template/.github/actions/credentials@b3f71994bfe791783b8cb290f532f1494bac58bc
       - if: steps.head.outputs.latest == 'true'
         run: vp exec alchemy deploy --stage production --yes
         working-directory: apps/web
@@ -82,7 +82,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: $/.github/actions/setup
-      - uses: masseater/typescript-template/.github/actions/credentials@77af7f61aed85a96f10d17fa52c46a91d89aa388
+      - uses: masseater/typescript-template/.github/actions/credentials@b3f71994bfe791783b8cb290f532f1494bac58bc
       - run: >-
           vp exec workers-traces --request https://konomi.masseater.dev/
           --expect GET --expect "GET /" --wait 300
@@ -143,6 +143,6 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: masseater/typescript-template/.github/actions/ci-telemetry@77af7f61aed85a96f10d17fa52c46a91d89aa388
+      - uses: masseater/typescript-template/.github/actions/ci-telemetry@b3f71994bfe791783b8cb290f532f1494bac58bc
         with:
           github-token: ${{ github.token }}
