@@ -28,7 +28,8 @@ const clientOf = (refreshToken: string): Effect.Effect<PixivClient, CredentialRe
 
 const pullPixiv = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* pixiv() {
-    const client = yield* clientOf(yield* requireField(credential, FIELD.refreshToken));
+    const refreshToken = yield* requireField(credential, FIELD.refreshToken);
+    const client = yield* clientOf(refreshToken);
     const fetchedAt = yield* Clock.currentTimeMillis;
     const collect = collectListing(pagesOf(cursor));
     const { userId, users: lists } = client;
