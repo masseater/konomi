@@ -9,6 +9,23 @@ import { defineConfig } from "vite-plus";
 import { SEARCH_INDEX_ORIGIN, SITEMAP_FILE } from "./src/shared/config/index.ts";
 
 export default defineConfig({
+  run: {
+    tasks: {
+      dev: { command: "alchemy dev", cache: false },
+      "db:generate": { command: "drizzle-kit generate", cache: false },
+      "auth:generate": {
+        command:
+          "auth generate --config src/shared/auth/auth.server.ts --output src/shared/auth/generated/auth.table.ts --yes",
+        cache: false,
+      },
+      "db:check": [
+        "drizzle-kit check",
+        `drizzle-kit generate --explain --output json | grep -q '"status":"no_changes"'`,
+      ],
+      deploy: { command: "alchemy deploy", cache: false },
+      destroy: { command: "alchemy destroy", cache: false },
+    },
+  },
   resolve: { tsconfigPaths: true },
   test: {
     projects: [
