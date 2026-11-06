@@ -1,12 +1,6 @@
-import { layer as workersTracing } from "@r_masseater/workers-tracing/effect";
-import { Effect, ManagedRuntime } from "effect";
+import { runner } from "@r_masseater/workers-tracing/effect";
+import { Layer } from "effect";
 
-const runtime = ManagedRuntime.make(workersTracing);
-
-const runRequest = <Success>(effect: Effect.Effect<Success>): Promise<Success> =>
-  effect.pipe(
-    Effect.tapCause((cause) => Effect.logError("request failed", cause)),
-    (logged) => runtime.runPromise(logged),
-  );
+const runRequest = runner(Layer.empty);
 
 export { runRequest };
