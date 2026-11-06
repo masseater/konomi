@@ -16,6 +16,7 @@ import {
   tanstackRouterRules,
   turnedOff,
 } from "./lint.config.ts";
+import { workerRules } from "./worker-lint.config.ts";
 
 export default defineConfig({
   test: { projects: ["apps/*", "libs/*", "tools/*", "infra/*"], passWithNoTests: true },
@@ -184,7 +185,7 @@ export default defineConfig({
       },
       {
         files: ["apps/web/src/**/*.{ts,tsx}"],
-        rules: decisionRules,
+        rules: { ...decisionRules, ...workerRules },
       },
       {
         files: ["**/*.test.ts"],

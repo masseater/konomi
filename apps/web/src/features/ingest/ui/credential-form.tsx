@@ -1,3 +1,4 @@
+import { run } from "@r_masseater/workers-tracing/effect";
 import { Array as Arr, Effect, Match, Record, Schema, pipe } from "effect";
 import type { ReactNode } from "react";
 
@@ -25,7 +26,7 @@ const FormFields = Schema.Record(Schema.String, Schema.String);
 const saveCredential =
   ({ provider, method }: Readonly<{ provider: ProviderId; method: string }>) =>
   (form: Readonly<FormData>): Promise<unknown> =>
-    Effect.runPromise(
+    run(
       Schema.decodeUnknownEffect(FormFields)(Record.fromEntries(form)).pipe(
         Effect.flatMap((fields) =>
           Effect.promise(() =>

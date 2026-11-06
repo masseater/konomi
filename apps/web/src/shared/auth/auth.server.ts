@@ -4,7 +4,6 @@ import { betterAuth } from "better-auth";
 import { jwt } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { env } from "cloudflare:workers";
-import { Effect } from "effect";
 
 import { MCP_URL, SITE_ORIGIN } from "#/shared/config/index.server";
 import { db } from "#/shared/db/client.server";
@@ -24,13 +23,7 @@ import {
   user,
   verification,
 } from "./generated/auth.table";
-
-const NO_OWNERS = 0;
-
-const rejectSecondOwner = (): Promise<boolean> =>
-  Effect.runPromise(
-    Effect.promise(() => db.$count(user)).pipe(Effect.map((owners) => owners === NO_OWNERS)),
-  );
+import { rejectSecondOwner } from "./owner-guard.server";
 
 const auth = betterAuth({
   baseURL: SITE_ORIGIN,

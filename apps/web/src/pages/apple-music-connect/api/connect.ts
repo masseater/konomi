@@ -1,3 +1,4 @@
+import { run } from "@r_masseater/workers-tracing/effect";
 import { mutationOptions } from "@tanstack/react-query";
 import { Effect, Predicate, Schema } from "effect";
 
@@ -10,7 +11,7 @@ const TokenBody = Schema.Struct({ token: Schema.NonEmptyString });
 const decodeTokenBody = Schema.decodeUnknownEffect(TokenBody);
 
 const connectAppleMusic = (): Promise<unknown> =>
-  Effect.runPromise(
+  run(
     Effect.promise(() =>
       connectionClient.api.connections["apple-music"]["developer-token"].get(),
     ).pipe(

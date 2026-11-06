@@ -87,6 +87,8 @@ jobs:
           vp exec workers-traces --request https://konomi.masseater.dev/
           --expect GET --expect "GET /" --wait 300
         working-directory: apps/web
+        env:
+          WORKERS_TRACES_SINK: masseater-dev-trace-sink
 
   web-vitals:
     needs: deploy
