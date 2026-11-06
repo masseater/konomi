@@ -1,3 +1,4 @@
+import { run } from "@r_masseater/workers-tracing/effect";
 import {
   Array as Arr,
   Effect,
@@ -73,7 +74,7 @@ const importFile = ({
   file,
   ...target
 }: ImportTarget & Readonly<{ file: Readonly<Pick<File, "text">> }>): Promise<ImportOutcome> =>
-  Effect.runPromise(
+  run(
     Effect.promise(() => file.text()).pipe(
       Effect.map(rowsOf),
       Effect.filterOrFail(Arr.isReadonlyArrayNonEmpty, () =>

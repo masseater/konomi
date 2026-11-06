@@ -60,7 +60,7 @@ const rejectStranger = <Rejection>({
   request,
   reject,
 }: Readonly<{ request: Request; reject: () => Rejection }>): Promise<Rejection | undefined> =>
-  Effect.runPromise(
+  runRequest(
     isOwner(request).pipe(
       Effect.map((owner) =>
         pipe(

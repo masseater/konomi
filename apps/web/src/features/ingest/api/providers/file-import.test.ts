@@ -1,3 +1,4 @@
+import { run } from "@r_masseater/workers-tracing/effect";
 import { Array as Arr, Effect, Schema, pipe } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -40,7 +41,7 @@ describe("fileFormat", () => {
     const titles = format
       .observe({ rows: [{ Title: "A" }], fields: {} })
       .pipe(Effect.map(Arr.map(({ subject }) => subject.title)));
-    return expect(Effect.runPromise(titles)).resolves.toStrictEqual(["A"]);
+    return expect(run(titles)).resolves.toStrictEqual(["A"]);
   });
 
   it("rejects rows without the columns, naming the file", () => {
@@ -48,8 +49,6 @@ describe("fileFormat", () => {
       Effect.flip,
       Effect.map(({ message: text }) => text),
     );
-    return expect(Effect.runPromise(message)).resolves.toBe(
-      "sample.csv の列が見つからない。ファイルを確かめる",
-    );
+    return expect(run(message)).resolves.toBe("sample.csv の列が見つからない。ファイルを確かめる");
   });
 });

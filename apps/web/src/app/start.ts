@@ -1,3 +1,4 @@
+import { run } from "@r_masseater/workers-tracing/effect";
 import { requestSpan, serverFnSpan } from "@r_masseater/workers-tracing/tanstack-start";
 import { createMiddleware, createStart } from "@tanstack/react-start";
 import { Effect, Match, Option, Record as Rec } from "effect";
@@ -31,7 +32,7 @@ const robotsHeaders: Readonly<Record<string, string>> = Option.match(SEARCH_INDE
 });
 
 const responseHeaders = createMiddleware().server(({ next, request }) =>
-  Effect.runPromise(
+  run(
     Effect.gen(function* secure() {
       const nonce = Base64.encode(crypto.getRandomValues(new Uint8Array(NONCE_BYTES)));
       const result = yield* Effect.promise(() => Promise.resolve(next({ context: { nonce } })));

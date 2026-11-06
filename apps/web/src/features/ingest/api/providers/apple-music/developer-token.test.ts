@@ -1,3 +1,4 @@
+import { run } from "@r_masseater/workers-tracing/effect";
 import { Effect } from "effect";
 import { Base64 } from "effect/encoding";
 import { decodeProtectedHeader, exportSPKI, importSPKI, jwtVerify } from "jose";
@@ -34,7 +35,7 @@ const signAndVerify = Effect.gen(function* signAndVerify() {
 
 describe("signDeveloperToken", () => {
   it("signs an ES256 token that the key's public half verifies", () =>
-    expect(Effect.runPromise(signAndVerify)).resolves.toStrictEqual({
+    expect(run(signAndVerify)).resolves.toStrictEqual({
       header: { alg: ALGORITHM, kid: KEY_ID },
       expiry: "number",
     }));

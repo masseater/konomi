@@ -1,3 +1,4 @@
+import { run } from "@r_masseater/workers-tracing/effect";
 import { Effect, Record, Schema } from "effect";
 
 import { authClient } from "#/shared/auth";
@@ -11,7 +12,7 @@ const Owner = Schema.Struct({
 });
 
 const signUp = (form: Readonly<FormData>): Promise<unknown> =>
-  Effect.runPromise(
+  run(
     Schema.decodeUnknownEffect(Owner)(Record.fromEntries(form)).pipe(
       Effect.flatMap((owner) =>
         Effect.promise(() =>
