@@ -1,4 +1,4 @@
-import { Clock, Effect } from "effect";
+import { Array as Arr, Clock, Effect } from "effect";
 
 import { BACKFILLED, pagesOf } from "#/features/ingest/api/providers/backfill-cursor";
 import { requireField } from "#/features/ingest/api/providers/credential-field";
@@ -46,13 +46,16 @@ const pullVrchat = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
     const listing = { headers: { ...HEADERS, Cookie: `auth=${auth}` }, pages: pagesOf(cursor) };
     const works = worksAt(listing);
     const friends = friendsOf(listing);
-    const observations = [
-      ...favoriteObservationsOf({ kind: "world", fetchedAt })(yield* works("/worlds/favorites")),
-      ...favoriteObservationsOf({ kind: "avatar", fetchedAt })(yield* works("/avatars/favorites")),
-      ...friendObservationsOf(fetchedAt)(yield* friends(false)),
-      ...friendObservationsOf(fetchedAt)(yield* friends(true)),
-    ];
-    return { observations, cursor: yield* BACKFILLED };
+    const worlds = favoriteObservationsOf({ kind: "world", fetchedAt });
+    const avatars = favoriteObservationsOf({ kind: "avatar", fetchedAt });
+    const people = friendObservationsOf(fetchedAt);
+    const groups = yield* Effect.all([
+      works("/worlds/favorites").pipe(Effect.map(worlds)),
+      works("/avatars/favorites").pipe(Effect.map(avatars)),
+      friends(false).pipe(Effect.map(people)),
+      friends(true).pipe(Effect.map(people)),
+    ]);
+    return { observations: Arr.flatten(groups), cursor: yield* BACKFILLED };
   }).pipe(Effect.withSpan("vrchat.pull"));
 
 export { pullVrchat };

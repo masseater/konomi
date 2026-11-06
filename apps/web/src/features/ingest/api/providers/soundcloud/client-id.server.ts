@@ -30,7 +30,8 @@ const clientIdIn = (script: string): Option.Option<string> =>
 const scrapeClientId: Effect.Effect<string, ProviderError> = Effect.gen(function* scrape() {
   const page = yield* fetchText({ url: WEB_URL, headers: {} });
   for (const src of scriptsOf(page)) {
-    const found = clientIdIn(yield* fetchText({ url: src, headers: {} }));
+    const script = yield* fetchText({ url: src, headers: {} });
+    const found = clientIdIn(script);
     if (Option.isSome(found)) {
       return found.value;
     }

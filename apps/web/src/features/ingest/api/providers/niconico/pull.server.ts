@@ -134,8 +134,9 @@ const pagesFor = pagesUpTo(BACKFILL_PAGES);
 
 const pullNiconico = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* niconico() {
+    const session = yield* sessionOf(credential);
     const fetching: Fetching = {
-      headers: headersOf(yield* sessionOf(credential)),
+      headers: headersOf(session),
       fetchedAt: yield* Clock.currentTimeMillis,
     };
     const { backfilled } = pipe(
