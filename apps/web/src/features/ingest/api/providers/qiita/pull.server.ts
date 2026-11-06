@@ -13,7 +13,8 @@ const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
 
 const pullQiita = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* qiita() {
-    const user = encodeURIComponent(yield* requireField(credential, FIELD.user));
+    const name = yield* requireField(credential, FIELD.user);
+    const user = encodeURIComponent(name);
     const fetchedAt = yield* Clock.currentTimeMillis;
     const headers = pipe(
       fieldOf(credential, FIELD.token),
