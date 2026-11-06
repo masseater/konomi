@@ -1,4 +1,4 @@
-import { Array as Arr, Record as Rec, pipe } from "effect";
+import { Array as Arr, Option, Record as Rec, Schema, pipe } from "effect";
 
 const SECURITY_HEADERS = {
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
@@ -17,12 +17,25 @@ const WEB_ANALYTICS_SCRIPT_ORIGIN = "https://static.cloudflareinsights.com";
 
 const WEB_ANALYTICS_REPORT_ORIGIN = "https://cloudflareinsights.com";
 
-const webAnalyticsBeacon = (token: string) =>
-  ({
-    src: `${WEB_ANALYTICS_SCRIPT_ORIGIN}/beacon.min.js`,
-    defer: true,
-    "data-cf-beacon": JSON.stringify({ token }),
-  }) as const;
+const encodeBeaconConfig = Schema.encodeOption(
+  Schema.fromJsonString(Schema.Struct({ token: Schema.String })),
+);
+
+type WebAnalyticsBeacon = Readonly<{
+  src: string;
+  defer: true;
+  "data-cf-beacon": string;
+}>;
+
+const webAnalyticsBeacon = (token: string): Option.Option<WebAnalyticsBeacon> =>
+  pipe(
+    encodeBeaconConfig({ token }),
+    Option.map((config) => ({
+      src: `${WEB_ANALYTICS_SCRIPT_ORIGIN}/beacon.min.js`,
+      defer: true,
+      "data-cf-beacon": config,
+    })),
+  );
 
 type PolicySources = Readonly<{
   script: readonly string[];
@@ -73,7 +86,7 @@ const assetHeaders = (pageHeaders: Readonly<Record<string, string>>): string =>
     Arr.join("\n"),
   );
 
-export type { PolicySources };
+export type { PolicySources, WebAnalyticsBeacon };
 export {
   SECURITY_HEADERS,
   STATIC_PAGE_HEADERS,

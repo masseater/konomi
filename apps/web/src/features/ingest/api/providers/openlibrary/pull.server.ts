@@ -44,7 +44,8 @@ const shelfOf =
 
 const pullOpenlibrary = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* openlibrary() {
-    const user = encodeURIComponent(yield* requireField(credential, FIELD.user));
+    const rawUser = yield* requireField(credential, FIELD.user);
+    const user = encodeURIComponent(rawUser);
     const fetchedAt = yield* Clock.currentTimeMillis;
     const read = shelfOf({ user, pages: pagesOf(cursor) });
     const observed = yield* pipe(

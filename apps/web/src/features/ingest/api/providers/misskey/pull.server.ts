@@ -86,11 +86,10 @@ const followingOf = (reading: Reading): Effect.Effect<readonly Observation[], Pr
 
 const pullMisskey = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* misskey() {
-    const reading: Reading = {
-      origin: yield* instanceOriginOf(FIELD.instance)(credential),
-      token: yield* requireField(credential, FIELD.accessToken),
-      at: epochOr(yield* Clock.currentTimeMillis),
-    };
+    const origin = yield* instanceOriginOf(FIELD.instance)(credential);
+    const token = yield* requireField(credential, FIELD.accessToken);
+    const now = yield* Clock.currentTimeMillis;
+    const reading: Reading = { origin, token, at: epochOr(now) };
     return {
       observations: [...(yield* notesOf(reading)), ...(yield* followingOf(reading))],
       cursor,

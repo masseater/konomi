@@ -15,7 +15,7 @@ const Route = createRootRoute({
     links: [{ rel: "stylesheet", href: appCss }],
     scripts: pipe(
       Schema.decodeUnknownOption(Schema.NonEmptyString)(import.meta.env["VITE_CF_BEACON_TOKEN"]),
-      Option.map(webAnalyticsBeacon),
+      Option.flatMap(webAnalyticsBeacon),
       Arr.fromOption,
     ),
   }),

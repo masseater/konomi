@@ -14,23 +14,32 @@ const attribute = ([name, value]: readonly [string, string | true]): string =>
     }),
   );
 
-const beaconTag = (token: string): string =>
-  `<script ${pipe(Rec.toEntries(webAnalyticsBeacon(token)), Arr.map(attribute), Arr.join(" "))}></script>`;
+const beaconTag = (token: string): Option.Option<string> =>
+  pipe(
+    webAnalyticsBeacon(token),
+    Option.map(
+      (beacon) =>
+        `<script ${pipe(Rec.toEntries(beacon), Arr.map(attribute), Arr.join(" "))}></script>`,
+    ),
+  );
 
-const injectBeacon = (response: Response): Response =>
-  new HTMLRewriter()
-    .on("head", {
-      element: (head) => {
-        head.append(beaconTag(env.CF_BEACON_TOKEN), { html: true });
-      },
-    })
-    .transform(response);
+const injectBeacon =
+  (tag: string) =>
+  (response: Response): Response =>
+    new HTMLRewriter()
+      .on("head", {
+        element: (head) => {
+          head.append(tag, { html: true });
+        },
+      })
+      .transform(response);
 
 const withWebAnalytics = (response: Response): Response =>
   pipe(
     Option.fromNullishOr(response.headers.get("Content-Type")),
     Option.filter(Str.startsWith("text/html")),
-    Option.match({ onNone: () => response, onSome: () => injectBeacon(response) }),
+    Option.flatMap(() => beaconTag(env.CF_BEACON_TOKEN)),
+    Option.match({ onNone: () => response, onSome: (tag) => injectBeacon(tag)(response) }),
   );
 
 export { withWebAnalytics };

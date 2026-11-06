@@ -34,7 +34,8 @@ const collectCards =
 
 const pullFilmarks = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* filmarks() {
-    const user = encodeURIComponent(yield* requireField(credential, FIELD.user));
+    const rawUser = yield* requireField(credential, FIELD.user);
+    const user = encodeURIComponent(rawUser);
     const fetchedAt = yield* Clock.currentTimeMillis;
     const pages = pagesOf(cursor);
     const marks = collectCards({ pages, read: markCardsOf });

@@ -14,7 +14,8 @@ const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
 
 const pullGitHub = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* github() {
-    const user = encodeURIComponent(yield* requireField(credential, FIELD.user));
+    const rawUser = yield* requireField(credential, FIELD.user);
+    const user = encodeURIComponent(rawUser);
     const headers = headersOf(credential);
     const fetchedAt = yield* Clock.currentTimeMillis;
     const pages = pagesOf(cursor);
