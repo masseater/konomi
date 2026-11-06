@@ -1,13 +1,12 @@
 import { D1, Vectorize, Website, Workers, providers, state } from "@alchemy.run/cloudflare";
 import type { InferEnv } from "@alchemy.run/cloudflare";
+import { withWorkersTracing } from "@r_masseater/workers-tracing/alchemy";
 import { Stack, makeRandom } from "alchemy";
 import { Config, Effect, Hash, Schema } from "effect";
 import { SECURITY_HEADERS, STATIC_PAGE_HEADERS, assetHeaders } from "security-headers";
 
 import { APP_NAME, requireAppPrefix } from "./app-name.ts";
 import { EMBEDDING_DIMENSIONS } from "./src/shared/config/embedding.ts";
-
-const COMPATIBILITY = { date: "2026-08-25" } as const;
 
 const WEB_LIMITS = { cpuMs: 1000 } as const;
 
@@ -37,7 +36,6 @@ const web = Effect.gen(function* web() {
     domain,
     main: "src/app/server/main.worker.ts",
     crons: [INGEST_SCHEDULE],
-    compatibility: COMPATIBILITY,
     logpush: true,
     limits: WEB_LIMITS,
     env: {
@@ -50,15 +48,6 @@ const web = Effect.gen(function* web() {
       SITE_ORIGIN: `https://${domain}`,
       SUBJECT_VECTORS,
     },
-    observability: {
-      enabled: true,
-      logs: {
-        enabled: true,
-        invocationLogs: true,
-        persist: true,
-      },
-      traces: { enabled: true, persist: true, destinations: ["masseater-dev-traces"] },
-    },
     viteEnvironments: { entry: "ssr", children: ["rsc"] },
     assets: { headers: assetHeaders(SECURITY_HEADERS) },
   });
@@ -69,7 +58,6 @@ const landingPage = Website.StaticSite("LandingPage", {
   env: { VITE_CF_BEACON_TOKEN: CF_BEACON_TOKEN },
   command: "vp run build",
   outdir: "dist/client",
-  compatibility: COMPATIBILITY,
   logpush: true,
   assets: { headers: assetHeaders(STATIC_PAGE_HEADERS) },
   dev: { command: "vp dev" },
@@ -80,7 +68,7 @@ type WebEnv = InferEnv<typeof web>;
 export type { WebEnv };
 export default Stack(
   APP_NAME,
-  { providers: providers(), state: state() },
+  { providers: withWorkersTracing(providers()), state: state() },
   Effect.gen(function* stack() {
     const { url } = yield* web;
     const { url: landingPageUrl } = yield* landingPage;
