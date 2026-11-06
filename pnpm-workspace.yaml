@@ -46,7 +46,7 @@ catalog:
   "@modelcontextprotocol/server": 2.4.0
   markdownlint-cli2: 0.24.0
   "@r_masseater/web-vitals-flow": 0.0.0
-  "@r_masseater/workers-tracing": 0.1.0
+  "@r_masseater/workers-tracing": 0.1.1
   papaparse: 5.7.0
   "@book000/pixivts": 0.64.0
   "@types/papaparse": 5.5.2
@@ -150,7 +150,7 @@ minimumReleaseAgeExclude:
   - "@r_masseater/oxlint-typed-rules@0.1.0"
   - "@r_masseater/oxlint-plugin-decision@0.1.0"
   - "@r_masseater/web-vitals-flow@0.0.0"
-  - "@r_masseater/workers-tracing@0.1.0"
+  - "@r_masseater/workers-tracing@0.1.1"
 audit:
   ignorePrune: true
   ignore:
