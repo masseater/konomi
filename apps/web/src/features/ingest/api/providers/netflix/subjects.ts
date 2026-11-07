@@ -4,7 +4,7 @@ import type { Observation } from "#/entities/signal";
 
 import { ACTIVITY_COLUMN, AUTOPLAYED, HISTORY_COLUMN, MIN_WATCHED_SEC } from "./api";
 import type { ActivityRow, HistoryRow } from "./schemas";
-import { isBlank, textOf, titleSubjectOf } from "./titles";
+import { isBlank, textOf, netflixSubjectOf } from "./titles";
 
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
@@ -43,7 +43,7 @@ const activityObservationsOf = ({
     Arr.filter(watchedInFull(profile)),
     Arr.map((row) => ({
       kind: "consumed" as const,
-      subject: titleSubjectOf(row[ACTIVITY_COLUMN.title]),
+      subject: netflixSubjectOf(row[ACTIVITY_COLUMN.title]),
       occurredAtMs: utcEpochOf(row[ACTIVITY_COLUMN.startedAt]),
     })),
     Arr.filter(({ occurredAtMs }) => Number.isFinite(occurredAtMs)),
@@ -58,7 +58,7 @@ const historyObservationsOf = ({
     Arr.zip(epochs),
     Arr.map(([row, occurredAtMs]) => ({
       kind: "consumed" as const,
-      subject: titleSubjectOf(row[HISTORY_COLUMN.title]),
+      subject: netflixSubjectOf(row[HISTORY_COLUMN.title]),
       occurredAtMs,
     })),
   );
