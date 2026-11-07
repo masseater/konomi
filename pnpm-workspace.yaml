@@ -10,7 +10,7 @@ catalogMode: prefer
 catalog:
   "@r_masseater/oxlint-typed-rules": 0.1.0
   "@ast-grep/cli": 0.51.1
-  "@cloudflare/workers-types": 5.20261103.1
+  "@cloudflare/workers-types": 5.20261104.1
   "@effect/platform-node": 4.1.2
   "@eslint-react/eslint-plugin": 5.28.8
   "@shadcn/lint": 0.2.5
@@ -21,7 +21,7 @@ catalog:
   eslint-plugin-react-hooks: 7.1.1
   oxlint-plugin-eslint: 1.91.0
   syncpack: 15.3.3
-  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+  vite: npm:@voidzero-dev/vite-plus-core@1.5.0
   "@r_masseater/oxlint-plugin-decision": 0.1.0
   eslint-plugin-no-comments: 1.2.1
   eslint-plugin-baseline-js: 0.7.7
@@ -45,7 +45,7 @@ catalog:
   psn-api: 2.18.1
   "@modelcontextprotocol/server": 2.4.0
   markdownlint-cli2: 0.24.0
-  "@r_masseater/web-vitals-flow": 0.0.0
+  "@r_masseater/web-vitals-flow": 0.0.3
   "@r_masseater/workers-tracing": 0.1.1
   papaparse: 5.7.0
   "@book000/pixivts": 0.64.0
@@ -54,7 +54,7 @@ catalogs:
   stack:
     "@distilled.cloud/cloudflare": 1.0.0-rc.18
     "@effect/atom-react": 4.1.2
-    "@effect/tsgo": 0.64.1
+    "@effect/tsgo": 0.67.0
     "@elysiajs/eden": 1.4.9
     "@tanstack/react-query": 5.105.3
     "@tanstack/react-start": 1.169.4
@@ -67,14 +67,14 @@ catalogs:
     eden-tanstack-react-query: 0.5.1
     effect: 4.1.2
     elysia: 1.4.30
-    fallow: 3.38.1
+    fallow: 3.39.0
     radix-ui: 1.8.1
-    renovate: 44.210.0
+    renovate: 44.211.0
     steiger: 0.9.0
     tailwindcss: 4.3.4
     textlint: 15.8.0
     typescript: 7.0.2
-    vite-plus: 1.4.0
+    vite-plus: 1.5.0
 overrides:
   effect: "catalog:stack"
   "@effect/platform-node": "catalog:"
