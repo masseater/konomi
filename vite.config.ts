@@ -1,3 +1,4 @@
+import fsd from "@r_masseater/vp-tools/fsd";
 import baselineJs from "eslint-plugin-baseline-js";
 import { defineConfig } from "vite-plus";
 
@@ -16,13 +17,21 @@ import {
   tanstackRouterRules,
   turnedOff,
 } from "./lint.config.ts";
-import steiger from "./steiger.config.ts";
 import { workerRules } from "./worker-lint.config.ts";
 
 const typedRules = "@r_masseater/oxlint-typed-rules";
 
 export default defineConfig({
-  steiger,
+  steiger: [
+    ...fsd.configs.recommended,
+    {
+      rules: {
+        "fsd/no-cross-imports": "error",
+        "fsd/no-higher-level-imports": "error",
+        "fsd/no-wildcard-exports": "error",
+      },
+    },
+  ],
   test: { projects: ["apps/*", "libs/*", "tools/*", "infra/*"], passWithNoTests: true },
   staged: {
     "!(*.md)": "vp check --fix",
