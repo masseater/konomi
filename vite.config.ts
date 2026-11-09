@@ -1,4 +1,4 @@
-import fsd from "@r_masseater/vp-tools/fsd";
+import fsd from "@r_masseater/vite-plus-adopt/fsd";
 import baselineJs from "eslint-plugin-baseline-js";
 import { defineConfig } from "vite-plus";
 
@@ -277,7 +277,7 @@ export default defineConfig({
       },
       test: "vp test run",
       syncpack: "syncpack lint",
-      steiger: "vp-tools steiger apps/*/src",
+      steiger: "vpa steiger apps/*/src",
       "db-check-all": "vp run -r db:check",
       audit: {
         command:
