@@ -16,7 +16,7 @@ catalog:
   "@shadcn/lint": 0.2.5
   "@types/node": 26.6.6
   eslint-plugin-react-hooks: 7.1.1
-  oxlint-plugin-eslint: 1.91.0
+  oxlint-plugin-eslint: 1.92.0
   syncpack: 15.3.3
   vite: npm:@voidzero-dev/vite-plus-core@1.5.0
   "@r_masseater/oxlint-plugin-decision": 0.1.1
@@ -41,7 +41,7 @@ catalog:
   psn-api: 2.18.1
   "@modelcontextprotocol/server": 2.4.0
   markdownlint-cli2: 0.24.0
-  "@r_masseater/web-vitals-flow": 0.0.7
+  "@r_masseater/web-vitals-flow": 0.1.1
   "@r_masseater/workers-tracing": 0.1.1
   papaparse: 5.7.0
   "@book000/pixivts": 0.64.0
@@ -65,7 +65,7 @@ catalogs:
     elysia: 1.4.31
     fallow: 3.40.0
     radix-ui: 1.8.1
-    renovate: 44.221.2
+    renovate: 44.221.5
     tailwindcss: 4.3.4
     textlint: 15.8.0
     typescript: 7.1.0-beta
