@@ -24,12 +24,10 @@
     "eslint-plugin-no-comments": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
     "fallow": "catalog:stack",
-    "markdownlint-cli2": "catalog:",
     "oxlint-plugin-eslint": "catalog:",
     "renovate": "catalog:stack",
     "skills": "catalog:",
     "syncpack": "catalog:",
-    "textlint": "catalog:stack",
     "textlint-rule-preset-ja-technical-writing": "12.0.2",
     "vite-plus": "catalog:stack"
   },

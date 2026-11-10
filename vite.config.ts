@@ -1,7 +1,7 @@
-import fsd from "@r_masseater/vite-plus-adopt/fsd";
 import baselineJs from "eslint-plugin-baseline-js";
 import { defineConfig } from "vite-plus";
 
+import { checkTasks, checks } from "./checks.config.ts";
 import {
   baselineJsRules,
   decisionPluginName,
@@ -22,21 +22,10 @@ import { workerRules } from "./worker-lint.config.ts";
 const typedRules = "@r_masseater/oxlint-typed-rules";
 
 export default defineConfig({
-  commitlint: { extends: ["@commitlint/config-conventional"] },
-  steiger: [
-    ...fsd.configs.recommended,
-    {
-      rules: {
-        "fsd/no-cross-imports": "error",
-        "fsd/no-higher-level-imports": "error",
-        "fsd/no-wildcard-exports": "error",
-      },
-    },
-  ],
+  ...checks,
   test: { projects: ["apps/*", "libs/*", "tools/*", "infra/*"], passWithNoTests: true },
   staged: {
-    "!(*.md)": "vp check --fix",
-    "*.md": ["markdownlint-cli2 --fix", "vp check --fix"],
+    "*": "vp check --fix",
   },
   fmt: {
     ignorePatterns: generated,
@@ -219,12 +208,7 @@ export default defineConfig({
   run: {
     cache: true,
     tasks: {
-      "markdown-lint": [
-        'markdownlint-cli2 "**/*.md"',
-        'textlint "**/*.md"',
-        `git -c core.quotePath=false ls-files -co --exclude-standard '*.md' | git -c core.quotePath=false -c core.excludesFile=.textlintignore check-ignore --no-index --stdin -nv | awk -F '\\t' '$1 == "::" && $2 != "README.md" { print $2 }' | tr '\\n' '\\0' | xargs -0 -r -n 1 -P 4 python3 "$(skills ls --json | jq -r '.[] | select(.name == "yomiyasu").path')/scripts/yomiyasu_lint.py" --strict`,
-        `python3 "$(skills ls --json | jq -r '.[] | select(.name == "yomiyasu").path')/scripts/yomiyasu_lint.py" --strict --doc-type manual README.md`,
-      ],
+      ...checkTasks,
       renovate: "renovate-config-validator --strict",
       fallow: [
         "fallow --skip dupes --fail-on-issues --quiet --format compact",
@@ -233,21 +217,8 @@ export default defineConfig({
         "fallow dupes --fail-on-issues --quiet --format compact",
         "fallow security --fail-on-issues --quiet",
       ],
-      "actions-lint": {
-        command:
-          'actionlint && zizmor $(test -n "$CLAUDE_CODE_REMOTE" && echo --no-online-audits) .github && ast-grep scan --rule .github/rules/no-full-history-checkout.yml .github/workflows',
-        cache: {
-          env: ["CLAUDE_CODE_REMOTE"],
-          untrackedEnv: [
-            "GH_TOKEN",
-            "HTTPS_PROXY",
-            "https_proxy",
-            "NO_PROXY",
-            "no_proxy",
-            "SSL_CERT_FILE",
-          ],
-        },
-      },
+      "actions-lint":
+        "ast-grep scan --rule .github/rules/no-full-history-checkout.yml .github/workflows",
       verify: {
         command: "vp check",
         cache: {
@@ -266,10 +237,10 @@ export default defineConfig({
         dependsOn: [
           "test",
           "syncpack",
-          "markdown-lint",
+          "vpa",
+          "yomiyasu",
           "renovate",
           "actions-lint",
-          "steiger",
           "db-check-all",
           "fallow",
           "audit",
@@ -277,21 +248,10 @@ export default defineConfig({
       },
       test: "vp test run",
       syncpack: "syncpack lint",
-      steiger: "vpa steiger apps/*/src",
       "db-check-all": "vp run -r db:check",
       audit: {
         command:
           'before="$(cksum pnpm-workspace.yaml)"; vp pm audit --fix || exit; if [ "$before" != "$(cksum pnpm-workspace.yaml)" ]; then echo "vp pm audit --fix rewrote pnpm-workspace.yaml. Run vp install and commit the diff." >&2; exit 1; fi',
-        cache: false,
-      },
-      betterleaks: {
-        command:
-          'betterleaks git . --config .betterleaks.toml --redact --no-banner --revision="$(git rev-parse -q --verify "$BETTERLEAKS_BASE" || echo origin/main)..HEAD"',
-        cache: false,
-      },
-      "betterleaks:staged": {
-        command:
-          "git diff --cached --no-ext-diff --no-textconv --no-color --src-prefix=a/ --dst-prefix=b/ | betterleaks stdin --git-diff --config .betterleaks.toml --redact --no-banner",
         cache: false,
       },
     },
