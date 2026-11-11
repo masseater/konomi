@@ -11,7 +11,8 @@ const markdownFiles = pipe(
   Arr.join(" "),
 );
 
-const yomiyasuLint = `python3 "$(skills ls --json | jq -r '.[] | select(.name == "yomiyasu").path')/scripts/yomiyasu_lint.py" --strict`;
+const yomiyasuScript = `"$(skills ls --json | jq -r '.[] | select(.name == "yomiyasu").path')/scripts/yomiyasu_lint.py"`;
+const yomiyasuLint = `python3 ${yomiyasuScript} --strict`;
 
 const PUBLIC_VALUES = [String.raw`\bCF_BEACON_TOKEN = "[0-9a-f]{32}"`];
 
@@ -76,7 +77,7 @@ const checks: ToolSections = {
 const checkTasks: NonNullable<NonNullable<UserConfig["run"]>["tasks"]> = {
   vpa: { command: "vpa", cache: false },
   yomiyasu: [
-    `git ls-files -z '*.md' ${markdownFiles} | xargs -0 -r -n 1 -P 4 ${yomiyasuLint}`,
+    `git ls-files -z '*.md' ${markdownFiles} | xargs -0 -r -n 1 -P 4 sh -c 'python3 "$0" --strict - < "$1"' ${yomiyasuScript}`,
     `${yomiyasuLint} --doc-type manual README.md`,
   ],
 };
