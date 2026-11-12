@@ -41,7 +41,7 @@ catalog:
   psn-api: 2.18.1
   "@modelcontextprotocol/server": 2.4.0
   "@r_masseater/web-vitals-flow": 0.1.1
-  "@r_masseater/workers-tracing": 0.1.1
+  "@r_masseater/workers-tracing": 0.2.0
   papaparse: 5.7.0
   "@book000/pixivts": 0.64.0
   "@types/papaparse": 5.5.2
@@ -135,7 +135,7 @@ minimumReleaseAgeExclude:
   - "@r_masseater/vite-plus-adopt@0.3.2"
   - "@r_masseater/oxlint-plugin-decision@0.1.0"
   - "@r_masseater/web-vitals-flow@0.0.0"
-  - "@r_masseater/workers-tracing@0.1.1"
+  - "@r_masseater/workers-tracing@0.2.0"
 audit:
   ignorePrune: true
   ignore:
