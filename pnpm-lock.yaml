@@ -339,16 +339,13 @@ overrides:
   capnp-es>typescript: '-'
   effect: 4.1.2
   '@effect/platform-node': 4.1.2
-  '@effect/platform-node-shared': 4.1.2
   '@effect/sql-d1': 4.1.2
-  '@effect/sql-sqlite-do': 4.1.2
   vite@*: npm:@voidzero-dev/vite-plus-core@1.5.0
   eslint-plugin-react-hooks>zod-validation-error: ^5.0.0
   katex@>=0.11.0 <0.18.2: ^0.19.0
   seroval@<1.6.11: ^1.6.11
   glob@>=9.0.0 <=14.0.1: ^14.0.2
   minimatch@<11.0.1: ^11.0.1
-  react-server-dom-webpack@>=19.3.0 <19.3.1: ^19.3.1
 
 importers:
 
@@ -5272,7 +5269,7 @@ packages:
     peerDependencies:
       react: '*'
       react-dom: '*'
-      react-server-dom-webpack: ^19.3.1
+      react-server-dom-webpack: '*'
       vite: '*'
     peerDependenciesMeta:
       react-server-dom-webpack:
@@ -6389,7 +6386,7 @@ packages:
       '@effect/sql-pg': '>=4.0.0-beta.105 || >=4.0.0'
       '@effect/sql-pglite': '>=4.0.0-beta.105 || >=4.0.0'
       '@effect/sql-sqlite-bun': '>=4.0.0-beta.105 || >=4.0.0'
-      '@effect/sql-sqlite-do': 4.1.2
+      '@effect/sql-sqlite-do': '>=4.0.0-beta.105 || >=4.0.0'
       '@effect/sql-sqlite-node': '>=4.0.0-beta.105 || >=4.0.0'
       '@effect/sql-sqlite-wasm': '>=4.0.0-beta.105 || >=4.0.0'
       '@electric-sql/pglite': '>=0.2.0'
