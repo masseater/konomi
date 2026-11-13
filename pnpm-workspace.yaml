@@ -27,12 +27,12 @@ catalog:
   "@tanstack/react-query-devtools": 5.107.1
   "@vitejs/plugin-react": 6.3.0
   "@vitejs/plugin-rsc": 0.5.39
-  skills: 1.7.6
+  skills: 1.8.0
   "@tanstack/intent": 0.5.6
   "@yarnpkg/parsers": 3.1.0
   jose: 6.2.17
   otpauth: 9.6.0
-  "@better-auth/mcp": 1.7.19
+  "@better-auth/mcp": 1.7.20
   "@better-auth/oauth-provider": 1.7.20
   "@modelcontextprotocol/client": 2.4.0
   fast-xml-parser: 5.12.0
@@ -64,7 +64,7 @@ catalogs:
     elysia: 1.4.31
     fallow: 3.42.0
     radix-ui: 1.8.1
-    renovate: 44.226.3
+    renovate: 44.227.2
     tailwindcss: 4.3.5
     typescript: 7.1.0-beta
     vite-plus: 1.5.1
