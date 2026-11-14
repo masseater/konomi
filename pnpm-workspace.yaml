@@ -42,7 +42,7 @@ catalog:
   "@modelcontextprotocol/server": 2.4.0
   "@r_masseater/web-vitals-flow": 0.2.0
   "@r_masseater/workers-tracing": 0.2.0
-  papaparse: 5.7.0
+  papaparse: 5.7.1
   "@book000/pixivts": 0.64.0
   "@types/papaparse": 5.5.2
 catalogs:
@@ -64,7 +64,7 @@ catalogs:
     elysia: 1.4.32
     fallow: 3.42.0
     radix-ui: 1.8.1
-    renovate: 44.233.0
+    renovate: 44.234.0
     tailwindcss: 4.3.5
     typescript: 7.1.0-beta
     vite-plus: 1.6.0
