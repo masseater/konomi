@@ -10,7 +10,7 @@ catalogMode: prefer
 catalog:
   "@r_masseater/oxlint-typed-rules": 0.4.1
   "@r_masseater/vite-plus-adopt": 0.4.0
-  "@ast-grep/cli": 0.51.1
+  "@ast-grep/cli": 0.51.2
   "@cloudflare/workers-types": 5.20261110.1
   "@effect/platform-node": 4.1.4
   "@shadcn/lint": 0.2.5
@@ -18,7 +18,7 @@ catalog:
   eslint-plugin-react-hooks: 7.1.1
   oxlint-plugin-eslint: 1.93.0
   syncpack: 15.3.3
-  vite: npm:@voidzero-dev/vite-plus-core@1.5.1
+  vite: npm:@voidzero-dev/vite-plus-core@1.6.0
   "@r_masseater/oxlint-plugin-decision": 0.4.0
   eslint-plugin-no-comments: 1.2.1
   eslint-plugin-baseline-js: 0.7.7
@@ -27,7 +27,7 @@ catalog:
   "@tanstack/react-query-devtools": 5.107.1
   "@vitejs/plugin-react": 6.3.0
   "@vitejs/plugin-rsc": 0.5.39
-  skills: 1.8.0
+  skills: 1.8.1
   "@tanstack/intent": 0.5.6
   "@yarnpkg/parsers": 3.1.0
   jose: 6.2.17
@@ -64,10 +64,10 @@ catalogs:
     elysia: 1.4.31
     fallow: 3.42.0
     radix-ui: 1.8.1
-    renovate: 44.227.2
+    renovate: 44.232.0
     tailwindcss: 4.3.5
     typescript: 7.1.0-beta
-    vite-plus: 1.5.1
+    vite-plus: 1.6.0
 overrides:
   "steiger>@feature-sliced/steiger-plugin": "-"
   "capnp-es>typescript": "-"
