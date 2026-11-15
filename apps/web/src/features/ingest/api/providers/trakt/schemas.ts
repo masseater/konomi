@@ -16,24 +16,31 @@ const Episode = Schema.Struct({
   ids: Ids,
 });
 
-const OptionalWork = Schema.optional(Schema.NullOr(Work));
+const MOVIE = { type: Schema.Literal("movie"), movie: Work };
 
-const Watched = Schema.Struct({
-  watched_at: Schema.String,
-  movie: OptionalWork,
-  show: OptionalWork,
-  episode: Schema.optional(Schema.NullOr(Episode)),
-});
+const SHOW = { type: Schema.Literal("show"), show: Work };
+
+const SEASON = { type: Schema.Literal("season"), show: Work };
+
+const EPISODE = { type: Schema.Literal("episode"), show: Work, episode: Episode };
+
+const WATCHED = { watched_at: Schema.String };
+
+const Watched = Schema.Union([
+  Schema.Struct({ ...WATCHED, ...MOVIE }),
+  Schema.Struct({ ...WATCHED, ...EPISODE }),
+]);
 
 const History = Schema.Array(Watched);
 
-const Rated = Schema.Struct({
-  rated_at: Schema.String,
-  rating: Schema.Int,
-  movie: OptionalWork,
-  show: OptionalWork,
-  episode: Schema.optional(Schema.NullOr(Episode)),
-});
+const RATED = { rated_at: Schema.String, rating: Schema.Int };
+
+const Rated = Schema.Union([
+  Schema.Struct({ ...RATED, ...MOVIE }),
+  Schema.Struct({ ...RATED, ...SHOW }),
+  Schema.Struct({ ...RATED, ...SEASON }),
+  Schema.Struct({ ...RATED, ...EPISODE }),
+]);
 
 const Ratings = Schema.Array(Rated);
 
