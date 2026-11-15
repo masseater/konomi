@@ -34,7 +34,7 @@ jobs:
           ref: ${{ inputs.branch }}
           persist-credentials: false
       - uses: $/.github/actions/setup
-      - uses: masseater/typescript-template/.github/actions/autofix@eeeed3cd1ec6cbeabc464f7b1a0bd727703bfd7c
+      - uses: masseater/typescript-template/.github/actions/autofix@a036b9c24e81d9de10bd390491a6d5c8307f4f05
         with:
           run-id: ${{ inputs.run_id }}
           branch: ${{ inputs.branch }}
@@ -50,6 +50,6 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: masseater/typescript-template/.github/actions/ci-telemetry@eeeed3cd1ec6cbeabc464f7b1a0bd727703bfd7c
+      - uses: masseater/typescript-template/.github/actions/ci-telemetry@a036b9c24e81d9de10bd390491a6d5c8307f4f05
         with:
           github-token: ${{ github.token }}
