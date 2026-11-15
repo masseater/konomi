@@ -207,8 +207,8 @@ catalogs:
       specifier: 3.1.0
       version: 3.1.0
     '@r_masseater/msch':
-      specifier: 0.14.0
-      version: 0.14.0
+      specifier: 0.15.0
+      version: 0.15.0
     '@r_masseater/oxlint-plugin-decision':
       specifier: 0.5.1
       version: 0.5.1
@@ -386,10 +386,10 @@ importers:
         version: 0.68.0(eslint@10.14.0(jiti@2.7.0)(supports-color@7.2.0))
       '@masseater.dev/textlint-rule-yomiyasu':
         specifier: github:masseater/masseater.dev#path:/libs/textlint-rule-yomiyasu
-        version: https://codeload.github.com/masseater/masseater.dev/tar.gz/e890ae6c997f709bc4289ea334bce4dfe0c7f373#path:/libs/textlint-rule-yomiyasu(effect@4.1.4)
+        version: https://codeload.github.com/masseater/masseater.dev/tar.gz/ca6c8bcbcf45191769462d9298f112501184a862#path:/libs/textlint-rule-yomiyasu(effect@4.1.4)
       '@r_masseater/msch':
         specifier: 'catalog:'
-        version: 0.14.0(@effect/tsgo@0.68.1)(@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))(effect@4.1.4)(eslint@10.14.0(jiti@2.7.0)(supports-color@7.2.0))(oxlint@1.93.0(oxlint-tsgolint@7.0.2006)(vite-plus@1.6.0(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(@vitest/ui@5.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1)))(supports-color@7.2.0)(typescript@7.1.0-beta)(vite-plus@1.6.0(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(@vitest/ui@5.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))
+        version: 0.15.0(@effect/tsgo@0.68.1)(@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))(effect@4.1.4)(eslint@10.14.0(jiti@2.7.0)(supports-color@7.2.0))(oxlint@1.93.0(oxlint-tsgolint@7.0.2006)(vite-plus@1.6.0(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(@vitest/ui@5.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1)))(supports-color@7.2.0)(typescript@7.1.0-beta)(vite-plus@1.6.0(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(@vitest/ui@5.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))
       '@r_masseater/oxlint-plugin-decision':
         specifier: 'catalog:'
         version: 0.5.1(@effect/platform-node-shared@4.1.4(effect@4.1.4))(effect@4.1.4)(oxlint@1.93.0(oxlint-tsgolint@7.0.2006)(vite-plus@1.6.0(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(@vitest/ui@5.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1)))
@@ -2346,8 +2346,8 @@ packages:
   '@loaderkit/resolve@1.0.6':
     resolution: {integrity: sha512-G8FdIoF5CypfwmD9rl8BXod5HDn8JqB0CCNBXDTaRZ+yRYhARrrSToX1zg1zy9jX3zLqigsELwhT4gNtkdQAUg==}
 
-  '@masseater.dev/textlint-rule-yomiyasu@https://codeload.github.com/masseater/masseater.dev/tar.gz/e890ae6c997f709bc4289ea334bce4dfe0c7f373#path:/libs/textlint-rule-yomiyasu':
-    resolution: {gitHosted: true, integrity: sha512-vcj1Ifh6UhEkN2TktdsMEyKOV+Y2enoctAY/KX2LYaH2xX7b85gOQmtkuR/cME+qnYsIsgdTrlhyXtHm7HBANw==, path: /libs/textlint-rule-yomiyasu, tarball: https://codeload.github.com/masseater/masseater.dev/tar.gz/e890ae6c997f709bc4289ea334bce4dfe0c7f373}
+  '@masseater.dev/textlint-rule-yomiyasu@https://codeload.github.com/masseater/masseater.dev/tar.gz/ca6c8bcbcf45191769462d9298f112501184a862#path:/libs/textlint-rule-yomiyasu':
+    resolution: {gitHosted: true, integrity: sha512-3gSgVz+iKLERi8ZftP+r5IhqmvuxwOknBwXnjV0Oi2GDinmyCKWMNgs27v+fq8XJaieBLYOFkSAip5wL2iCjvw==, path: /libs/textlint-rule-yomiyasu, tarball: https://codeload.github.com/masseater/masseater.dev/tar.gz/ca6c8bcbcf45191769462d9298f112501184a862}
     version: 0.0.0
     peerDependencies:
       effect: ^4.0.0
@@ -3346,8 +3346,8 @@ packages:
   '@qnighy/marshal@0.1.3':
     resolution: {integrity: sha512-uaDZTJYtD2UgQTGemmgWeth+e2WapZm+GkAq8UU8AJ55PKRFaf1GkH7X/uzA+Ygu8iInzIlM2FGyCUnruyMKMg==}
 
-  '@r_masseater/msch@0.14.0':
-    resolution: {integrity: sha512-ZkW5Jp9FFytFDC9I29nv/D29zralUIYADH9mgnsOUDQx9nd0mjNoLUzVQ4a3sDkfqGMAJM+bE+ofrvMWZTvgFg==}
+  '@r_masseater/msch@0.15.0':
+    resolution: {integrity: sha512-Mxgp7cDUR3NUu94bRYYxfgLdg4Jxt7+L1SICv27vUbCvwN8yw/t784XPg1y6GH/TJe6XQaOMvXXA1kHXwpd6jA==}
     engines: {node: '>=26'}
     hasBin: true
     peerDependencies:
@@ -11806,7 +11806,7 @@ snapshots:
     dependencies:
       '@braidai/lang': 1.1.2
 
-  '@masseater.dev/textlint-rule-yomiyasu@https://codeload.github.com/masseater/masseater.dev/tar.gz/e890ae6c997f709bc4289ea334bce4dfe0c7f373#path:/libs/textlint-rule-yomiyasu(effect@4.1.4)':
+  '@masseater.dev/textlint-rule-yomiyasu@https://codeload.github.com/masseater/masseater.dev/tar.gz/ca6c8bcbcf45191769462d9298f112501184a862#path:/libs/textlint-rule-yomiyasu(effect@4.1.4)':
     dependencies:
       effect: 4.1.4
 
@@ -12474,7 +12474,7 @@ snapshots:
     dependencies:
       '@babel/runtime-corejs3': 7.29.7
 
-  '@r_masseater/msch@0.14.0(@effect/tsgo@0.68.1)(@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))(effect@4.1.4)(eslint@10.14.0(jiti@2.7.0)(supports-color@7.2.0))(oxlint@1.93.0(oxlint-tsgolint@7.0.2006)(vite-plus@1.6.0(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(@vitest/ui@5.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1)))(supports-color@7.2.0)(typescript@7.1.0-beta)(vite-plus@1.6.0(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(@vitest/ui@5.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))':
+  '@r_masseater/msch@0.15.0(@effect/tsgo@0.68.1)(@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))(effect@4.1.4)(eslint@10.14.0(jiti@2.7.0)(supports-color@7.2.0))(oxlint@1.93.0(oxlint-tsgolint@7.0.2006)(vite-plus@1.6.0(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(@vitest/ui@5.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1)))(supports-color@7.2.0)(typescript@7.1.0-beta)(vite-plus@1.6.0(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(@vitest/ui@5.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))':
     dependencies:
       '@effect/platform-node-shared': 4.1.4(effect@4.1.4)
       '@effect/tsgo': 0.68.1
