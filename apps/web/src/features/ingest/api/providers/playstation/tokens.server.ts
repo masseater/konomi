@@ -22,7 +22,7 @@ const TokensSchema = Schema.Struct({
   accessToken: Schema.NonEmptyString,
   refreshToken: Schema.NonEmptyString,
   expiresIn: Schema.Finite,
-});
+}) satisfies Schema.Decoder<Pick<AuthTokensResponse, "accessToken" | "refreshToken" | "expiresIn">>;
 
 type Tokens = typeof TokensSchema.Type;
 

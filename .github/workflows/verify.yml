@@ -48,7 +48,6 @@ jobs:
       id-token: write
     concurrency:
       group: deploy
-      queue: max
     steps:
       - id: head
         uses: masseater/typescript-template/.github/actions/latest-verified@d31880940798de1570171b0bd255ec9e69005d83

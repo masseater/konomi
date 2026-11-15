@@ -48,7 +48,7 @@ const failureOf = (error: Readonly<{ value: unknown }> | null): ImportFailed =>
 
 const Recorded = Schema.Struct({ recorded: Schema.Finite });
 
-const BYTE_ORDER_MARK = /^﻿/u;
+const BYTE_ORDER_MARK = /^\uFEFF/u;
 
 const rowsOf = (text: string): readonly ImportRow[] =>
   Papa.parse<ImportRow>(pipe(text, Str.replace(BYTE_ORDER_MARK, "")), {

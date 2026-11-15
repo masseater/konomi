@@ -1,6 +1,6 @@
 import { Array as Arr, Clock, Effect, Option, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
+import type { ListingKind, Observation } from "#/entities/signal";
 import { BACKFILLED, pagesOf } from "#/features/ingest/api/providers/backfill-cursor";
 import { fetchJson } from "#/features/ingest/api/providers/http.server";
 import type { Headers } from "#/features/ingest/api/providers/http.server";
@@ -14,8 +14,6 @@ import type { RedditThing } from "./schemas";
 import { thingOf } from "./subjects";
 
 type Reading = Readonly<{ headers: Headers; user: string; pages: number; fetchedAt: number }>;
-
-type ListingKind = "endorsed" | "collected";
 
 const listingOf =
   ({ headers, user, pages, fetchedAt }: Reading) =>

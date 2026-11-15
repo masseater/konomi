@@ -9,6 +9,7 @@ import { defineConfig } from "vite-plus";
 import { SEARCH_INDEX_ORIGIN, SITEMAP_FILE } from "./src/shared/config/index.ts";
 
 export default defineConfig({
+  msch: { lint: { overrides: [{ files: ["src/**/*.{ts,tsx}"], use: ["decision"] }] } },
   run: {
     tasks: {
       dev: { command: "alchemy dev", cache: false },
@@ -21,6 +22,7 @@ export default defineConfig({
         "drizzle-kit check",
         `drizzle-kit generate --explain --output json | grep -q '"status":"no_changes"'`,
       ],
+      login: { command: "alchemy profile edit --add Cloudflare", cache: false },
       deploy: { command: "alchemy deploy", cache: false },
       destroy: { command: "alchemy destroy", cache: false },
     },
