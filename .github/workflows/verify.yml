@@ -18,7 +18,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: $/.github/actions/setup
-      - uses: masseater/typescript-template/.github/actions/verify@19dc927673bfa4cc8912dc7ecd89682fcac7911d
+      - uses: masseater/typescript-template/.github/actions/verify@d31880940798de1570171b0bd255ec9e69005d83
         with:
           github-token: ${{ github.token }}
 
@@ -50,7 +50,7 @@ jobs:
       group: deploy
     steps:
       - id: head
-        uses: masseater/typescript-template/.github/actions/latest-verified@19dc927673bfa4cc8912dc7ecd89682fcac7911d
+        uses: masseater/typescript-template/.github/actions/latest-verified@d31880940798de1570171b0bd255ec9e69005d83
         with:
           github-token: ${{ github.token }}
       - if: steps.head.outputs.latest == 'true'
@@ -60,7 +60,7 @@ jobs:
       - if: steps.head.outputs.latest == 'true'
         uses: $/.github/actions/setup
       - if: steps.head.outputs.latest == 'true'
-        uses: masseater/typescript-template/.github/actions/credentials@19dc927673bfa4cc8912dc7ecd89682fcac7911d
+        uses: masseater/typescript-template/.github/actions/credentials@d31880940798de1570171b0bd255ec9e69005d83
       - if: steps.head.outputs.latest == 'true'
         run: vp exec alchemy deploy --stage production --yes
         working-directory: apps/web
@@ -77,7 +77,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: $/.github/actions/setup
-      - uses: masseater/typescript-template/.github/actions/credentials@19dc927673bfa4cc8912dc7ecd89682fcac7911d
+      - uses: masseater/typescript-template/.github/actions/credentials@d31880940798de1570171b0bd255ec9e69005d83
       - run: >-
           vp exec workers-traces --request https://konomi.masseater.dev/
           --expect GET --expect "GET /" --wait 300
@@ -138,6 +138,6 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: masseater/typescript-template/.github/actions/ci-telemetry@19dc927673bfa4cc8912dc7ecd89682fcac7911d
+      - uses: masseater/typescript-template/.github/actions/ci-telemetry@d31880940798de1570171b0bd255ec9e69005d83
         with:
           github-token: ${{ github.token }}
