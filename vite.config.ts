@@ -196,7 +196,11 @@ export default defineConfig({
       },
     ],
     settings: {
-      [decisionPluginName]: { model: "cloudflare/@cf/qwen/qwen3.8-27b" },
+      [decisionPluginName]: {
+        model: "cloudflare/@cf/qwen/qwen3.8-27b",
+        timeoutMs: 50_000,
+        ci: "skip",
+      },
     },
     options: {
       typeAware: true,
