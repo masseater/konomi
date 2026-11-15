@@ -7,7 +7,5 @@
 
 ## 構成
 
-- `apps/web` は TanStack Start のアプリである。`alchemy.run.ts` が D1 と Worker を定義し、Cloudflare にデプロイする。`apps/web/app-name.ts` の `APP_NAME` を変えるとリソースは作り直される。
-- API は Elysia で書く。`src/app/routes/api.$.ts` が `/api/*` を `src/app/server/api.server.ts` のルーターへ渡し、各スライスのルートは `index.server.ts` からそこへ足す。
-- クライアントは `shared/api` で Eden の型から TanStack Query のクエリを作る。SSR 中は `createIsomorphicFn` がルートの `handle` を直接呼ぶ。
+- `apps/web` は TanStack Start のアプリである。`apps/web/app-name.ts` の `APP_NAME` を変えるとリソースは作り直される。
 - `apps/lp` は静的な LP の見本で、`apps/web` のスタックが `Website.StaticSite` でデプロイする。
