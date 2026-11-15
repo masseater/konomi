@@ -95,5 +95,4 @@ audit:
   ignore:
     - GHSA-gcqx-w48m-w2h4
 minimumReleaseAgeExclude:
-  - "@r_masseater/oxlint-typed-rules@0.4.1"
   - "@r_masseater/oxlint-plugin-decision@0.5.1"
