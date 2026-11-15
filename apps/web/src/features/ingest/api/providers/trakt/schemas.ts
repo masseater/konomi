@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import { Schema, Tuple } from "effect";
 
 const Ids = Schema.Struct({
   trakt: Schema.Int,
@@ -16,24 +16,20 @@ const Episode = Schema.Struct({
   ids: Ids,
 });
 
-const OptionalWork = Schema.optional(Schema.NullOr(Work));
+const Watchable = Schema.Union([
+  Schema.Struct({ type: Schema.Literal("movie"), movie: Work }),
+  Schema.Struct({ type: Schema.Literal("show"), show: Work }),
+  Schema.Struct({ type: Schema.Literal("season"), show: Work }),
+  Schema.Struct({ type: Schema.Literal("episode"), show: Work, episode: Episode }),
+]);
 
-const Watched = Schema.Struct({
-  watched_at: Schema.String,
-  movie: OptionalWork,
-  show: OptionalWork,
-  episode: Schema.optional(Schema.NullOr(Episode)),
-});
+const Watched = Watchable.mapMembers(Tuple.map(Schema.fieldsAssign({ watched_at: Schema.String })));
 
 const History = Schema.Array(Watched);
 
-const Rated = Schema.Struct({
-  rated_at: Schema.String,
-  rating: Schema.Int,
-  movie: OptionalWork,
-  show: OptionalWork,
-  episode: Schema.optional(Schema.NullOr(Episode)),
-});
+const Rated = Watchable.mapMembers(
+  Tuple.map(Schema.fieldsAssign({ rated_at: Schema.String, rating: Schema.Int })),
+);
 
 const Ratings = Schema.Array(Rated);
 
@@ -41,9 +37,11 @@ type TraktWork = typeof Work.Type;
 
 type TraktEpisode = typeof Episode.Type;
 
+type TraktWatchable = typeof Watchable.Type;
+
 type TraktWatched = typeof Watched.Type;
 
 type TraktRated = typeof Rated.Type;
 
-export type { TraktEpisode, TraktRated, TraktWatched, TraktWork };
+export type { TraktEpisode, TraktRated, TraktWatchable, TraktWatched, TraktWork };
 export { History, Ratings };

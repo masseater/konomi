@@ -1,12 +1,10 @@
-import { Array as Arr, Option, pipe } from "effect";
+import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { epochOr } from "#/features/ingest/api/providers/observe";
 
 import { WEB } from "./api";
-import type { TraktEpisode, TraktRated, TraktWatched, TraktWork } from "./schemas";
-
-type Watchable = Pick<TraktWatched, "movie" | "show" | "episode">;
+import type { TraktEpisode, TraktRated, TraktWatchable, TraktWatched, TraktWork } from "./schemas";
 
 const LIKED_RATING = 8;
 
@@ -53,33 +51,26 @@ const episodeOf = (show: TraktWork, episode: TraktEpisode): SubjectInput => ({
   tags: [show.title, ...yearTagsOf(show)],
 });
 
-const watchableOf = ({ movie, show, episode }: Watchable): Option.Option<SubjectInput> =>
-  pipe(
-    Option.fromNullishOr(movie),
-    Option.map(movieOf),
-    Option.orElse(() =>
-      pipe(
-        Option.all({ show: Option.fromNullishOr(show), episode: Option.fromNullishOr(episode) }),
-        Option.map((pair) => episodeOf(pair.show, pair.episode)),
-      ),
-    ),
-    Option.orElse(() => pipe(Option.fromNullishOr(show), Option.map(showOf))),
+const watchableOf = (watchable: TraktWatchable): SubjectInput =>
+  Match.value(watchable).pipe(
+    Match.discriminatorsExhaustive("type")({
+      movie: ({ movie }) => movieOf(movie),
+      show: ({ show }) => showOf(show),
+      season: ({ show }) => showOf(show),
+      episode: ({ show, episode }) => episodeOf(show, episode),
+    }),
   );
 
 const historyObservationsOf =
   (fetchedAt: number) =>
   (history: readonly TraktWatched[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
-    const observe = (watched: TraktWatched): Option.Option<Observation> =>
-      pipe(
-        watchableOf(watched),
-        Option.map((subject) => ({
-          kind: "consumed" as const,
-          subject,
-          occurredAtMs: at(watched.watched_at),
-        })),
-      );
-    return pipe(history, Arr.map(observe), Arr.getSomes);
+    const observe = (watched: TraktWatched): Observation => ({
+      kind: "consumed",
+      subject: watchableOf(watched),
+      occurredAtMs: at(watched.watched_at),
+    });
+    return pipe(history, Arr.map(observe));
   };
 
 const ratingObservationsOf =
@@ -88,8 +79,9 @@ const ratingObservationsOf =
     const at = epochOr(fetchedAt);
     const observe = (rated: TraktRated): Option.Option<Observation> =>
       pipe(
-        watchableOf(rated),
-        Option.filter(() => rated.rating >= LIKED_RATING),
+        Option.some(rated),
+        Option.filter(({ rating }) => rating >= LIKED_RATING),
+        Option.map(watchableOf),
         Option.map((subject) => ({
           kind: "endorsed" as const,
           subject,

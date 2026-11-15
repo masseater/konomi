@@ -13,6 +13,7 @@ describe("historyObservationsOf", () => {
   it("names an episode after its show, season and number", () => {
     const observations = historyObservationsOf(FETCHED_AT)([
       {
+        type: "episode",
         watched_at: "2026-01-01T00:00:00Z",
         show: { title: "Breaking Bad", year: YEAR, ids: { trakt: SHOW_ID, slug: "breaking-bad" } },
         episode: { season: SEASON, number: EPISODE, title: "Pilot", ids: { trakt: EPISODE_ID } },
