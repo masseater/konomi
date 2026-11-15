@@ -19,19 +19,15 @@ jobs:
     steps:
       - id: changed
         if: github.event_name == 'pull_request'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          if gh api "repos/$REPO/pulls/$NUMBER/files" --paginate --jq '.[].filename' | grep -qx skills-lock.json; then
-            echo "skills-lock=true" >> "$GITHUB_OUTPUT"
-          fi
-      - if: steps.changed.outputs.skills-lock == 'true'
+        uses: masseater/typescript-template/.github/actions/pr-changed@eeeed3cd1ec6cbeabc464f7b1a0bd727703bfd7c
+        with:
+          file: skills-lock.json
+          github-token: ${{ github.token }}
+      - if: steps.changed.outputs.changed == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - if: steps.changed.outputs.skills-lock == 'true'
+      - if: steps.changed.outputs.changed == 'true'
         uses: masseater/typescript-template/.github/actions/skills-lock@eeeed3cd1ec6cbeabc464f7b1a0bd727703bfd7c
         with:
           branch: ${{ github.head_ref }}

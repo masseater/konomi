@@ -1,6 +1,6 @@
 import { Array as Arr, Clock, Effect, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
+import type { ListingKind, Observation } from "#/entities/signal";
 import { requireField } from "#/features/ingest/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest/api/providers/http.server";
 import type { Headers } from "#/features/ingest/api/providers/http.server";
@@ -12,13 +12,11 @@ import { Accounts, Statuses, Verified } from "./schemas";
 import type { MastodonStatus } from "./schemas";
 import { followedOf, statusOf } from "./subjects";
 
-type StatusKind = "endorsed" | "collected";
-
 type Reading = Readonly<{ origin: string; headers: Headers; fetchedAt: number }>;
 
 const statusesAt =
   ({ origin, headers, fetchedAt }: Reading) =>
-  (path: string, kind: StatusKind): Effect.Effect<readonly Observation[], ProviderError> => {
+  (path: string, kind: ListingKind): Effect.Effect<readonly Observation[], ProviderError> => {
     const observe = (status: MastodonStatus): Observation => ({
       kind,
       subject: statusOf(status),

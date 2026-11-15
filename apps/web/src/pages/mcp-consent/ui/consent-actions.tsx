@@ -1,3 +1,4 @@
+import type { MutationStatus } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 import { Button } from "#/shared/ui/button";
@@ -12,7 +13,7 @@ const ConsentActions = ({
   onAllow,
   onDeny,
 }: Readonly<{
-  status: "idle" | "pending" | "success" | "error";
+  status: MutationStatus;
   onAllow: () => void;
   onDeny: () => void;
 }>): ReactNode => {

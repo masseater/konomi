@@ -1,6 +1,6 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
-import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import type { CreatorInput, ListingKind, Observation, SubjectInput } from "#/entities/signal";
 import { epochOr } from "#/features/ingest/api/providers/observe";
 import { postTitleOf } from "#/features/ingest/api/providers/post-title";
 import { publishedOf } from "#/features/ingest/api/providers/subject-fields";
@@ -33,7 +33,7 @@ const postOf = (log: TwilogLog): SubjectInput => ({
 });
 
 const logObservationsOf =
-  ({ kind, fetchedAt }: Readonly<{ kind: "endorsed" | "collected"; fetchedAt: number }>) =>
+  ({ kind, fetchedAt }: Readonly<{ kind: ListingKind; fetchedAt: number }>) =>
   (logs: readonly TwilogLog[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
     return pipe(

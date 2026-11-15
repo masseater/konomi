@@ -1,3 +1,4 @@
+import type { MutationStatus } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { Match } from "effect";
 import { useCallback } from "react";
@@ -15,7 +16,7 @@ const DONE = "許可を保存した。次の取り込みから再生履歴とラ
 const FAILED = "許可を保存できなかった。鍵を保存したか、ログインしているかを確かめる";
 const HOME = "ホームへ戻る";
 
-const resultOf = (status: "idle" | "pending" | "success" | "error"): ReactNode =>
+const resultOf = (status: MutationStatus): ReactNode =>
   Match.value(status).pipe(
     Match.when("success", () => <p className="text-sm">{DONE}</p>),
     Match.when("error", () => (

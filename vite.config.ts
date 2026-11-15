@@ -1,3 +1,4 @@
+import { workspaceSettings } from "@r_masseater/msch/workspace-settings";
 import baselineJs from "eslint-plugin-baseline-js";
 import { defineConfig } from "vite-plus";
 
@@ -21,7 +22,14 @@ import { workerRules } from "./worker-lint.config.ts";
 
 const typedRules = "@r_masseater/oxlint-typed-rules";
 
+const workspace = await workspaceSettings({
+  root: import.meta.dirname,
+  ruleSets: { decision: { ...decisionRules, ...workerRules } },
+  dependencySets: {},
+});
+
 export default defineConfig({
+  msch: { workspaceAgentsMd: true },
   ...checks,
   test: { projects: ["apps/*", "libs/*", "tools/*", "infra/*"], passWithNoTests: true },
   staged: {
@@ -34,7 +42,7 @@ export default defineConfig({
     sortPackageJson: true,
   },
   lint: {
-    ignorePatterns: generated,
+    ignorePatterns: [...generated, ...workspace.lint.ignorePatterns],
     plugins: [
       "eslint",
       "typescript",
@@ -183,13 +191,14 @@ export default defineConfig({
         },
       },
       {
+        files: ["**/vite.config.ts"],
+        rules: { "baseline-js/use-baseline": "off" },
+      },
+      {
         files: ["**/shared/ui/**"],
         rules: { "shadcn/no-restyle": "off", "react/jsx-props-no-spreading": "off" },
       },
-      {
-        files: ["apps/web/src/**/*.{ts,tsx}"],
-        rules: { ...decisionRules, ...workerRules },
-      },
+      ...workspace.lint.overrides,
       {
         files: ["**/*.test.ts"],
         rules: turnedOff(decisionRules),
@@ -241,9 +250,9 @@ export default defineConfig({
         },
         dependsOn: [
           "test",
+          "msch",
           "syncpack",
           "vpa",
-          "yomiyasu",
           "renovate",
           "actions-lint",
           "db-check-all",
@@ -252,6 +261,12 @@ export default defineConfig({
         ],
       },
       test: "vp test run",
+      msch: {
+        command: "msch",
+        cache: {
+          untrackedEnv: ["HTTPS_PROXY", "https_proxy", "NO_PROXY", "no_proxy", "SSL_CERT_FILE"],
+        },
+      },
       syncpack: "syncpack lint",
       "db-check-all": "vp run -r db:check",
       audit: {

@@ -13,9 +13,9 @@ import { followObservationsOf, illustObservationsOf, novelObservationsOf } from 
 const RESTRICTS = [BookmarkRestrict.PUBLIC, BookmarkRestrict.PRIVATE] as const;
 const FOLLOW_RESTRICTS = [FollowRestrict.PUBLIC, FollowRestrict.PRIVATE] as const;
 
-const each = <Item>(
-  restricts: readonly ("public" | "private")[],
-  listing: (restrict: "public" | "private") => Effect.Effect<readonly Item[], ProviderError>,
+const each = <Restrict extends string, Item>(
+  restricts: readonly Restrict[],
+  listing: (restrict: Restrict) => Effect.Effect<readonly Item[], ProviderError>,
 ): Effect.Effect<readonly Item[], ProviderError> =>
   pipe(restricts, Effect.forEach(listing), Effect.map(Arr.flatten));
 

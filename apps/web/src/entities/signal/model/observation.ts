@@ -20,4 +20,6 @@ type Observation = Readonly<{
   context?: string;
 }>;
 
-export type { CreatorInput, Observation, SubjectInput };
+type ListingKind = Extract<SignalKind, "endorsed" | "collected">;
+
+export type { CreatorInput, ListingKind, Observation, SubjectInput };
