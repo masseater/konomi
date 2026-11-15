@@ -283,8 +283,8 @@ catalogs:
       specifier: 2.0.0-beta.85
       version: 2.0.0-beta.85
     '@distilled.cloud/cloudflare':
-      specifier: 1.0.0-rc.18
-      version: 1.0.0-rc.18
+      specifier: 1.0.0-rc.19
+      version: 1.0.0-rc.19
     '@effect/atom-react':
       specifier: 4.1.4
       version: 4.1.4
@@ -362,7 +362,7 @@ importers:
         version: 21.2.4
       '@distilled.cloud/cloudflare':
         specifier: catalog:stack
-        version: 1.0.0-rc.18(effect@4.1.4)
+        version: 1.0.0-rc.19(effect@4.1.4)
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.1.4(effect@4.1.4)(redis@6.2.1(@opentelemetry/api@1.10.0))
@@ -383,7 +383,7 @@ importers:
         version: 0.4.0(@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))(effect@4.1.4)(supports-color@7.2.0)(typescript@7.1.0-beta)(vite-plus@1.6.0(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(@vitest/ui@5.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))
       '@r_masseater/workers-tracing':
         specifier: 'catalog:'
-        version: 0.2.0(8db91cf7e54711fbeb90406707634b9e)
+        version: 0.2.0(e87dca8c8777f50d779c6550bb73f86f)
       '@shadcn/lint':
         specifier: 'catalog:'
         version: 0.2.5(eslint@10.14.0(jiti@2.7.0)(supports-color@7.2.0))
@@ -437,7 +437,7 @@ importers:
         version: 2.0.0-beta.85(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.2.1(@opentelemetry/api@1.10.0)))(@types/node@26.6.6)(@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))(alchemy@2.0.0-beta.85(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.2.1(@opentelemetry/api@1.10.0)))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))(effect@4.1.4)(ws@8.22.0))(effect@4.1.4)
       '@distilled.cloud/cloudflare':
         specifier: catalog:stack
-        version: 1.0.0-rc.18(effect@4.1.4)
+        version: 1.0.0-rc.19(effect@4.1.4)
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.1.4(effect@4.1.4)(redis@6.2.1(@opentelemetry/api@1.10.0))
@@ -541,7 +541,7 @@ importers:
         version: 3.1.0
       '@r_masseater/workers-tracing':
         specifier: 'catalog:'
-        version: 0.2.0(8db91cf7e54711fbeb90406707634b9e)
+        version: 0.2.0(e87dca8c8777f50d779c6550bb73f86f)
       '@tanstack/react-devtools':
         specifier: 0.10.14
         version: 0.10.14(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(csstype@3.2.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(solid-js@1.9.15)
@@ -1434,6 +1434,11 @@ packages:
     peerDependencies:
       effect: ^4.0.5
 
+  '@distilled.cloud/aws4signer@1.0.0-rc.19':
+    resolution: {integrity: sha512-QZ4qOOGp1i8JQeDw+wGl2ha6oIM8aU8V9XSFR0cDoMOD+G7be6lqm2zWlEOYlA08k3eGN9Z/83OGpwukmgCgcg==}
+    peerDependencies:
+      effect: ^4.1.2
+
   '@distilled.cloud/aws@1.0.0-rc.18':
     resolution: {integrity: sha512-VZDlOGEXvXvTdY/0sTEoTWnPCGde+fjvq1ZIW3wgiZK/X8ChbbonGArg+Sc9OO4E9tr1WBymASrZ906uLnLWFw==}
     peerDependencies:
@@ -1444,10 +1449,20 @@ packages:
     peerDependencies:
       effect: ^4.0.5
 
+  '@distilled.cloud/cloudflare@1.0.0-rc.19':
+    resolution: {integrity: sha512-J/pidhpALhW3t9L4FSQt4yt5cbIu3fEAQ/3z+a6ae6Zf8DAXSmMW8aNYX/NHKJ5KP1Qy4/Bq0gLbHILSY8EV7A==}
+    peerDependencies:
+      effect: ^4.1.2
+
   '@distilled.cloud/core@1.0.0-rc.18':
     resolution: {integrity: sha512-Iui60+sNl1CwUu7NKGLuFf3VC4H9xYzfm0Fc8ZQvd87qwf1sDMB3EAWZrq/QFgrwzSY16z2mJ0PNHaBUnGet8A==}
     peerDependencies:
       effect: ^4.0.5
+
+  '@distilled.cloud/core@1.0.0-rc.19':
+    resolution: {integrity: sha512-BO/Q8Q/9Zsv30RyLj8ZddDRBimlsQOGE6SZSVxJJxT0XARErZp/+Hr0xZTqvvhYHO0thSxUas5DteyEs5Z36rQ==}
+    peerDependencies:
+      effect: ^4.1.2
 
   '@distilled.cloud/fly-io@1.0.0-rc.18':
     resolution: {integrity: sha512-kSTOC5Xi/DMc2LtrKjZXiccMGEt3+SmmNnqvw/KO+PdC1clKjm+XS8+Phpry06YJtJh6GgYQsk5o0S9vNGiovQ==}
@@ -1458,6 +1473,11 @@ packages:
     resolution: {integrity: sha512-XjUJ/vEOylhIZbAm85O9H6YqXKWGfVROT5BE9BGA/RXvo0bLK2+sUcjC6BoN77a99lImJkrXJuvbHBhNebObEA==}
     peerDependencies:
       effect: ^4.0.5
+
+  '@distilled.cloud/s3@1.0.0-rc.19':
+    resolution: {integrity: sha512-p5nk+8jMKvsD/yg69E+qyTTdrlf45YfACWdrjK4A6DsGBcYHL2SlfdPdizdxuIji3EiL9bbqEW/m471CIFvrvQ==}
+    peerDependencies:
+      effect: ^4.1.2
 
   '@drizzle-team/brocli@0.12.1':
     resolution: {integrity: sha512-yHwomvolVafvUXhy5TdiJVkuNCxXn+bKOs2aWiWEQh/5YaV97Oa/abJz3dmx7lxgIUsUlS1Jl4mEfvJPo3YsVw==}
@@ -11011,6 +11031,11 @@ snapshots:
       '@distilled.cloud/core': 1.0.0-rc.18(effect@4.1.4)
       effect: 4.1.4
 
+  '@distilled.cloud/aws4signer@1.0.0-rc.19(effect@4.1.4)':
+    dependencies:
+      '@distilled.cloud/core': 1.0.0-rc.19(effect@4.1.4)
+      effect: 4.1.4
+
   '@distilled.cloud/aws@1.0.0-rc.18(effect@4.1.4)':
     dependencies:
       '@distilled.cloud/aws4signer': 1.0.0-rc.18(effect@4.1.4)
@@ -11022,7 +11047,17 @@ snapshots:
       '@distilled.cloud/core': 1.0.0-rc.18(effect@4.1.4)
       effect: 4.1.4
 
+  '@distilled.cloud/cloudflare@1.0.0-rc.19(effect@4.1.4)':
+    dependencies:
+      '@distilled.cloud/core': 1.0.0-rc.19(effect@4.1.4)
+      '@distilled.cloud/s3': 1.0.0-rc.19(effect@4.1.4)
+      effect: 4.1.4
+
   '@distilled.cloud/core@1.0.0-rc.18(effect@4.1.4)':
+    dependencies:
+      effect: 4.1.4
+
+  '@distilled.cloud/core@1.0.0-rc.19(effect@4.1.4)':
     dependencies:
       effect: 4.1.4
 
@@ -11034,6 +11069,12 @@ snapshots:
   '@distilled.cloud/iceberg@1.0.0-rc.18(effect@4.1.4)':
     dependencies:
       '@distilled.cloud/core': 1.0.0-rc.18(effect@4.1.4)
+      effect: 4.1.4
+
+  '@distilled.cloud/s3@1.0.0-rc.19(effect@4.1.4)':
+    dependencies:
+      '@distilled.cloud/aws4signer': 1.0.0-rc.19(effect@4.1.4)
+      '@distilled.cloud/core': 1.0.0-rc.19(effect@4.1.4)
       effect: 4.1.4
 
   '@drizzle-team/brocli@0.12.1': {}
@@ -12443,12 +12484,12 @@ snapshots:
       - webpack
       - yauzl
 
-  '@r_masseater/workers-tracing@0.2.0(8db91cf7e54711fbeb90406707634b9e)':
+  '@r_masseater/workers-tracing@0.2.0(e87dca8c8777f50d779c6550bb73f86f)':
     dependencies:
       effect: 4.1.4
     optionalDependencies:
       '@alchemy.run/cloudflare': 2.0.0-beta.85(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.2.1(@opentelemetry/api@1.10.0)))(@types/node@26.6.6)(@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))(alchemy@2.0.0-beta.85(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.2.1(@opentelemetry/api@1.10.0)))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))(effect@4.1.4)(ws@8.22.0))(effect@4.1.4)
-      '@distilled.cloud/cloudflare': 1.0.0-rc.18(effect@4.1.4)
+      '@distilled.cloud/cloudflare': 1.0.0-rc.19(effect@4.1.4)
       '@effect/platform-node': 4.1.4(effect@4.1.4)(redis@6.2.1(@opentelemetry/api@1.10.0))
       '@tanstack/react-start': 1.169.5(@vitejs/plugin-rsc@0.5.39(@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))(esbuild@0.28.1)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(rolldown@1.2.13)(supports-color@7.2.0)(webpack@5.111.1(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@26.6.6))(uglify-js@3.19.3))
       alchemy: 2.0.0-beta.85(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.2.1(@opentelemetry/api@1.10.0)))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1))(effect@4.1.4)(ws@8.22.0)
