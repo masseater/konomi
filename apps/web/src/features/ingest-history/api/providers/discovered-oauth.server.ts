@@ -12,7 +12,11 @@ import { fieldOf, requireField } from "#/features/ingest-history/api/providers/c
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import { OAUTH_FIELD } from "#/features/ingest-history/api/providers/oauth.server";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
-import type { Authorization, Discovery, ProviderError } from "#/features/ingest-history/model/provider";
+import type {
+  Authorization,
+  Discovery,
+  ProviderError,
+} from "#/features/ingest-history/model/provider";
 import { ProviderUnavailable } from "#/features/ingest-history/model/provider-unavailable";
 
 const VERIFIER_FIELD = "codeVerifier";

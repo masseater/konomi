@@ -1,7 +1,10 @@
 import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { durationFromMs, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
+import {
+  durationFromMs,
+  publishedOf,
+} from "#/features/ingest-history/api/providers/subject-fields";
 import type { SubjectType } from "#/shared/config";
 
 import { WEB_ORIGIN } from "./api";

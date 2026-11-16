@@ -2,7 +2,11 @@ import { Effect, Option, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import { replaceCredential } from "#/entities/connection/index.server";
-import type { Authorization, Discovery, ProviderError } from "#/features/ingest-history/model/provider";
+import type {
+  Authorization,
+  Discovery,
+  ProviderError,
+} from "#/features/ingest-history/model/provider";
 import type { ProviderId } from "#/shared/config";
 
 import { requireField } from "./providers/credential-field";

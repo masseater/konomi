@@ -2,7 +2,10 @@ import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { withRelations } from "#/features/ingest-history/api/providers/observe";
-import { durationFromMs, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
+import {
+  durationFromMs,
+  publishedOf,
+} from "#/features/ingest-history/api/providers/subject-fields";
 
 import type { SoundcloudPlaylist, SoundcloudTrack, SoundcloudUser } from "./schemas";
 
