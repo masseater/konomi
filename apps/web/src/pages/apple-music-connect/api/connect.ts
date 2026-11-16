@@ -2,7 +2,7 @@ import { run } from "@r_masseater/workers-tracing/effect";
 import { mutationOptions } from "@tanstack/react-query";
 import { Effect, Predicate, Schema } from "effect";
 
-import { connectionClient } from "#/features/ingest";
+import { connectionClient } from "#/features/ingest-history";
 
 import { authorizeMusicKit } from "./musickit";
 

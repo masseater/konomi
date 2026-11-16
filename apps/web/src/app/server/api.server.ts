@@ -2,7 +2,7 @@ import { run } from "@r_masseater/workers-tracing/effect";
 import { env } from "cloudflare:workers";
 import { Effect, Option, pipe } from "effect";
 
-import { connectionRoutes } from "#/features/ingest/index.server";
+import { connectionRoutes } from "#/features/ingest-history/index.server";
 import { createRouter } from "#/shared/api/index.server";
 import { auth } from "#/shared/auth/index.server";
 
