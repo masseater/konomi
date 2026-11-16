@@ -2,7 +2,7 @@ import { Array as Arr, Clock, Effect, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
 import { BACKFILLED, pagesOf } from "#/features/ingest/api/providers/backfill-cursor";
-import { requireField } from "#/features/ingest/api/providers/credential-field";
+import { userClientOf } from "#/features/ingest/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest/api/providers/http.server";
 import type { Headers } from "#/features/ingest/api/providers/http.server";
 import { collectPages } from "#/features/ingest/api/providers/paging.server";
@@ -39,17 +39,16 @@ const pullList =
 
 const pullMyAnimeList = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* myanimelist() {
-    const account = yield* Effect.all({
-      user: requireField(credential, FIELD.user).pipe(Effect.map(encodeURIComponent)),
-      clientId: requireField(credential, FIELD.clientId),
-    });
+    const account = yield* userClientOf(credential, FIELD);
     const pull = pullList({
       user: account.user,
       headers: { "X-MAL-CLIENT-ID": account.clientId },
       pages: pagesOf(cursor),
       fetchedAt: yield* Clock.currentTimeMillis,
     });
-    const lists = yield* pipe(LISTS, Arr.map(pull), Effect.all);
+    const lists = yield* pipe(LISTS, Arr.map(pull), (pulls) =>
+      Effect.all(pulls, { concurrency: 1 }),
+    );
     return { observations: Arr.flatten(lists), cursor: yield* BACKFILLED };
   }).pipe(Effect.withSpan("myanimelist.pull"));
 

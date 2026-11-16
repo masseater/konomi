@@ -77,7 +77,7 @@ const runStatements = (statements: readonly BatchItem<"sqlite">[]): Effect.Effec
   Effect.forEach(
     Arr.chunksOf(statements, STATEMENTS_PER_BATCH),
     (batch) => Effect.promise(() => db.batch(batch)),
-    { discard: true },
+    { concurrency: 1, discard: true },
   );
 
 const recordObservations = (observations: readonly Observation[]): Effect.Effect<number> => {

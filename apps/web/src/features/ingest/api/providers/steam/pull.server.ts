@@ -23,10 +23,13 @@ const ownedGamesUrl = ({
 
 const pullSteam = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* steam() {
-    const account = yield* Effect.all({
-      apiKey: requireField(credential, FIELD.apiKey),
-      steamId: requireField(credential, FIELD.steamId),
-    });
+    const account = yield* Effect.all(
+      {
+        apiKey: requireField(credential, FIELD.apiKey),
+        steamId: requireField(credential, FIELD.steamId),
+      },
+      { concurrency: 1 },
+    );
     const fetchedAt = yield* Clock.currentTimeMillis;
     const { response } = yield* fetchJson({
       url: ownedGamesUrl(account),

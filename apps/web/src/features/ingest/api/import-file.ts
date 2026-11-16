@@ -81,7 +81,9 @@ const importFile = ({
         ImportFailed.make({ message: "ファイルに行が無い" }),
       ),
       Effect.flatMap((rows) =>
-        Effect.forEach(Arr.chunksOf(rows, IMPORT_ROWS_PER_REQUEST), sendRows(target)),
+        Effect.forEach(Arr.chunksOf(rows, IMPORT_ROWS_PER_REQUEST), sendRows(target), {
+          concurrency: 1,
+        }),
       ),
       Effect.map((counts) => ({ status: "imported" as const, recorded: Num.sumAll(counts) })),
       Effect.catchTag("ImportFailed", ({ message }) =>

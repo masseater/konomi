@@ -95,7 +95,7 @@ const describeAll = (pending: readonly Pending[]): Effect.Effect<readonly string
     pending,
     Arr.map(({ key }) => key),
   );
-  return Effect.all({ credits: creditsOf(keys), tags: tagsOf(keys) }).pipe(
+  return Effect.all({ credits: creditsOf(keys), tags: tagsOf(keys) }, { concurrency: 1 }).pipe(
     Effect.map(({ credits, tags }) =>
       pipe(
         pending,
@@ -119,7 +119,7 @@ const markEmbedded = (keyed: readonly (readonly [string, string])[]): Effect.Eff
     keyed,
     ([key, vectorId]) =>
       Effect.promise(() => db.update(subject).set({ vectorId }).where(eq(subject.key, key))),
-    { discard: true },
+    { concurrency: 1, discard: true },
   );
 
 const upsertVectors = (
@@ -145,9 +145,7 @@ const storeVectors = (
     pending,
     Arr.map(({ key }) => key),
   );
-  return pipe(
-    keys,
-    Effect.forEach(vectorIdOf),
+  return Effect.forEach(keys, vectorIdOf, { concurrency: 1 }).pipe(
     Effect.tap((ids) => upsertVectors(ids, vectors)),
     Effect.flatMap((ids) => markEmbedded(pipe(keys, Arr.zip(ids)))),
   );
@@ -162,7 +160,10 @@ const embedChunk = (pending: readonly Pending[]): Effect.Effect<void, EmbeddingF
 const embedPendingSubjects: Effect.Effect<void> = pendingSubjects.pipe(
   Effect.tap((pending) => Effect.annotateCurrentSpan({ pending: pending.length })),
   Effect.flatMap((pending) =>
-    Effect.forEach(pipe(pending, Arr.chunksOf(EMBEDS_PER_CALL)), embedChunk, { discard: true }),
+    Effect.forEach(pipe(pending, Arr.chunksOf(EMBEDS_PER_CALL)), embedChunk, {
+      concurrency: 1,
+      discard: true,
+    }),
   ),
   Effect.catchTag("EmbeddingFailed", (failed) => Effect.logWarning("embedding failed", failed)),
   Effect.withSpan("signal.embed-pending"),
