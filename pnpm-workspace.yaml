@@ -20,7 +20,8 @@ catalog:
   oxlint-plugin-eslint: 1.93.0
   syncpack: 15.3.3
   vite: npm:@voidzero-dev/vite-plus-core@1.6.0
-  "@r_masseater/oxlint-plugin-decision": 0.5.1
+  "@r_masseater/oxlint-plugin-decision": 0.7.0
+  "@r_masseater/textlint-rule-preset-ja": 0.1.1
   eslint-plugin-no-comments: 1.2.1
   eslint-plugin-baseline-js: 0.7.7
   "@html-eslint/eslint-plugin-react": 0.68.0
@@ -78,6 +79,7 @@ overrides:
   seroval@<1.6.11: ^1.6.11
   glob@>=9.0.0 <=14.0.1: ^14.0.2
   minimatch@<11.0.1: ^11.0.1
+  "@r_masseater/msch>@r_masseater/oxlint-plugin-decision": "catalog:"
 peerDependencyRules:
   allowAny:
     - vite
@@ -97,4 +99,5 @@ audit:
     - GHSA-gcqx-w48m-w2h4
 minimumReleaseAgeExclude:
   - "@r_masseater/msch@0.15.0"
-  - "@r_masseater/oxlint-plugin-decision@0.5.1"
+  - "@r_masseater/oxlint-plugin-decision@0.7.0"
+  - "@r_masseater/textlint-rule-preset-ja@0.1.1"
