@@ -26,10 +26,13 @@ const saveCredential = ({
   provider,
   credential,
 }: Readonly<{ provider: ProviderId; credential: Credential }>): Effect.Effect<void> =>
-  Effect.all({
-    sealedCredential: sealCredential(credential),
-    updatedAtMs: Clock.currentTimeMillis,
-  }).pipe(
+  Effect.all(
+    {
+      sealedCredential: sealCredential(credential),
+      updatedAtMs: Clock.currentTimeMillis,
+    },
+    { concurrency: 1 },
+  ).pipe(
     Effect.flatMap(({ sealedCredential, updatedAtMs }) =>
       Effect.promise(() =>
         db

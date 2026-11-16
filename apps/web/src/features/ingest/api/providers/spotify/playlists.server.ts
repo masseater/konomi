@@ -56,10 +56,9 @@ const pullPlaylists = (fetching: Fetching): Effect.Effect<readonly Observation[]
       owned,
       Arr.filter(({ owner }) => owner.id === me.id),
     );
-    const lists = yield* pipe(
-      mine,
-      Effect.forEach((found) => pullPlaylist(fetching, found)),
-    );
+    const lists = yield* Effect.forEach(mine, (found) => pullPlaylist(fetching, found), {
+      concurrency: 1,
+    });
     return Arr.flatten(lists);
   });
 

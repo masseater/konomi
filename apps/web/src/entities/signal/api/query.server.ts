@@ -155,11 +155,14 @@ const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundSignal[]
         Arr.map(({ key }) => key),
         Arr.dedupe,
       );
-      return Effect.all({
-        rows: Effect.succeed(rows),
-        credits: creditsOf(keys),
-        tags: tagsOf(keys),
-      });
+      return Effect.all(
+        {
+          rows: Effect.succeed(rows),
+          credits: creditsOf(keys),
+          tags: tagsOf(keys),
+        },
+        { concurrency: 1 },
+      );
     }),
     Effect.map(({ rows, credits, tags }) =>
       pipe(

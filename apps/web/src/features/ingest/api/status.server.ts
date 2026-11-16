@@ -93,10 +93,13 @@ const stateOf =
     totals: totalsOf(counts, id),
   });
 
-const statusOf = Effect.all({
-  connections: listConnectionViews,
-  counts: countByKind(ALL_SIGNALS),
-}).pipe(
+const statusOf = Effect.all(
+  {
+    connections: listConnectionViews,
+    counts: countByKind(ALL_SIGNALS),
+  },
+  { concurrency: 1 },
+).pipe(
   Effect.map(({ connections, counts }) =>
     pipe(
       PROVIDER_IDS,

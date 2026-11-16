@@ -29,4 +29,30 @@ const requireField: {
     ),
 );
 
-export { fieldOf, requireField };
+type UserClientFields = Readonly<{ user: string; clientId: string }>;
+
+const userClientOf: {
+  (
+    fields: UserClientFields,
+  ): (credential: Credential) => Effect.Effect<UserClientFields, CredentialRejected>;
+  (
+    credential: Credential,
+    fields: UserClientFields,
+  ): Effect.Effect<UserClientFields, CredentialRejected>;
+} = Fn.dual(
+  BINARY,
+  (
+    credential: Credential,
+    fields: UserClientFields,
+  ): Effect.Effect<UserClientFields, CredentialRejected> =>
+    Effect.all(
+      {
+        user: requireField(credential, fields.user).pipe(Effect.map(encodeURIComponent)),
+        clientId: requireField(credential, fields.clientId),
+      },
+      { concurrency: 1 },
+    ),
+);
+
+export type { UserClientFields };
+export { fieldOf, requireField, userClientOf };

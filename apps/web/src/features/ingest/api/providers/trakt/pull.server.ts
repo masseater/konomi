@@ -1,7 +1,7 @@
 import { Clock, Effect, Function as Fn } from "effect";
 
 import { BACKFILLED, pagesOf } from "#/features/ingest/api/providers/backfill-cursor";
-import { requireField } from "#/features/ingest/api/providers/credential-field";
+import { userClientOf } from "#/features/ingest/api/providers/credential-field";
 import { collectNumberedPages } from "#/features/ingest/api/providers/numbered-pages.server";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest/model/provider";
 
@@ -13,10 +13,7 @@ const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
 
 const pullTrakt = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* trakt() {
-    const account = yield* Effect.all({
-      user: requireField(credential, FIELD.user).pipe(Effect.map(encodeURIComponent)),
-      clientId: requireField(credential, FIELD.clientId),
-    });
+    const account = yield* userClientOf(credential, FIELD);
     const headers = {
       "Content-Type": "application/json",
       "trakt-api-version": "2",

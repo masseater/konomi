@@ -22,7 +22,10 @@ const EMPTY_SCHEMA = EmptyInput.pipe(Schema.toStandardSchemaV1, Schema.toStandar
 type FilterInput = Readonly<Partial<typeof SearchInput.Type>>;
 
 const filterOf = (input: FilterInput): Effect.Effect<SignalFilter, ToolError> =>
-  Effect.all({ sinceMs: optionalMillis(input.since), untilMs: optionalMillis(input.until) }).pipe(
+  Effect.all(
+    { sinceMs: optionalMillis(input.since), untilMs: optionalMillis(input.until) },
+    { concurrency: 1 },
+  ).pipe(
     Effect.map(({ sinceMs, untilMs }) => ({
       keyword: Option.fromUndefinedOr(input.keyword),
       kinds: Option.fromUndefinedOr(input.kinds),
@@ -41,11 +44,14 @@ type Profile = Readonly<{
 }>;
 
 const profileOf = (filter: SignalFilter): Effect.Effect<Profile> =>
-  Effect.all({
-    method: Effect.succeed(PROFILE_METHOD),
-    counts: countByKind(filter),
-    taste: tasteProfile(filter),
-  });
+  Effect.all(
+    {
+      method: Effect.succeed(PROFILE_METHOD),
+      counts: countByKind(filter),
+      taste: tasteProfile(filter),
+    },
+    { concurrency: 1 },
+  );
 
 const registerTools = (server: McpServer): McpServer => {
   registerTasteTools(server);

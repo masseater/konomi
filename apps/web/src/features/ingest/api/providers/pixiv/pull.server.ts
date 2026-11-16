@@ -17,7 +17,7 @@ const each = <Restrict extends string, Item>(
   restricts: readonly Restrict[],
   listing: (restrict: Restrict) => Effect.Effect<readonly Item[], ProviderError>,
 ): Effect.Effect<readonly Item[], ProviderError> =>
-  pipe(restricts, Effect.forEach(listing), Effect.map(Arr.flatten));
+  Effect.forEach(restricts, listing, { concurrency: 1 }).pipe(Effect.map(Arr.flatten));
 
 const clientOf = (refreshToken: string): Effect.Effect<PixivClient, CredentialRejected> =>
   Effect.tryPromise({
