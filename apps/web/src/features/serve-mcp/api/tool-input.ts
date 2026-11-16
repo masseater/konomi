@@ -55,18 +55,24 @@ const ProfileInput = Schema.Struct({
   limit: Limit,
 });
 
+const SimilarByText = Schema.Struct({
+  by: Schema.Literal("text"),
+  text: Schema.NonEmptyString.annotate({
+    description: "似たものを探す元の文。曲名・雰囲気・ジャンルなど何でもよい",
+  }),
+});
+
+const SimilarBySubject = Schema.Struct({
+  by: Schema.Literal("subject"),
+  subjectKey: Schema.NonEmptyString.annotate({
+    description: "似たものを探す元の対象の key。taste_profile や search_signals が返したもの",
+  }),
+});
+
 const SimilarInput = Schema.Struct({
-  text: Schema.optionalKey(
-    Schema.NonEmptyString.annotate({
-      description:
-        "似たものを探す元の文。曲名・雰囲気・ジャンルなど何でもよい。subjectKey と同時には指定しない",
-    }),
-  ),
-  subjectKey: Schema.optionalKey(
-    Schema.NonEmptyString.annotate({
-      description: "似たものを探す元の対象の key。taste_profile や search_signals が返したもの",
-    }),
-  ),
+  query: Schema.Union([SimilarByText, SimilarBySubject]).annotate({
+    description: "文から探すなら by=text、対象の key から探すなら by=subject",
+  }),
   limit: Limit,
 });
 
