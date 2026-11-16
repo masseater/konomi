@@ -34,10 +34,10 @@ catalog:
   "@yarnpkg/parsers": 3.1.0
   jose: 6.2.17
   otpauth: 9.6.0
-  "@better-auth/mcp": 1.7.22
-  "@better-auth/oauth-provider": 1.7.22
+  "@better-auth/mcp": 1.7.23
+  "@better-auth/oauth-provider": 1.7.23
   "@modelcontextprotocol/client": 2.4.0
-  fast-xml-parser: 5.12.0
+  fast-xml-parser: 5.12.1
   "@nodable/entities": 3.1.0
   node-html-parser: 9.0.7
   psn-api: 2.18.1
@@ -51,14 +51,14 @@ catalogs:
   stack:
     "@distilled.cloud/cloudflare": 1.0.0-rc.20
     "@effect/atom-react": 4.1.4
-    "@effect/tsgo": 0.68.1
+    "@effect/tsgo": 0.69.0
     "@elysiajs/eden": 1.4.9
     "@tanstack/react-query": 5.107.1
     "@tanstack/react-start": 1.169.5
     "@alchemy.run/cloudflare": 2.0.0-beta.87
     "@alchemy.run/fly": 2.0.0-beta.87
     alchemy: 2.0.0-beta.87
-    better-auth: 1.7.22
+    better-auth: 1.7.23
     drizzle-kit: 1.0.0-rc.5-ab785fc
     drizzle-orm: 1.0.0-rc.5-ab785fc
     eden-tanstack-react-query: 0.5.1
@@ -66,7 +66,7 @@ catalogs:
     elysia: 1.4.32
     fallow: 3.42.0
     radix-ui: 1.8.1
-    renovate: 44.237.2
+    renovate: 44.239.1
     tailwindcss: 4.3.5
     typescript: 7.1.0-beta
     vite-plus: 1.6.0
