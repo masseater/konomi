@@ -1,0 +1,23 @@
+import type { Provider } from "#/features/ingest-history/model/provider";
+
+import { anilist } from "./anilist/index.server";
+import { annict } from "./annict/index.server";
+import { myanimelist } from "./myanimelist/index.server";
+import { pixiv } from "./pixiv/index.server";
+import { playstation } from "./playstation/index.server";
+import { steam } from "./steam/index.server";
+import { vrchat } from "./vrchat/index.server";
+import { xbox } from "./xbox/index.server";
+
+const HOBBY_PROVIDERS = {
+  anilist,
+  annict,
+  myanimelist,
+  pixiv,
+  playstation,
+  steam,
+  vrchat,
+  xbox,
+} as const satisfies Readonly<Record<string, Provider>>;
+
+export { HOBBY_PROVIDERS };
