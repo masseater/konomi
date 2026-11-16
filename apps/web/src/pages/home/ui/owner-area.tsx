@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
-import { ConnectionList } from "#/features/ingest";
+import { ConnectionList } from "#/features/ingest-history";
 import { sessionQuery } from "#/pages/home/api/session";
 
 const SIGN_IN = "ログインしてサービスをつなぐ";

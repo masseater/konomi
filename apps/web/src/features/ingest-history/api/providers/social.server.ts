@@ -1,0 +1,19 @@
+import type { Provider } from "#/features/ingest-history/model/provider";
+
+import { bluesky } from "./bluesky/index.server";
+import { mastodon } from "./mastodon/index.server";
+import { misskey } from "./misskey/index.server";
+import { reddit } from "./reddit/index.server";
+import { twilog } from "./twilog/index.server";
+import { twitch } from "./twitch/index.server";
+
+const SOCIAL_PROVIDERS = {
+  bluesky,
+  mastodon,
+  misskey,
+  reddit,
+  twilog,
+  twitch,
+} as const satisfies Readonly<Record<string, Provider>>;
+
+export { SOCIAL_PROVIDERS };

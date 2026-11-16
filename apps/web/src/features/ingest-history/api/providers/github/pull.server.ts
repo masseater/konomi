@@ -1,0 +1,45 @@
+import { Clock, Effect, Function as Fn } from "effect";
+
+import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
+import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { collectNumberedPages } from "#/features/ingest-history/api/providers/numbered-pages.server";
+import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+
+import { API, FIELD, LIMIT } from "./api";
+import { headersOf } from "./headers";
+import { Accounts, Stars } from "./schemas";
+import { followObservationsOf, starObservationsOf } from "./subjects";
+
+const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
+
+const pullGitHub = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+  Effect.gen(function* github() {
+    const name = yield* requireField(credential, FIELD.user);
+    const user = encodeURIComponent(name);
+    const headers = headersOf(credential);
+    const fetchedAt = yield* Clock.currentTimeMillis;
+    const pages = pagesOf(cursor);
+    const stars = yield* collectNumberedPages({
+      base: `${API}/users/${user}/starred?per_page=${LIMIT}`,
+      numbering: NUMBERING,
+      headers,
+      pages,
+      schema: Stars,
+      itemsOf: Fn.identity,
+    });
+    const following = yield* collectNumberedPages({
+      base: `${API}/users/${user}/following?per_page=${LIMIT}`,
+      numbering: NUMBERING,
+      headers,
+      pages,
+      schema: Accounts,
+      itemsOf: Fn.identity,
+    });
+    const observations = [
+      ...starObservationsOf(fetchedAt)(stars),
+      ...followObservationsOf(fetchedAt)(following),
+    ];
+    return { observations, cursor: yield* BACKFILLED };
+  }).pipe(Effect.withSpan("github.pull"));
+
+export { pullGitHub };
