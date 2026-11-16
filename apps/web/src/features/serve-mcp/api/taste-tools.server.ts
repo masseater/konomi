@@ -19,37 +19,15 @@ const SIMILAR_SCHEMA = SimilarInput.pipe(Schema.toStandardSchemaV1, Schema.toSta
 const NOTE_SCHEMA = NoteInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
 const EMPTY_SCHEMA = EmptyInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
 
-const similarQueryOf = (
-  input: typeof SimilarInput.Type,
-): Effect.Effect<SimilarQuery, ToolError> => {
-  const limit = input.limit ?? DEFAULT_LIMIT;
-  const text = Option.fromUndefinedOr(input.text);
-  const subjectKey = Option.fromUndefinedOr(input.subjectKey);
-  const byText = pipe(
-    text,
-    Option.filter(() => Option.isNone(subjectKey)),
-    Option.map((value): SimilarQuery => ({ by: "text", text: value, limit })),
-  );
-  const bySubject = pipe(
-    subjectKey,
-    Option.filter(() => Option.isNone(text)),
-    Option.map((value): SimilarQuery => ({ by: "subject", subjectKey: value, limit })),
-  );
-  return pipe(
-    byText,
-    Option.orElse(() => bySubject),
-    Effect.fromOption,
-    Effect.mapError(() =>
-      ToolError.make({ message: "text と subjectKey のどちらか一方を指定する" }),
-    ),
-  );
-};
+const similarQueryOf = ({ query, limit }: typeof SimilarInput.Type): SimilarQuery => ({
+  ...query,
+  limit: limit ?? DEFAULT_LIMIT,
+});
 
 const similarOf = (
   input: typeof SimilarInput.Type,
 ): Effect.Effect<readonly SimilarSubject[], ToolError> =>
-  similarQueryOf(input).pipe(
-    Effect.flatMap(findSimilar),
+  findSimilar(similarQueryOf(input)).pipe(
     Effect.catchTag("EmbeddingFailed", ({ message }) => Effect.fail(ToolError.make({ message }))),
   );
 
