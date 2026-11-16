@@ -5,7 +5,7 @@ import { cellOf } from "#/features/ingest/api/providers/export-cell";
 import { titleSubjectOf as sharedTitleSubjectOf } from "#/features/ingest/api/providers/title-subject";
 
 import { MIN_WATCHED_SEC, NOT_VIEWING, STORE_SEARCH, VIEWING_COLUMN } from "./api";
-import type { ViewingRow } from "./schemas";
+import type { HourlyViewingRow, SessionViewingRow, ViewingRow } from "./schemas";
 
 const MS_PER_SECOND = 1000;
 const SEASON = /^(?:season|staffel|saison|temporada|シーズン)\s*\d+|^第\s*\d+\s*(?:期|シーズン)/iu;
@@ -51,19 +51,26 @@ const playbackHourEpochOf = (text: string): Option.Option<number> =>
     Option.filter(Number.isFinite),
   );
 
+const isSession = (row: ViewingRow): row is SessionViewingRow => VIEWING_COLUMN.startedAt in row;
+
+const sessionStartedAtOf = (row: SessionViewingRow): Option.Option<number> =>
+  pipe(cellOf(row[VIEWING_COLUMN.startedAt]), Option.flatMap(isoEpochOf));
+
+const hourlyStartedAtOf = (row: HourlyViewingRow): Option.Option<number> =>
+  pipe(cellOf(row[VIEWING_COLUMN.playbackHour]), Option.flatMap(playbackHourEpochOf));
+
 const startedAtOf = (row: ViewingRow): Option.Option<number> =>
-  pipe(
-    cellOf(row[VIEWING_COLUMN.startedAt]),
-    Option.flatMap(isoEpochOf),
-    Option.orElse(() =>
-      pipe(cellOf(row[VIEWING_COLUMN.playbackHour]), Option.flatMap(playbackHourEpochOf)),
-    ),
+  Match.value(row).pipe(Match.when(isSession, sessionStartedAtOf), Match.orElse(hourlyStartedAtOf));
+
+const typeOf = (row: ViewingRow): Option.Option<string> =>
+  Match.value(row).pipe(
+    Match.when(isSession, (session) => cellOf(session[VIEWING_COLUMN.material])),
+    Match.orElse((hourly) => cellOf(hourly[VIEWING_COLUMN.videoType])),
   );
 
 const isViewing = (row: ViewingRow): boolean =>
   pipe(
-    cellOf(row[VIEWING_COLUMN.material]),
-    Option.orElse(() => cellOf(row[VIEWING_COLUMN.videoType])),
+    typeOf(row),
     Option.match({
       onNone: () => true,
       onSome: (type) =>
@@ -74,14 +81,14 @@ const isViewing = (row: ViewingRow): boolean =>
     }),
   );
 
-const sessionSecondsOf = (row: ViewingRow, startedAtMs: number): Option.Option<number> =>
+const sessionSecondsOf = (row: SessionViewingRow, startedAtMs: number): Option.Option<number> =>
   pipe(
     cellOf(row[VIEWING_COLUMN.endedAt]),
     Option.flatMap(isoEpochOf),
     Option.map((endedAtMs) => (endedAtMs - startedAtMs) / MS_PER_SECOND),
   );
 
-const watchedLongEnough = (row: ViewingRow, startedAtMs: number): boolean =>
+const sessionLongEnough = (row: SessionViewingRow, startedAtMs: number): boolean =>
   pipe(
     cellOf(row[VIEWING_COLUMN.secondsViewed]),
     Option.map(Number),
@@ -101,6 +108,9 @@ const watchedLongEnough = (row: ViewingRow, startedAtMs: number): boolean =>
       }),
     }),
   );
+
+const watchedLongEnough = (row: ViewingRow, startedAtMs: number): boolean =>
+  !isSession(row) || sessionLongEnough(row, startedAtMs);
 
 const searchUrlOf = (query: string): string =>
   `${STORE_SEARCH}?k=${encodeURIComponent(query)}&i=instant-video`;
