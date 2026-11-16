@@ -34,7 +34,7 @@ const web = Effect.gen(function* web() {
   );
   return yield* Website.Vite("Web", {
     domain,
-    main: "src/app/server/main.ts",
+    main: "src/app/server/main.worker.ts",
     crons: [INGEST_SCHEDULE],
     logpush: true,
     limits: WEB_LIMITS,
