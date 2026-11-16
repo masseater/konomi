@@ -206,7 +206,7 @@ export default defineConfig({
     ],
     settings: {
       [decisionPluginName]: {
-        model: "cloudflare/@cf/qwen/qwen3.8-27b",
+        model: "cloudflare/@cf/cloudflare/clef-flash",
         timeoutMs: 50_000,
         ci: "skip",
       },
