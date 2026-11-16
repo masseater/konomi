@@ -20,7 +20,7 @@ catalog:
   oxlint-plugin-eslint: 1.93.0
   syncpack: 15.3.3
   vite: npm:@voidzero-dev/vite-plus-core@1.6.0
-  "@r_masseater/oxlint-plugin-decision": 0.7.0
+  "@r_masseater/oxlint-plugin-decision": 0.8.0
   "@r_masseater/textlint-rule-preset-ja": 0.1.1
   eslint-plugin-no-comments: 1.2.1
   eslint-plugin-baseline-js: 0.7.7
@@ -99,5 +99,5 @@ audit:
     - GHSA-gcqx-w48m-w2h4
 minimumReleaseAgeExclude:
   - "@r_masseater/msch@0.15.0"
-  - "@r_masseater/oxlint-plugin-decision@0.7.0"
+  - "@r_masseater/oxlint-plugin-decision@0.8.0"
   - "@r_masseater/textlint-rule-preset-ja@0.1.1"
