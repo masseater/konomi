@@ -6,7 +6,6 @@ const Log = Schema.Struct({
   content: Schema.optional(Schema.NullOr(Schema.String)),
   contentUrl: Schema.String,
   createdAt: Schema.String,
-  isSelf: Schema.optional(Schema.NullOr(Schema.Boolean)),
 });
 
 const Meta = Schema.Struct({ page: Schema.Int, maxPage: Schema.Int });
