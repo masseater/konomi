@@ -7,10 +7,13 @@ import { OAUTH_FIELD } from "#/features/ingest-history/api/providers/oauth.serve
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 const headersOf = (credential: Credential): Effect.Effect<Headers, ProviderError> =>
-  Effect.all({
-    token: requireField(credential, OAUTH_FIELD.accessToken),
-    clientId: requireField(credential, OAUTH_FIELD.clientId),
-  }).pipe(
+  Effect.all(
+    {
+      token: requireField(credential, OAUTH_FIELD.accessToken),
+      clientId: requireField(credential, OAUTH_FIELD.clientId),
+    },
+    { concurrency: 1 },
+  ).pipe(
     Effect.map(({ token, clientId }) => ({
       Authorization: `Bearer ${token}`,
       "Client-Id": clientId,

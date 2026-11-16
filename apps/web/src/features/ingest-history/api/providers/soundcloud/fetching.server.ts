@@ -23,10 +23,13 @@ const sessionOf = ({
   Session,
   ProviderError
 > =>
-  Effect.all({
-    token: requireField(credential, FIELD.token),
-    clientId: requireField(credential, FIELD.clientId),
-  }).pipe(
+  Effect.all(
+    {
+      token: requireField(credential, FIELD.token),
+      clientId: requireField(credential, FIELD.clientId),
+    },
+    { concurrency: 1 },
+  ).pipe(
     Effect.map(({ token, clientId }) => ({
       headers: { Authorization: `OAuth ${token}`, Origin: "https://soundcloud.com" },
       clientId,

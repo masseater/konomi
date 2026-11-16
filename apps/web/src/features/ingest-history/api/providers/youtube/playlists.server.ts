@@ -44,9 +44,10 @@ const pullPlaylists = (fetching: Fetching): Effect.Effect<readonly Observation[]
       pages: pagesFor(false),
       schema: Playlists,
     });
-    const lists = yield* pipe(
+    const lists = yield* Effect.forEach(
       owned,
-      Effect.forEach(({ id, snippet }) => pullPlaylist(fetching, { id, title: snippet.title })),
+      ({ id, snippet }) => pullPlaylist(fetching, { id, title: snippet.title }),
+      { concurrency: 1 },
     );
     return Arr.flatten(lists);
   });

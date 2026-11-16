@@ -49,12 +49,15 @@ const pullVrchat = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
     const worlds = favoriteObservationsOf({ kind: "world", fetchedAt });
     const avatars = favoriteObservationsOf({ kind: "avatar", fetchedAt });
     const people = friendObservationsOf(fetchedAt);
-    const groups = yield* Effect.all([
-      works("/worlds/favorites").pipe(Effect.map(worlds)),
-      works("/avatars/favorites").pipe(Effect.map(avatars)),
-      friends(false).pipe(Effect.map(people)),
-      friends(true).pipe(Effect.map(people)),
-    ]);
+    const groups = yield* Effect.all(
+      [
+        works("/worlds/favorites").pipe(Effect.map(worlds)),
+        works("/avatars/favorites").pipe(Effect.map(avatars)),
+        friends(false).pipe(Effect.map(people)),
+        friends(true).pipe(Effect.map(people)),
+      ],
+      { concurrency: 1 },
+    );
     return { observations: Arr.flatten(groups), cursor: yield* BACKFILLED };
   }).pipe(Effect.withSpan("vrchat.pull"));
 

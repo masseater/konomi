@@ -65,12 +65,15 @@ const tagsOf = (filter: SignalFilter): Effect.Effect<readonly Link[]> =>
   );
 
 const tasteProfile = (filter: SignalFilter): Effect.Effect<Taste> =>
-  Effect.all({
-    now: DateTime.now,
-    buckets: bucketsOf(filter),
-    credits: creditsOf(filter),
-    tags: tagsOf(filter),
-  }).pipe(
+  Effect.all(
+    {
+      now: DateTime.now,
+      buckets: bucketsOf(filter),
+      credits: creditsOf(filter),
+      tags: tagsOf(filter),
+    },
+    { concurrency: 1 },
+  ).pipe(
     Effect.map(({ now, buckets, credits, tags }) =>
       tasteOf({
         nowMs: DateTime.toEpochMillis(now),

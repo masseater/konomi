@@ -15,10 +15,13 @@ import type { AppleSong } from "./schemas";
 const API_ORIGIN = new URL(API).origin;
 
 const headersOf = (credential: Credential): Effect.Effect<Headers, ProviderError> =>
-  Effect.all({
-    developerToken: signDeveloperToken(credential),
-    userToken: requireField(credential, FIELD.userToken),
-  }).pipe(
+  Effect.all(
+    {
+      developerToken: signDeveloperToken(credential),
+      userToken: requireField(credential, FIELD.userToken),
+    },
+    { concurrency: 1 },
+  ).pipe(
     Effect.map(({ developerToken, userToken }) => ({
       Authorization: `Bearer ${developerToken}`,
       "Music-User-Token": userToken,

@@ -64,13 +64,13 @@ const authorizationOf = (cookie: string): Effect.Effect<string, ProviderError> =
       ),
       Arr.getSomes,
     );
-    const parts = yield* pipe(
+    const parts = yield* Effect.forEach(
       present,
-      Effect.forEach(({ scheme, sid }) =>
+      ({ scheme, sid }) =>
         sha1Of(`${seconds} ${sid} ${ORIGIN}`).pipe(
           Effect.map((hash) => `${scheme} ${seconds}_${hash}`),
         ),
-      ),
+      { concurrency: 1 },
     );
     return Arr.join(parts, " ");
   });

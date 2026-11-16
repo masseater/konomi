@@ -22,10 +22,13 @@ const NEXT_PAGE = 1;
 type Account = Readonly<{ user: string; apiKey: string }>;
 
 const accountOf = (credential: Credential): Effect.Effect<Account, ProviderError> =>
-  Effect.all({
-    user: requireField(credential, FIELD.user),
-    apiKey: requireField(credential, FIELD.apiKey),
-  });
+  Effect.all(
+    {
+      user: requireField(credential, FIELD.user),
+      apiKey: requireField(credential, FIELD.apiKey),
+    },
+    { concurrency: 1 },
+  );
 
 const methodUrl = ({
   account,

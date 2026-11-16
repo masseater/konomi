@@ -19,10 +19,13 @@ const encodeCursor = Schema.encodeEffect(CursorJson);
 type Signed = Readonly<{ headers: Headers; did: string; pages: number; fetchedAt: number }>;
 
 const signIn = (credential: Credential): Effect.Effect<typeof Session.Type, ProviderError> =>
-  Effect.all({
-    identifier: requireField(credential, FIELD.identifier),
-    password: requireField(credential, FIELD.appPassword),
-  }).pipe(
+  Effect.all(
+    {
+      identifier: requireField(credential, FIELD.identifier),
+      password: requireField(credential, FIELD.appPassword),
+    },
+    { concurrency: 1 },
+  ).pipe(
     Effect.flatMap((body) =>
       postJson({
         url: `${SERVICE}/com.atproto.server.createSession`,

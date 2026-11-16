@@ -99,11 +99,14 @@ const requireKnownKeys = (input: typeof NoteInput.Type): Effect.Effect<void, Too
 };
 
 const writeNote = (input: typeof NoteInput.Type): Effect.Effect<TasteNote, ToolError> =>
-  Effect.all({
-    known: requireKnownKeys(input),
-    coversUntilMs: optionalMillis(input.coversUntil),
-    nowMs: Clock.currentTimeMillis,
-  }).pipe(
+  Effect.all(
+    {
+      known: requireKnownKeys(input),
+      coversUntilMs: optionalMillis(input.coversUntil),
+      nowMs: Clock.currentTimeMillis,
+    },
+    { concurrency: 1 },
+  ).pipe(
     Effect.flatMap(({ coversUntilMs, nowMs }) =>
       saveTasteNote({
         statements: input.statements,

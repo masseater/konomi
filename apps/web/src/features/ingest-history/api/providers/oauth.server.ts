@@ -39,10 +39,13 @@ const TokenResponse = Schema.Struct({
 });
 
 const basicAuthOf = (credential: Credential): Effect.Effect<string, ProviderError> =>
-  Effect.all([
-    requireField(credential, OAUTH_FIELD.clientId),
-    requireField(credential, OAUTH_FIELD.clientSecret),
-  ]).pipe(Effect.map(([id, secret]) => `Basic ${Base64.encode(`${id}:${secret}`)}`));
+  Effect.all(
+    [
+      requireField(credential, OAUTH_FIELD.clientId),
+      requireField(credential, OAUTH_FIELD.clientSecret),
+    ],
+    { concurrency: 1 },
+  ).pipe(Effect.map(([id, secret]) => `Basic ${Base64.encode(`${id}:${secret}`)}`));
 
 const withTokens = (credential: Credential, tokens: typeof TokenResponse.Type): Credential => ({
   method: credential.method,
@@ -68,10 +71,13 @@ const clientAuthOf = (
 ): Effect.Effect<TokenRequest, ProviderError> =>
   Match.value(authorization.clientAuthentication).pipe(
     Match.when("body", () =>
-      Effect.all({
-        client_id: requireField(credential, OAUTH_FIELD.clientId),
-        client_secret: requireField(credential, OAUTH_FIELD.clientSecret),
-      }).pipe(Effect.map((fields): TokenRequest => ({ headers: {}, fields }))),
+      Effect.all(
+        {
+          client_id: requireField(credential, OAUTH_FIELD.clientId),
+          client_secret: requireField(credential, OAUTH_FIELD.clientSecret),
+        },
+        { concurrency: 1 },
+      ).pipe(Effect.map((fields): TokenRequest => ({ headers: {}, fields }))),
     ),
     Match.orElse(() =>
       basicAuthOf(credential).pipe(
