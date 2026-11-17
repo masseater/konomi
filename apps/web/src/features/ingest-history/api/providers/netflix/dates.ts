@@ -78,12 +78,10 @@ const onlyReading = (readings: readonly (readonly number[])[]): Option.Option<re
     ),
   );
 
-const datesToEpochs = (dates: readonly string[]): Option.Option<readonly number[]> => {
+export const datesToEpochs = (dates: readonly string[]): Option.Option<readonly number[]> => {
   const readings = pipe(ORDERS, Arr.map(epochsIn(dates)), Arr.getSomes);
   return pipe(
     onlyReading(readings),
     Option.orElse(() => onlyReading(pipe(readings, Arr.filter(isNewestFirst)))),
   );
 };
-
-export { datesToEpochs };

@@ -8,7 +8,10 @@ import { FIELD, HEADERS, WEB } from "./api";
 import { DiaryFeed } from "./schemas";
 import { letterboxdObservationsOf } from "./subjects";
 
-const pullLetterboxd = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullLetterboxd = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* letterboxd() {
     const user = yield* requireField(credential, FIELD.user);
     const fetchedAt = yield* Clock.currentTimeMillis;
@@ -22,5 +25,3 @@ const pullLetterboxd = ({ credential, cursor }: PullInput): Effect.Effect<Pulled
       cursor,
     };
   }).pipe(Effect.withSpan("letterboxd.pull"));
-
-export { pullLetterboxd };

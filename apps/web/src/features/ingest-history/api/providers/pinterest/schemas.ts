@@ -10,9 +10,6 @@ const Pin = Schema.Struct({
   created_at: OptionalText,
 });
 
-const Pins = Schema.Struct({ items: Schema.Array(Pin), bookmark: OptionalText });
+export const Pins = Schema.Struct({ items: Schema.Array(Pin), bookmark: OptionalText });
 
-type PinterestPin = typeof Pin.Type;
-
-export type { PinterestPin };
-export { Pins };
+export type PinterestPin = typeof Pin.Type;

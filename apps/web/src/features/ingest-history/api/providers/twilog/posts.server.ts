@@ -13,9 +13,9 @@ import type { TwilogLog } from "./schemas";
 const NEXT = 1;
 const decodePosts = Schema.decodeEffect(Posts);
 
-type Timeline = (typeof TIMELINES)[keyof typeof TIMELINES];
+export type Timeline = (typeof TIMELINES)[keyof typeof TIMELINES];
 
-const postsPage = ({
+export const postsPage = ({
   accessToken,
   timeline,
   page,
@@ -42,6 +42,3 @@ const postsPage = ({
       ),
     })),
   );
-
-export type { Timeline };
-export { postsPage };

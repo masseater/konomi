@@ -13,6 +13,7 @@
         "name": "@effect/language-service",
         "allowedUnstableApis": [
           "@effect/atom-react",
+          "effect/encoding/Csv",
           "effect/http/Cookies#empty",
           "effect/http/Cookies#getValue",
           "effect/http/FetchHttpClient#RequestInit",

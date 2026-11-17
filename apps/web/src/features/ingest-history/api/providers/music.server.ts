@@ -7,7 +7,7 @@ import { soundcloud } from "./soundcloud/index.server";
 import { spotify } from "./spotify/index.server";
 import { vocadb } from "./vocadb/index.server";
 
-const MUSIC_PROVIDERS = {
+export const MUSIC_PROVIDERS = {
   "apple-music": appleMusic,
   lastfm,
   listenbrainz,
@@ -15,5 +15,3 @@ const MUSIC_PROVIDERS = {
   spotify,
   vocadb,
 } as const satisfies Readonly<Record<string, Provider>>;
-
-export { MUSIC_PROVIDERS };

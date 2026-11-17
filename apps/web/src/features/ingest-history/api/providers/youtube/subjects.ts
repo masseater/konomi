@@ -14,9 +14,9 @@ const NO_SECONDS = 0;
 const ISO_DURATION = /^PT(?:(?<hours>\d+)H)?(?:(?<minutes>\d+)M)?(?:(?<seconds>\d+)S)?$/u;
 const CLOCK_DURATION = /^(?:(?<hours>\d+):)?(?<minutes>\d+):(?<seconds>\d{2})$/u;
 
-type Channel = Readonly<{ id: string; title: string }>;
+export type Channel = Readonly<{ id: string; title: string }>;
 
-type VideoParts = Readonly<{
+export type VideoParts = Readonly<{
   id: string;
   title: string;
   channel: Option.Option<Channel>;
@@ -53,7 +53,7 @@ const secondsOf = (
 
 const isoSecondsOf = secondsOf((value) => ISO_DURATION.exec(value));
 
-const clockSecondsOf = secondsOf((value) => CLOCK_DURATION.exec(value));
+export const clockSecondsOf = secondsOf((value) => CLOCK_DURATION.exec(value));
 
 const channelCreatorOf = ({ id, title }: Channel): CreatorInput => ({
   provider: "youtube",
@@ -63,7 +63,7 @@ const channelCreatorOf = ({ id, title }: Channel): CreatorInput => ({
   url: `${ORIGIN}/channel/${id}`,
 });
 
-const channelOf = ({
+export const channelOf = ({
   id,
   title,
 }: Readonly<{
@@ -72,7 +72,7 @@ const channelOf = ({
 }>): Option.Option<Channel> =>
   Option.all({ id: Option.fromNullishOr(id), title: Option.fromNullishOr(title) });
 
-const videoSubjectOf = (parts: VideoParts): SubjectInput => ({
+export const videoSubjectOf = (parts: VideoParts): SubjectInput => ({
   provider: "youtube",
   externalId: parts.id,
   type: "video",
@@ -84,7 +84,7 @@ const videoSubjectOf = (parts: VideoParts): SubjectInput => ({
   tags: pipe(parts.tags, Arr.take(MAX_TAGS)),
 });
 
-const likedVideoOf = ({ id, snippet, contentDetails }: YoutubeVideo): SubjectInput =>
+export const likedVideoOf = ({ id, snippet, contentDetails }: YoutubeVideo): SubjectInput =>
   videoSubjectOf({
     id,
     title: snippet.title,
@@ -100,7 +100,7 @@ const likedVideoOf = ({ id, snippet, contentDetails }: YoutubeVideo): SubjectInp
     ),
   });
 
-const playlistVideoOf = ({
+export const playlistVideoOf = ({
   snippet,
   contentDetails,
 }: YoutubePlaylistItem): Option.Option<SubjectInput> =>
@@ -127,19 +127,11 @@ const playlistVideoOf = ({
     ),
   );
 
-const subscribedChannelOf = ({ snippet }: YoutubeSubscription): Option.Option<SubjectInput> =>
+export const subscribedChannelOf = ({
+  snippet,
+}: YoutubeSubscription): Option.Option<SubjectInput> =>
   pipe(
     channelOf({ id: snippet.resourceId.channelId, title: snippet.title }),
     Option.map(channelCreatorOf),
     Option.map(withRelations({ credits: [], tags: [] })),
   );
-
-export type { Channel, VideoParts };
-export {
-  channelOf,
-  clockSecondsOf,
-  likedVideoOf,
-  playlistVideoOf,
-  subscribedChannelOf,
-  videoSubjectOf,
-};

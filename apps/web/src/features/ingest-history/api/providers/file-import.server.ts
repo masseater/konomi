@@ -10,12 +10,12 @@ import type {
 } from "#/features/ingest-history/model/provider";
 import type { ProviderId } from "#/shared/config";
 
-type DecodedInput<Row> = Readonly<{
+export type DecodedInput<Row> = Readonly<{
   rows: readonly Row[];
   fields: ImportInput["fields"];
 }>;
 
-type FileFormat<Row> = Readonly<{
+export type FileFormat<Row> = Readonly<{
   id: string;
   file: string;
   label: string;
@@ -25,9 +25,9 @@ type FileFormat<Row> = Readonly<{
   observe: (input: DecodedInput<Row>) => Effect.Effect<readonly Observation[], ImportRejected>;
 }>;
 
-const rejectImport = (message: string): ImportRejected => ImportRejected.make({ message });
+export const rejectImport = (message: string): ImportRejected => ImportRejected.make({ message });
 
-const fileFormat = <Row>({ file, row, observe, ...view }: FileFormat<Row>): ImportFormat => {
+export const fileFormat = <Row>({ file, row, observe, ...view }: FileFormat<Row>): ImportFormat => {
   const decode = Schema.decodeUnknownEffect(Schema.Array(row));
   return {
     ...view,
@@ -40,7 +40,7 @@ const fileFormat = <Row>({ file, row, observe, ...view }: FileFormat<Row>): Impo
   };
 };
 
-const fileImportProvider = ({
+export const fileImportProvider = ({
   id,
   name,
   imports,
@@ -52,6 +52,3 @@ const fileImportProvider = ({
   renew: Effect.succeed,
   imports,
 });
-
-export type { DecodedInput, FileFormat };
-export { fileFormat, fileImportProvider, rejectImport };

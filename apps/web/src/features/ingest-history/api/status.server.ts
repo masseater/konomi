@@ -21,9 +21,9 @@ const ALL_SIGNALS: SignalFilter = {
   limit: 0,
 };
 
-type ImportView = Omit<ImportFormat, "observe">;
+export type ImportView = Omit<ImportFormat, "observe">;
 
-type ProviderState = Readonly<{
+export type ProviderState = Readonly<{
   provider: ProviderId;
   name: string;
   methods: readonly CredentialMethod[];
@@ -93,7 +93,7 @@ const stateOf =
     totals: totalsOf(counts, id),
   });
 
-const statusOf = Effect.all(
+export const statusOf = Effect.all(
   {
     connections: listConnectionViews,
     counts: countByKind(ALL_SIGNALS),
@@ -108,6 +108,3 @@ const statusOf = Effect.all(
   ),
   Effect.withSpan("ingest.status"),
 );
-
-export type { ImportView, ProviderState };
-export { statusOf };

@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullVrchat } from "./pull.server";
 
-const vrchat: Provider = {
+export const vrchat: Provider = {
   id: "vrchat",
   name: "VRChat",
   methods: [
@@ -21,5 +21,3 @@ const vrchat: Provider = {
   pull: pullVrchat,
   renew: Effect.succeed,
 };
-
-export { vrchat };

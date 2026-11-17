@@ -80,7 +80,7 @@ const runStatements = (statements: readonly BatchItem<"sqlite">[]): Effect.Effec
     { concurrency: 1, discard: true },
   );
 
-const recordObservations = (observations: readonly Observation[]): Effect.Effect<number> => {
+export const recordObservations = (observations: readonly Observation[]): Effect.Effect<number> => {
   const subjects = pipe(observations, Arr.flatMap(subjectStatements));
   const links = pipe(observations, Arr.flatMap(linkStatements));
   return runStatements(subjects).pipe(
@@ -89,5 +89,3 @@ const recordObservations = (observations: readonly Observation[]): Effect.Effect
     Effect.withSpan("signal.record", { attributes: { observations: observations.length } }),
   );
 };
-
-export { recordObservations };

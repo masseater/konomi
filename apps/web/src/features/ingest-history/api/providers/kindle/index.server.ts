@@ -2,6 +2,4 @@ import { fileImportProvider } from "#/features/ingest-history/api/providers/file
 
 import { KINDLE_IMPORTS } from "./imports.server";
 
-const kindle = fileImportProvider({ id: "kindle", name: "Kindle", imports: KINDLE_IMPORTS });
-
-export { kindle };
+export const kindle = fileImportProvider({ id: "kindle", name: "Kindle", imports: KINDLE_IMPORTS });

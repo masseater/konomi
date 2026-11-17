@@ -38,28 +38,28 @@ const OptionalTrack = Schema.optional(Schema.NullOr(Track));
 
 const Played = Schema.Struct({ played_at: Schema.Finite, track: OptionalTrack });
 
-const PlayHistory = Schema.Struct({ collection: Schema.Array(Played), next_href: Next });
+export const PlayHistory = Schema.Struct({ collection: Schema.Array(Played), next_href: Next });
 
 const TrackLike = Schema.Struct({ created_at: OptionalText, track: OptionalTrack });
 
-const TrackLikes = Schema.Struct({ collection: Schema.Array(TrackLike), next_href: Next });
+export const TrackLikes = Schema.Struct({ collection: Schema.Array(TrackLike), next_href: Next });
 
 const PlaylistLike = Schema.Struct({
   created_at: OptionalText,
   playlist: Schema.optional(Schema.NullOr(Playlist)),
 });
 
-const PlaylistLikes = Schema.Struct({ collection: Schema.Array(PlaylistLike), next_href: Next });
+export const PlaylistLikes = Schema.Struct({
+  collection: Schema.Array(PlaylistLike),
+  next_href: Next,
+});
 
-const Followings = Schema.Struct({ collection: Schema.Array(User), next_href: Next });
+export const Followings = Schema.Struct({ collection: Schema.Array(User), next_href: Next });
 
-const Me = Schema.Struct({ id: Schema.Int });
+export const Me = Schema.Struct({ id: Schema.Int });
 
-const Cursor = Schema.Struct({ backfilled: Schema.Boolean });
+export const Cursor = Schema.Struct({ backfilled: Schema.Boolean });
 
-type SoundcloudUser = typeof User.Type;
-type SoundcloudTrack = typeof Track.Type;
-type SoundcloudPlaylist = typeof Playlist.Type;
-
-export type { SoundcloudPlaylist, SoundcloudTrack, SoundcloudUser };
-export { Cursor, Followings, Me, PlayHistory, PlaylistLikes, TrackLikes };
+export type SoundcloudUser = typeof User.Type;
+export type SoundcloudTrack = typeof Track.Type;
+export type SoundcloudPlaylist = typeof Playlist.Type;

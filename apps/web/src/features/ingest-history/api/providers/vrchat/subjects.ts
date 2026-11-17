@@ -6,7 +6,7 @@ import type { SubjectType } from "#/shared/config";
 import { AUTHOR_TAG, WEB } from "./api";
 import type { VrchatFriend, VrchatWork } from "./schemas";
 
-type WorkKind = "world" | "avatar";
+export type WorkKind = "world" | "avatar";
 
 const TYPE_OF: Readonly<Record<WorkKind, SubjectType>> = { world: "world", avatar: "item" };
 
@@ -42,7 +42,7 @@ const workOf =
     tags: authorTagsOf(work.tags),
   });
 
-const favoriteObservationsOf =
+export const favoriteObservationsOf =
   ({ kind, fetchedAt }: Readonly<{ kind: WorkKind; fetchedAt: number }>) =>
   (works: readonly VrchatWork[]): readonly Observation[] =>
     pipe(
@@ -54,7 +54,7 @@ const favoriteObservationsOf =
       })),
     );
 
-const friendObservationsOf =
+export const friendObservationsOf =
   (fetchedAt: number) =>
   (friends: readonly VrchatFriend[]): readonly Observation[] =>
     pipe(
@@ -65,6 +65,3 @@ const friendObservationsOf =
         occurredAtMs: fetchedAt,
       })),
     );
-
-export type { WorkKind };
-export { favoriteObservationsOf, friendObservationsOf };

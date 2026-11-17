@@ -18,13 +18,10 @@ const Thing = Schema.Struct({
   }),
 });
 
-const Listing = Schema.Struct({
+export const Listing = Schema.Struct({
   data: Schema.Struct({ after: OptionalText, children: Schema.Array(Thing) }),
 });
 
-const Me = Schema.Struct({ name: Schema.String });
+export const Me = Schema.Struct({ name: Schema.String });
 
-type RedditThing = typeof Thing.Type;
-
-export type { RedditThing };
-export { Listing, Me };
+export type RedditThing = typeof Thing.Type;

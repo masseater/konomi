@@ -42,7 +42,7 @@ const episodeOf = ({ episode, work }: AnnictRecord): SubjectInput => ({
   tags: [work.title, ...seasonTagsOf(work)],
 });
 
-const recordObservationsOf =
+export const recordObservationsOf =
   (fetchedAt: number) =>
   (record: AnnictRecord): readonly Observation[] => {
     const subject = episodeOf(record);
@@ -56,7 +56,7 @@ const recordObservationsOf =
     return [{ kind: "consumed", subject, occurredAtMs }, ...liked];
   };
 
-const entryObservationOf =
+export const entryObservationOf =
   (fetchedAt: number) =>
   (entry: AnnictEntry): Option.Option<Observation> =>
     pipe(
@@ -73,5 +73,3 @@ const entryObservationOf =
         ),
       ),
     );
-
-export { entryObservationOf, recordObservationsOf };

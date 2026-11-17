@@ -14,7 +14,7 @@ const artistOf = (artist: LastfmTrack["artist"]): CreatorInput => {
   return { provider: "lastfm", externalId: url, type: "person", title: artist.name, url };
 };
 
-const trackOf = (track: LastfmTrack): SubjectInput => ({
+export const trackOf = (track: LastfmTrack): SubjectInput => ({
   provider: "lastfm",
   externalId: track.url,
   type: "track",
@@ -24,7 +24,5 @@ const trackOf = (track: LastfmTrack): SubjectInput => ({
   tags: [],
 });
 
-const tracksOf = (tracks: LastfmTrack | readonly LastfmTrack[]): readonly LastfmTrack[] =>
+export const tracksOf = (tracks: LastfmTrack | readonly LastfmTrack[]): readonly LastfmTrack[] =>
   Arr.ensure(tracks);
-
-export { trackOf, tracksOf };

@@ -53,7 +53,7 @@ const profileOf = (filter: SignalFilter): Effect.Effect<Profile> =>
     { concurrency: 1 },
   );
 
-const registerTools = (server: McpServer): McpServer => {
+export const registerTools = (server: McpServer): McpServer => {
   registerTasteTools(server);
   server.registerTool(
     "search_signals",
@@ -87,5 +87,3 @@ const registerTools = (server: McpServer): McpServer => {
   );
   return server;
 };
-
-export { registerTools };

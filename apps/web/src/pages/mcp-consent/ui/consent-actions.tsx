@@ -8,7 +8,7 @@ const ALLOW = "許可する";
 const DENY = "拒否する";
 const FAILED = "許可できませんでした";
 
-const ConsentActions = ({
+export const ConsentActions = ({
   status,
   onAllow,
   onDeny,
@@ -37,5 +37,3 @@ const ConsentActions = ({
     </>
   );
 };
-
-export { ConsentActions };

@@ -10,11 +10,11 @@ const TITLE = "はじめて使うとき";
 const NOTE = "持ち主のアカウントを 1 つだけ作れる。2 つ目からは作れない";
 const NAME = "名前";
 const EMAIL = "メールアドレス";
-const PASSWORD = "パスワード";
+const PASSWORD_LABEL = "パスワード";
 const SUBMIT = "アカウントを作る";
 const FAILED = "作れなかった。持ち主のアカウントがもうある";
 
-const SignUpForm = (): ReactNode => {
+export const SignUpForm = (): ReactNode => {
   const { mutate, status } = useMutation({ mutationFn: signUp });
   const submit = useCallback(
     (form: Readonly<FormData>) => {
@@ -39,8 +39,8 @@ const SignUpForm = (): ReactNode => {
         type="password"
         name="password"
         autoComplete="new-password"
-        aria-label={PASSWORD}
-        placeholder={PASSWORD}
+        aria-label={PASSWORD_LABEL}
+        placeholder={PASSWORD_LABEL}
         required
       />
       <Button
@@ -58,5 +58,3 @@ const SignUpForm = (): ReactNode => {
     </form>
   );
 };
-
-export { SignUpForm };

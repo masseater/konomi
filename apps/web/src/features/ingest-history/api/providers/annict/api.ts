@@ -1,5 +1,3 @@
-const API = "https://api.annict.com/graphql";
-const WEB = "https://annict.com";
-const FIELD = { token: "accessToken" } as const;
-
-export { API, FIELD, WEB };
+export const API = "https://api.annict.com/graphql";
+export const WEB = "https://annict.com";
+export const FIELD = { token: "accessToken" } as const;

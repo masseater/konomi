@@ -15,14 +15,14 @@ const CredentialJson = Schema.fromJsonString(CredentialSchema);
 const encodeCredential = Schema.encodeEffect(CredentialJson);
 const decodeCredential = Schema.decodeEffect(CredentialJson);
 
-type SyncOutcome =
+export type SyncOutcome =
   | Readonly<{ status: "synced"; atMs: number; cursor: string }>
   | Readonly<{ status: Exclude<SyncStatus, "synced" | "waiting">; failure: string }>;
 
 const sealCredential = (credential: Credential): Effect.Effect<string> =>
   encodeCredential(credential).pipe(Effect.orDie, Effect.flatMap(sealSecret));
 
-const saveCredential = ({
+export const saveCredential = ({
   provider,
   credential,
 }: Readonly<{ provider: ProviderId; credential: Credential }>): Effect.Effect<void> =>
@@ -54,7 +54,7 @@ const saveCredential = ({
     Effect.withSpan("connection.save", { attributes: { provider } }),
   );
 
-const replaceCredential = ({
+export const replaceCredential = ({
   provider,
   credential,
 }: Readonly<{ provider: ProviderId; credential: Credential }>): Effect.Effect<void> =>
@@ -68,24 +68,24 @@ const replaceCredential = ({
     Effect.withSpan("connection.replace-credential", { attributes: { provider } }),
   );
 
-const forgetConnection = (provider: ProviderId): Effect.Effect<void> =>
+export const forgetConnection = (provider: ProviderId): Effect.Effect<void> =>
   Effect.promise(() => db.delete(connection).where(eq(connection.provider, provider))).pipe(
     Effect.asVoid,
     Effect.withSpan("connection.forget", { attributes: { provider } }),
   );
 
-const listConnections: Effect.Effect<readonly Connection[]> = Effect.promise(() =>
+export const listConnections: Effect.Effect<readonly Connection[]> = Effect.promise(() =>
   db.select().from(connection),
 ).pipe(Effect.withSpan("connection.list"));
 
 const viewOf = (row: Connection): ConnectionView =>
   Struct.omit(row, ["sealedCredential", "cursor"]);
 
-const listConnectionViews: Effect.Effect<readonly ConnectionView[]> = listConnections.pipe(
+export const listConnectionViews: Effect.Effect<readonly ConnectionView[]> = listConnections.pipe(
   Effect.map(Arr.map(viewOf)),
 );
 
-const openCredential = ({ sealedCredential }: Connection): Effect.Effect<Credential> =>
+export const openCredential = ({ sealedCredential }: Connection): Effect.Effect<Credential> =>
   openSecret(sealedCredential).pipe(Effect.flatMap(decodeCredential), Effect.orDie);
 
 const changesOf = (outcome: SyncOutcome): Partial<Connection> =>
@@ -99,21 +99,10 @@ const changesOf = (outcome: SyncOutcome): Partial<Connection> =>
     Match.orElse(({ status, failure }) => ({ status, failure })),
   );
 
-const recordOutcome = ({
+export const recordOutcome = ({
   provider,
   outcome,
 }: Readonly<{ provider: ProviderId; outcome: SyncOutcome }>): Effect.Effect<void> =>
   Effect.promise(() =>
     db.update(connection).set(changesOf(outcome)).where(eq(connection.provider, provider)),
   ).pipe(Effect.asVoid);
-
-export type { SyncOutcome };
-export {
-  forgetConnection,
-  listConnectionViews,
-  listConnections,
-  openCredential,
-  recordOutcome,
-  replaceCredential,
-  saveCredential,
-};

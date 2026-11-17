@@ -12,7 +12,7 @@ import { collectOffsetPages } from "./page";
 import { FollowedArtists, RecentlyPlayed, SavedTracks } from "./schemas";
 import { followedArtistOf, trackOf } from "./subjects";
 
-const pullRecent = ({
+export const pullRecent = ({
   headers,
   fetchedAt,
 }: Fetching): Effect.Effect<readonly Observation[], ProviderError> =>
@@ -36,7 +36,7 @@ const pullRecent = ({
     );
   });
 
-const pullSaved = ({
+export const pullSaved = ({
   headers,
   fetchedAt,
   pages,
@@ -62,7 +62,7 @@ const pullSaved = ({
     );
   });
 
-const pullFollowed = ({
+export const pullFollowed = ({
   headers,
   fetchedAt,
   pages,
@@ -84,5 +84,3 @@ const pullFollowed = ({
       ),
     ),
   );
-
-export { pullFollowed, pullRecent, pullSaved };

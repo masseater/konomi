@@ -16,7 +16,7 @@ const errorResult = ({ message }: Readonly<{ message: string }>): CallToolResult
   isError: true,
 });
 
-const runTool = <Value>(effect: Effect.Effect<Value, ToolError>): Promise<CallToolResult> =>
+export const runTool = <Value>(effect: Effect.Effect<Value, ToolError>): Promise<CallToolResult> =>
   runRequest(
     effect.pipe(
       Effect.flatMap((value) =>
@@ -25,5 +25,3 @@ const runTool = <Value>(effect: Effect.Effect<Value, ToolError>): Promise<CallTo
       Effect.match({ onFailure: errorResult, onSuccess: textResult }),
     ),
   );
-
-export { runTool };

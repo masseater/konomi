@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullLetterboxd } from "./pull.server";
 
-const letterboxd: Provider = {
+export const letterboxd: Provider = {
   id: "letterboxd",
   name: "Letterboxd",
   methods: [
@@ -21,5 +21,3 @@ const letterboxd: Provider = {
   pull: pullLetterboxd,
   renew: Effect.succeed,
 };
-
-export { letterboxd };

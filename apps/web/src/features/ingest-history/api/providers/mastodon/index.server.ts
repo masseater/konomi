@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullMastodon } from "./pull.server";
 
-const mastodon: Provider = {
+export const mastodon: Provider = {
   id: "mastodon",
   name: "Mastodon",
   methods: [
@@ -24,5 +24,3 @@ const mastodon: Provider = {
   pull: pullMastodon,
   renew: Effect.succeed,
 };
-
-export { mastodon };

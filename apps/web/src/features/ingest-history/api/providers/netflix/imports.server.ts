@@ -15,7 +15,7 @@ import { textOf } from "./titles";
 const UNREADABLE_DATES =
   "日付の書き方を読み取れない。データの書き出しの ViewingActivity.csv を使う";
 
-const NETFLIX_IMPORTS: readonly ImportFormat[] = [
+export const NETFLIX_IMPORTS: readonly ImportFormat[] = [
   fileFormat({
     id: "viewing-activity",
     file: "ViewingActivity.csv",
@@ -51,5 +51,3 @@ const NETFLIX_IMPORTS: readonly ImportFormat[] = [
       ),
   }),
 ];
-
-export { NETFLIX_IMPORTS };

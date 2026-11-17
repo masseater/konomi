@@ -26,7 +26,10 @@ const clientOf = (refreshToken: string): Effect.Effect<PixivClient, CredentialRe
       CredentialRejected.make({ message: "pixiv の refresh token が通らなかった。取り直して貼る" }),
   }).pipe(Effect.withSpan("pixiv.login"));
 
-const pullPixiv = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullPixiv = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* pixiv() {
     const refreshToken = yield* requireField(credential, FIELD.refreshToken);
     const client = yield* clientOf(refreshToken);
@@ -71,5 +74,3 @@ const pullPixiv = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pro
       },
     };
   }).pipe(Effect.withSpan("pixiv.pull"));
-
-export { pullPixiv };

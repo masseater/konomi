@@ -1,279 +1,136 @@
+import { repositoryConfig } from "@r_masseater/msch/config";
+import { decisionRules, tracedRules } from "@r_masseater/msch/lint";
 import { workspaceSettings } from "@r_masseater/msch/workspace-settings";
-import baselineJs from "eslint-plugin-baseline-js";
 import { defineConfig } from "vite-plus";
-
-import { checkTasks, checks } from "./checks.config.ts";
-import {
-  baselineJsRules,
-  decisionPluginName,
-  decisionRules,
-  effectRules,
-  eslintReactRules,
-  generated,
-  htmlReactRules,
-  reactHooksRules,
-  restrictedImports,
-  shadcnRules,
-  tanstackQueryRules,
-  tanstackRouterRules,
-  turnedOff,
-} from "./lint.config.ts";
-import { workerRules } from "./worker-lint.config.ts";
-
-const typedRules = "@r_masseater/oxlint-typed-rules";
 
 const workspace = await workspaceSettings({
   root: import.meta.dirname,
-  ruleSets: { decision: { ...decisionRules, ...workerRules } },
+  ruleSets: { decision: decisionRules, traced: tracedRules },
   dependencySets: {},
 });
 
 export default defineConfig({
+  ...repositoryConfig({
+    workspace,
+    secrets: {
+      lines: [String.raw`\bconst FIELD = \{ identifier: "identifier", \w+: "\w+" \} as const`],
+    },
+    textlint: {
+      kanji: [
+        "外国電子決済手段",
+        "電子決済手段等取引業",
+        "前払式支払手段",
+        "犯罪収益移転防止法",
+        "事業者間取引適正化等法",
+        "個人情報保護法",
+        "特定商取引法",
+        "電気通信利用役務",
+        "特定業務委託事業者",
+      ],
+      rules: { "@r_masseater/preset-ja": { yomiyasu: true, "no-taigendome": false } },
+    },
+    run: {
+      tasks: {
+        renovate: "renovate-config-validator --strict",
+        "db-check-all": "vp run -r db:check",
+      },
+    },
+  }),
+  markdownlint: {
+    config: { MD013: { tables: false } },
+    ignores: [".local-agents/**", "AGENTS.md", "CHANGELOG.md"],
+  },
   msch: { workspaceAgentsMd: true },
-  ...checks,
-  test: { projects: ["apps/*", "libs/*", "tools/*", "infra/*"], passWithNoTests: true },
-  staged: {
-    "*": "vp check --fix",
-  },
-  fmt: {
-    ignorePatterns: generated,
-    sortImports: true,
-    sortTailwindcss: true,
-    sortPackageJson: true,
-  },
-  lint: {
-    ignorePatterns: [...generated, ...workspace.lint.ignorePatterns],
-    plugins: [
-      "eslint",
-      "typescript",
-      "unicorn",
-      "oxc",
-      "import",
-      "react",
-      "react-perf",
-      "jsx-a11y",
-      "jsdoc",
-      "promise",
-      "node",
-      "effecttsgo",
-    ],
-    categories: {
-      correctness: "error",
-      suspicious: "error",
-      pedantic: "error",
-      perf: "error",
-      style: "error",
-      restriction: "error",
-      nursery: "error",
+  skills: {
+    "artouc/stop-describe-ui": {
+      commit: "251a859f6e40645030e1ae69fa4b501c851eac9c",
+      root: "skills",
+      skills: ["stop-describing-ui"],
     },
-    jsPlugins: [
-      { name: "vite-plus", specifier: "vite-plus/oxlint-plugin" },
-      { name: "tanstack-query", specifier: `${typedRules}/tanstack-query` },
-      { name: "tanstack-router", specifier: `${typedRules}/tanstack-router` },
-      { name: "tanstack-start", specifier: `${typedRules}/tanstack-start` },
-      { name: "drizzle", specifier: `${typedRules}/drizzle` },
-      { name: "react-hooks-js", specifier: "eslint-plugin-react-hooks" },
-      { name: "@eslint-react", specifier: `${typedRules}/react` },
-      { name: "shadcn", specifier: "@shadcn/lint" },
-      { name: "no-comments", specifier: "eslint-plugin-no-comments" },
-      { name: "baseline-js", specifier: "eslint-plugin-baseline-js" },
-      { name: "@html-eslint/react", specifier: "@html-eslint/eslint-plugin-react" },
-      { name: decisionPluginName, specifier: "./decision-rules.ts" },
-      { name: "eslint-js", specifier: "oxlint-plugin-eslint" },
-    ],
-    rules: {
-      "vite-plus/prefer-vite-plus-imports": "error",
-      "tanstack-start/no-async-client-component": "error",
-      "tanstack-start/no-client-code-in-server-component": "error",
-      "no-comments/disallowComments": ["error", { allow: ["oxlint-disable", "eslint-disable"] }],
-      ...tanstackQueryRules,
-      ...tanstackRouterRules,
-      "drizzle/enforce-delete-with-where": ["error", { drizzleObjectName: ["db"] }],
-      "drizzle/enforce-update-with-where": ["error", { drizzleObjectName: ["db"] }],
-      ...shadcnRules,
-      ...baselineJsRules,
-      ...baselineJs.configs.recommended().rules,
-      ...htmlReactRules,
-      ...reactHooksRules,
-      ...eslintReactRules,
-      ...effectRules,
-      "eslint/sort-imports": "off",
-      "eslint/sort-keys": "off",
-      "import/no-named-export": "off",
-      "import/prefer-default-export": "off",
-      "react/react-in-jsx-scope": "off",
-      "eslint/no-undef": "off",
-      "typescript/promise-function-async": "off",
-      "react/forbid-component-props": "off",
-      "oxc/no-rest-spread-properties": "off",
-      "node/no-top-level-await": "off",
-      "eslint/one-var": ["error", "never"],
-      "eslint/no-restricted-imports": ["error", restrictedImports],
-      "typescript/prefer-readonly-parameter-types": [
-        "error",
-        {
-          ignoreInferredTypes: true,
-          allow: [
-            { from: "lib", name: "Request" },
-            { from: "lib", name: "Response" },
-            { from: "package", package: "@tanstack/query-core", name: "QueryClient" },
-            { from: "package", package: "@modelcontextprotocol/server", name: "McpServer" },
-            {
-              from: "package",
-              package: "react",
-              name: ["ReactNode", "ButtonHTMLAttributes", "ClassAttributes"],
-            },
-            { from: "package", package: "clsx", name: "ClassValue" },
-            {
-              from: "package",
-              package: "effect",
-              name: [
-                "Cause",
-                "Context",
-                "Decoder",
-                "Effect",
-                "Exit",
-                "HttpClientRequest",
-                "HttpClientResponse",
-                "Layer",
-                "Option",
-              ],
-            },
-          ],
-        },
+    "better-auth/skills": {
+      commit: "20c9e88a5c007461a703f1c213572b073196113e",
+      skills: [
+        "better-auth-best-practices",
+        "better-auth-security-best-practices",
+        "email-and-password-best-practices",
       ],
-      "eslint/no-duplicate-imports": ["error", { allowSeparateTypeImports: true }],
-      "react/function-component-definition": [
-        "error",
-        { namedComponents: "arrow-function", unnamedComponents: "arrow-function" },
-      ],
-      "eslint/new-cap": [
-        "error",
-        {
-          capIsNewExceptions: ["App", "CloudflareApiLive", "Secret", "Stack"],
-          capIsNewExceptionPattern: String.raw`^(Config|Context|Data|Schema|AnalyticsEngine|ApiToken|D1|Logpush|R2|Ruleset|Rules|Vectorize|Website|Workers|Zone)\.`,
-        },
-      ],
-      "typescript/no-empty-interface": ["error", { allowSingleExtends: true }],
-      "typescript/no-empty-object-type": ["error", { allowInterfaces: "with-single-extends" }],
-      "react/jsx-filename-extension": ["error", { extensions: [".tsx"] }],
-      "react/only-export-components": ["error", { allowExportNames: ["Route"] }],
     },
-    overrides: [
-      {
-        files: ["**/*.config.ts", "**/alchemy.run.ts", "**/*.worker.ts", "decision-rules.ts"],
-        rules: { "import/no-default-export": "off" },
-      },
-      {
-        files: ["**/alchemy.*.ts"],
-        rules: {
-          "eslint-js/no-restricted-syntax": [
-            "error",
-            {
-              selector:
-                'CallExpression[callee.name="Stack"]:not([arguments.0.name="APP_NAME"]):not([arguments.0.type="TemplateLiteral"][arguments.0.quasis.0.value.raw=""][arguments.0.expressions.0.name="PREFIX"])',
-              message:
-                "スタック名には app-name.ts の APP_NAME か、PREFIX で始まるテンプレートリテラルを渡す",
-            },
-            {
-              selector:
-                'Program:not(:has(YieldExpression[delegate=true] > Identifier.argument[name="requireAppPrefix"]))',
-              message:
-                "スタックの最後で app-name.ts の requireAppPrefix を yield* して、リソース名の prefix を検査する",
-            },
-            {
-              selector:
-                'CallExpression[callee.name="Stack"] > .arguments:nth-child(3):not(:has(FunctionExpression > BlockStatement > ExpressionStatement:nth-last-child(2) > YieldExpression[delegate=true] > Identifier.argument[name="requireAppPrefix"]))',
-              message:
-                "スタックの最後で app-name.ts の requireAppPrefix を yield* して、リソース名の prefix を検査する",
-            },
-          ],
-        },
-      },
-      {
-        files: ["**/vite.config.ts"],
-        rules: { "baseline-js/use-baseline": "off" },
-      },
-      {
-        files: ["**/shared/ui/**"],
-        rules: { "shadcn/no-restyle": "off", "react/jsx-props-no-spreading": "off" },
-      },
-      ...workspace.lint.overrides,
-      {
-        files: ["**/*.test.ts"],
-        rules: turnedOff(decisionRules),
-      },
-    ],
-    settings: {
-      [decisionPluginName]: {
-        model: "cloudflare/@cf/cloudflare/clef-flash",
-        timeoutMs: 50_000,
-        ci: "skip",
-      },
+    "cloudflare/skills": {
+      commit: "cbf893b954222276bf1af57e5f23379231e0efb9",
+      root: "skills",
+      skills: ["cloudflare", "workers-best-practices"],
     },
-    options: {
-      typeAware: true,
-      typeCheck: true,
-      denyWarnings: true,
-      reportUnusedDisableDirectives: "error",
+    "Effect-TS/skills": {
+      commit: "155c50c911f9c99c294ef8a4461981c5bbe6453e",
+      root: "skills",
+      skills: ["effect-ts"],
     },
-  },
-  run: {
-    cache: true,
-    tasks: {
-      ...checkTasks,
-      renovate: "renovate-config-validator --strict",
-      fallow: [
-        "fallow --skip dupes --fail-on-issues --quiet --format compact",
-        "fallow dead-code --no-production --fail-on-issues --quiet --format compact",
-        "fallow dead-code --no-production --quiet --format json | jq -e '[.prop_drilling_chains, .thin_wrappers, .duplicate_prop_shapes] | all(length == 0)' > /dev/null",
-        "fallow dupes --fail-on-issues --quiet --format compact",
-        "fallow security --fail-on-issues --quiet",
+    "elysiajs/skills": {
+      commit: "1466d85aa4f2a0fec91f71311e65bbfa91aa7dc5",
+      skills: ["elysiajs"],
+    },
+    "feature-sliced/skills": {
+      commit: "5e95aaebb84541742686e56352b7569acf4306f1",
+      skills: ["feature-sliced-design"],
+    },
+    "GoogleChrome/modern-web-guidance": {
+      commit: "64a6d708f5a43f2cd3fde5d4d7db3905ba1bdf65",
+      root: "skills",
+      skills: ["modern-web-guidance"],
+    },
+    "masseater/skills": {
+      commit: "0ebc8aab0bcc750a65c1262fc95e0689232a81e4",
+      root: "plugins/masseater-skills/skills",
+      skills: "all",
+    },
+    "mkosir/typescript-style-guide": {
+      commit: "170074a0df9b07f4a4a78e3596ec1edf06a14da7",
+      root: "skills",
+      skills: ["typescript-discriminated-unions", "typescript-variables"],
+    },
+    "nanaism/yomiyasu": {
+      commit: "db78b9bc5e868549b517a037df7a4d1c93edac23",
+      root: "skills",
+      skills: ["yomiyasu"],
+    },
+    "obra/superpowers": {
+      commit: "22f0b463e7a5e579904dd6211a520321035526f7",
+      root: "skills",
+      skills: ["systematic-debugging", "verification-before-completion"],
+    },
+    "philtzjp/skills": {
+      commit: "1d04a001f2828883fed2094497e5a58555d63f0a",
+      root: ".agents/skills",
+      skills: [
+        "analytics",
+        "api-design",
+        "commit-and-git",
+        "conventions",
+        "cursor-hook-authoring",
+        "data-migration",
+        "db",
+        "e2e-testing",
+        "e2etest",
+        "errorpage",
+        "github",
+        "google-analytics",
+        "hono",
+        "issue-branch-pr-flow",
+        "japanese",
+        "japanese-writing",
+        "knowledge-elicitation",
+        "m4l-project",
+        "refresh-skills",
+        "skill-escalation",
+        "skill-selection",
+        "turborepo",
+        "typescript-monorepo",
       ],
-      "actions-lint":
-        "ast-grep scan --rule .github/rules/no-full-history-checkout.yml .github/workflows",
-      verify: {
-        command: "vp check",
-        cache: {
-          env: ["CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_AI_GATEWAY_ID"],
-          untrackedEnv: [
-            "CLOUDFLARE_API_TOKEN",
-            "CLAUDECODE",
-            "CLAUDE_CODE_REMOTE",
-            "HTTPS_PROXY",
-            "https_proxy",
-            "NO_PROXY",
-            "no_proxy",
-            "SSL_CERT_FILE",
-            "NODE_EXTRA_CA_CERTS",
-          ],
-        },
-        dependsOn: [
-          "test",
-          "msch",
-          "syncpack",
-          "vpa",
-          "renovate",
-          "actions-lint",
-          "db-check-all",
-          "fallow",
-          "audit",
-        ],
-      },
-      test: "vp test run",
-      msch: {
-        command: "msch",
-        cache: {
-          untrackedEnv: ["HTTPS_PROXY", "https_proxy", "NO_PROXY", "no_proxy", "SSL_CERT_FILE"],
-        },
-      },
-      syncpack: "syncpack lint",
-      "db-check-all": "vp run -r db:check",
-      audit: {
-        command:
-          'before="$(cksum pnpm-workspace.yaml)"; vp pm audit --fix || exit; if [ "$before" != "$(cksum pnpm-workspace.yaml)" ]; then echo "vp pm audit --fix rewrote pnpm-workspace.yaml. Run vp install and commit the diff." >&2; exit 1; fi',
-        cache: false,
-      },
+    },
+    "shadcn-ui/ui": {
+      commit: "e62c9435fff729a175f38983dee73b2cb4f6a069",
+      root: "skills",
+      skills: ["shadcn"],
     },
   },
 });

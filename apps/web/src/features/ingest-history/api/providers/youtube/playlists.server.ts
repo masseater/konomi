@@ -36,7 +36,9 @@ const pullPlaylist = (
     );
   });
 
-const pullPlaylists = (fetching: Fetching): Effect.Effect<readonly Observation[], ProviderError> =>
+export const pullPlaylists = (
+  fetching: Fetching,
+): Effect.Effect<readonly Observation[], ProviderError> =>
   Effect.gen(function* playlists() {
     const owned = yield* collectTokenPages({
       first: `${API}/playlists?mine=true&part=snippet&maxResults=${LIMIT}`,
@@ -51,5 +53,3 @@ const pullPlaylists = (fetching: Fetching): Effect.Effect<readonly Observation[]
     );
     return Arr.flatten(lists);
   });
-
-export { pullPlaylists };

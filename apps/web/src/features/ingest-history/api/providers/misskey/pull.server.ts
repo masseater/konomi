@@ -84,7 +84,10 @@ const followingOf = (reading: Reading): Effect.Effect<readonly Observation[], Pr
     );
   });
 
-const pullMisskey = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullMisskey = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* misskey() {
     const now = yield* Clock.currentTimeMillis;
     const reading: Reading = {
@@ -97,5 +100,3 @@ const pullMisskey = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, P
       cursor,
     };
   }).pipe(Effect.withSpan("misskey.pull"));
-
-export { pullMisskey };

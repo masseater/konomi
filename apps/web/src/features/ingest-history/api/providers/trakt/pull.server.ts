@@ -11,7 +11,10 @@ import { historyObservationsOf, ratingObservationsOf } from "./subjects";
 
 const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
 
-const pullTrakt = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullTrakt = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* trakt() {
     const account = yield* userClientOf(credential, FIELD);
     const headers = {
@@ -45,5 +48,3 @@ const pullTrakt = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pro
       cursor: yield* BACKFILLED,
     };
   }).pipe(Effect.withSpan("trakt.pull"));
-
-export { pullTrakt };

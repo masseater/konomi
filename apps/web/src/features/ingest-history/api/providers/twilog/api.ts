@@ -1,6 +1,4 @@
-const ORIGIN = "https://twilog-mcp.togetter.dev";
-const RESOURCE = `${ORIGIN}/mcp`;
-const TOOL = "get_twitter_posts";
-const TIMELINES = { likes: "likes", bookmarks: "bookmarks" } as const;
-
-export { ORIGIN, RESOURCE, TIMELINES, TOOL };
+export const ORIGIN = "https://twilog-mcp.togetter.dev";
+export const RESOURCE = `${ORIGIN}/mcp`;
+export const TOOL = "get_twitter_posts";
+export const TIMELINES = { likes: "likes", bookmarks: "bookmarks" } as const;

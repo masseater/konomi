@@ -14,7 +14,7 @@ const orEmpty = <Item>(items: readonly Item[] | undefined): readonly Item[] =>
     Option.getOrElse((): readonly Item[] => []),
   );
 
-const pullXbox = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullXbox = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* xbox() {
     const headers = {
       ...HEADERS,
@@ -37,5 +37,3 @@ const pullXbox = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Prov
       cursor,
     };
   }).pipe(Effect.withSpan("xbox.pull"));
-
-export { pullXbox };

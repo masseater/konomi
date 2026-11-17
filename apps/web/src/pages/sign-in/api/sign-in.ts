@@ -7,7 +7,7 @@ const HOME = "/";
 
 const Credentials = Schema.Struct({ email: Schema.String, password: Schema.String });
 
-const signIn = (form: Readonly<FormData>): Promise<unknown> =>
+export const signIn = (form: Readonly<FormData>): Promise<unknown> =>
   run(
     Schema.decodeUnknownEffect(Credentials)(Record.fromEntries(form)).pipe(
       Effect.flatMap((credentials) =>
@@ -21,5 +21,3 @@ const signIn = (form: Readonly<FormData>): Promise<unknown> =>
       ),
     ),
   );
-
-export { signIn };

@@ -9,9 +9,6 @@ const Game = Schema.Struct({
 
 const Games = Schema.optional(Schema.NullOr(Schema.Array(Game)));
 
-const OwnedGames = Schema.Struct({ response: Schema.Struct({ games: Games }) });
+export const OwnedGames = Schema.Struct({ response: Schema.Struct({ games: Games }) });
 
-type SteamGame = typeof Game.Type;
-
-export type { SteamGame };
-export { OwnedGames };
+export type SteamGame = typeof Game.Type;

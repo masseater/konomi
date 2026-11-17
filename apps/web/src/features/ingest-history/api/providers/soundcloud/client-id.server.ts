@@ -27,7 +27,7 @@ const clientIdIn = (script: string): Option.Option<string> =>
     Option.flatMap(({ clientId }) => Option.fromUndefinedOr(clientId)),
   );
 
-const scrapeClientId: Effect.Effect<string, ProviderError> = Effect.gen(function* scrape() {
+export const scrapeClientId: Effect.Effect<string, ProviderError> = Effect.gen(function* scrape() {
   const page = yield* fetchText({ url: WEB_URL, headers: {} });
   for (const src of scriptsOf(page)) {
     const script = yield* fetchText({ url: src, headers: {} });
@@ -40,5 +40,3 @@ const scrapeClientId: Effect.Effect<string, ProviderError> = Effect.gen(function
     message: "soundcloud.com no longer exposes a client_id",
   });
 }).pipe(Effect.withSpan("soundcloud.client-id"));
-
-export { scrapeClientId };

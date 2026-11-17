@@ -11,7 +11,10 @@ import { stockObservationsOf } from "./subjects";
 
 const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
 
-const pullQiita = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullQiita = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* qiita() {
     const name = yield* requireField(credential, FIELD.user);
     const user = encodeURIComponent(name);
@@ -31,5 +34,3 @@ const pullQiita = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pro
     });
     return { observations: stockObservationsOf(fetchedAt)(stocks), cursor: yield* BACKFILLED };
   }).pipe(Effect.withSpan("qiita.pull"));
-
-export { pullQiita };

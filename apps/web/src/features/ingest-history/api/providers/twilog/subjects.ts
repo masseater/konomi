@@ -32,7 +32,7 @@ const postOf = (log: TwilogLog): SubjectInput => ({
   tags: [],
 });
 
-const logObservationsOf =
+export const logObservationsOf =
   ({ kind, fetchedAt }: Readonly<{ kind: ListingKind; fetchedAt: number }>) =>
   (logs: readonly TwilogLog[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
@@ -45,5 +45,3 @@ const logObservationsOf =
       })),
     );
   };
-
-export { logObservationsOf };

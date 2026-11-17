@@ -22,7 +22,7 @@ const personOf = (profile: BlueskyProfile): CreatorInput => ({
   url: `${WEB}/profile/${profile.handle}`,
 });
 
-const followedOf = (profile: BlueskyProfile): SubjectInput =>
+export const followedOf = (profile: BlueskyProfile): SubjectInput =>
   withRelations({ credits: [], tags: [] })(personOf(profile));
 
 const postUrlOf = (post: BlueskyPost): string =>
@@ -33,7 +33,7 @@ const postUrlOf = (post: BlueskyPost): string =>
     Option.getOrElse(() => `${WEB}/profile/${post.author.handle}`),
   );
 
-const postOf = (post: BlueskyPost): SubjectInput => ({
+export const postOf = (post: BlueskyPost): SubjectInput => ({
   provider: "bluesky",
   externalId: post.uri,
   type: "post",
@@ -43,5 +43,3 @@ const postOf = (post: BlueskyPost): SubjectInput => ({
   credits: [personOf(post.author)],
   tags: [],
 });
-
-export { followedOf, postOf };

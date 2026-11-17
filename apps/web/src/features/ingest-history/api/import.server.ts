@@ -7,14 +7,14 @@ import type { ProviderId } from "#/shared/config";
 
 import { PROVIDERS } from "./providers/index.server";
 
-type ImportRequest = Readonly<{
+export type ImportRequest = Readonly<{
   provider: ProviderId;
   format: string;
   rows: readonly ImportRow[];
   fields: Readonly<Record<string, string>>;
 }>;
 
-const importRows = ({
+export const importRows = ({
   provider,
   format,
   rows,
@@ -34,6 +34,3 @@ const importRows = ({
     Effect.annotateLogs({ provider, format }),
     Effect.withSpan("ingest.import", { attributes: { provider, format, rows: rows.length } }),
   );
-
-export type { ImportRequest };
-export { importRows };

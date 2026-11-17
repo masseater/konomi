@@ -22,7 +22,7 @@ const pageOf = ({ _id: id, ...item }: RaindropItem): SubjectInput => ({
   ],
 });
 
-const raindropObservationsOf =
+export const raindropObservationsOf =
   (fetchedAt: number) =>
   (items: readonly RaindropItem[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
@@ -35,5 +35,3 @@ const raindropObservationsOf =
       })),
     );
   };
-
-export { raindropObservationsOf };

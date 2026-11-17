@@ -1,5 +1,3 @@
-const WEB = "https://www.pixiv.net";
-const FIELD = { refreshToken: "refreshToken" } as const;
-const FIRST_PAGE = "";
-
-export { FIELD, FIRST_PAGE, WEB };
+export const WEB = "https://www.pixiv.net";
+export const FIELD = { refreshToken: "refreshToken" } as const;
+export const FIRST_PAGE = "";

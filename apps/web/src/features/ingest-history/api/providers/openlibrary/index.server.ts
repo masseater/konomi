@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullOpenlibrary } from "./pull.server";
 
-const openlibrary: Provider = {
+export const openlibrary: Provider = {
   id: "openlibrary",
   name: "Open Library",
   methods: [
@@ -21,5 +21,3 @@ const openlibrary: Provider = {
   pull: pullOpenlibrary,
   renew: Effect.succeed,
 };
-
-export { openlibrary };

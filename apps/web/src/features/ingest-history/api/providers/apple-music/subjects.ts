@@ -13,7 +13,7 @@ import type { AppleSong } from "./schemas";
 const FULL_DATE_LENGTH = 10;
 const GENERIC_GENRES: ReadonlySet<string> = new Set(["Music", "ミュージック"]);
 
-type Song = Readonly<{ song: AppleSong; storefront: string }>;
+export type Song = Readonly<{ song: AppleSong; storefront: string }>;
 
 const artistOf = ({
   name,
@@ -33,7 +33,7 @@ const typeOf = (type: string): SubjectType =>
     Match.orElse((): SubjectType => "track"),
   );
 
-const catalogIdOf = (song: AppleSong): string =>
+export const catalogIdOf = (song: AppleSong): string =>
   pipe(
     Option.fromNullishOr(song.attributes),
     Option.flatMap(({ playParams }) => Option.fromNullishOr(playParams)),
@@ -78,11 +78,8 @@ const subjectOf = ({
   };
 };
 
-const songOf = ({ song, storefront }: Song): Option.Option<SubjectInput> =>
+export const songOf = ({ song, storefront }: Song): Option.Option<SubjectInput> =>
   pipe(
     Option.fromNullishOr(song.attributes),
     Option.map((attributes) => subjectOf({ song, storefront, attributes })),
   );
-
-export type { Song };
-export { catalogIdOf, songOf };

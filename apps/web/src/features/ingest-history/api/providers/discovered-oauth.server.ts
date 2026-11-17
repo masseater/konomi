@@ -82,7 +82,7 @@ const clientIdOf = ({
     }),
   );
 
-const startDiscovered = ({
+export const startDiscovered = ({
   authorization,
   discovery,
   credential,
@@ -137,7 +137,7 @@ const withTokens = (credential: Credential, tokens: OAuthTokens): Credential => 
   },
 });
 
-const finishDiscovered = ({
+export const finishDiscovered = ({
   discovery,
   credential,
   code,
@@ -165,7 +165,7 @@ const finishDiscovered = ({
     return withTokens(credential, tokens);
   }).pipe(Effect.withSpan("oauth.discovered.finish"));
 
-const refreshDiscovered =
+export const refreshDiscovered =
   (discovery: Discovery) =>
   (credential: Credential): Effect.Effect<Credential, ProviderError> =>
     Effect.gen(function* refresh() {
@@ -182,5 +182,3 @@ const refreshDiscovered =
       });
       return withTokens(credential, tokens);
     }).pipe(Effect.withSpan("oauth.discovered.refresh"));
-
-export { finishDiscovered, refreshDiscovered, startDiscovered };

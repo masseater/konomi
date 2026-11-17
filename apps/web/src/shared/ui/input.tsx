@@ -2,7 +2,7 @@ import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "#/shared/lib/utils";
 
-const Input = ({ className, type, ...props }: ComponentProps<"input">): ReactNode => (
+export const Input = ({ className, type, ...props }: ComponentProps<"input">): ReactNode => (
   <input
     type={type}
     data-slot="input"
@@ -14,5 +14,3 @@ const Input = ({ className, type, ...props }: ComponentProps<"input">): ReactNod
     {...props}
   />
 );
-
-export { Input };

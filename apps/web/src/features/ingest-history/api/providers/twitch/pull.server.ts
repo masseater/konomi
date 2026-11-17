@@ -52,7 +52,10 @@ const pullFollowed = ({
   );
 };
 
-const pullTwitch = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullTwitch = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* twitch() {
     const headers = yield* headersOf(credential);
     const { data } = yield* fetchJson({ url: `${API}/users`, headers, schema: Users });
@@ -79,5 +82,3 @@ const pullTwitch = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
       cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
     };
   }).pipe(Effect.withSpan("twitch.pull"));
-
-export { pullTwitch };

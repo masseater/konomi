@@ -46,7 +46,7 @@ const ownedObservationOf = (row: LibraryRow): Option.Option<Observation> =>
     })),
   );
 
-const libraryObservationsOf = (rows: readonly LibraryRow[]): readonly Observation[] =>
+export const libraryObservationsOf = (rows: readonly LibraryRow[]): readonly Observation[] =>
   pipe(
     rows,
     Arr.filter(isOwned),
@@ -78,12 +78,10 @@ const sessionObservationOf = (row: SessionRow): Option.Option<Observation> =>
 const dayKeyOf = ({ subject, occurredAtMs }: Observation): string =>
   `${subject.externalId}@${Math.floor(occurredAtMs / MS_PER_DAY)}`;
 
-const sessionObservationsOf = (rows: readonly SessionRow[]): readonly Observation[] =>
+export const sessionObservationsOf = (rows: readonly SessionRow[]): readonly Observation[] =>
   pipe(
     rows,
     Arr.flatMap((row) => Option.toArray(sessionObservationOf(row))),
     Arr.sortWith(({ occurredAtMs }) => occurredAtMs, Order.Number),
     Arr.dedupeWith((first, second) => dayKeyOf(first) === dayKeyOf(second)),
   );
-
-export { libraryObservationsOf, sessionObservationsOf };

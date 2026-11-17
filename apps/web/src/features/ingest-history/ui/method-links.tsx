@@ -7,7 +7,7 @@ import type { ProviderId } from "#/shared/config";
 import { AuthorizeLink } from "./authorize-link";
 import { AuthorizePageLink } from "./authorize-page-link";
 
-const MethodLinks = ({
+export const MethodLinks = ({
   provider,
   method,
   redirectUri,
@@ -25,5 +25,3 @@ const MethodLinks = ({
     )}
   </>
 );
-
-export { MethodLinks };

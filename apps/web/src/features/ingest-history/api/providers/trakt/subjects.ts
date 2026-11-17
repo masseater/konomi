@@ -61,7 +61,7 @@ const watchableOf = (entry: TraktWatched | TraktRated): SubjectInput =>
     }),
   );
 
-const historyObservationsOf =
+export const historyObservationsOf =
   (fetchedAt: number) =>
   (history: readonly TraktWatched[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
@@ -73,7 +73,7 @@ const historyObservationsOf =
     return pipe(history, Arr.map(observe));
   };
 
-const ratingObservationsOf =
+export const ratingObservationsOf =
   (fetchedAt: number) =>
   (ratings: readonly TraktRated[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
@@ -88,5 +88,3 @@ const ratingObservationsOf =
       Arr.map(observe),
     );
   };
-
-export { historyObservationsOf, ratingObservationsOf };

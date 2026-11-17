@@ -32,7 +32,7 @@ const Types = Schema.optionalKey(
   }),
 );
 
-const SearchInput = Schema.Struct({
+export const SearchInput = Schema.Struct({
   keyword: Schema.optionalKey(
     Schema.String.annotate({
       description: "題名・投稿者やアーティストの名前・タグの部分一致。省略すると新しい順",
@@ -46,7 +46,7 @@ const SearchInput = Schema.Struct({
   limit: Limit,
 });
 
-const ProfileInput = Schema.Struct({
+export const ProfileInput = Schema.Struct({
   kinds: Kinds,
   types: Types,
   providers: Providers,
@@ -69,20 +69,18 @@ const SimilarBySubject = Schema.Struct({
   }),
 });
 
-const SimilarInput = Schema.Struct({
+export const SimilarInput = Schema.Struct({
   query: Schema.Union([SimilarByText, SimilarBySubject]).annotate({
     description: "文から探すなら by=text、対象の key から探すなら by=subject",
   }),
   limit: Limit,
 });
 
-const NoteInput = Schema.Struct({
+export const NoteInput = Schema.Struct({
   statements: Schema.NonEmptyArray(StatementSchema).annotate({
     description: "好みを述べた文の並び。1 文ごとに根拠の対象を付ける",
   }),
   coversUntil: Instant,
 });
 
-const EmptyInput = Schema.Struct({});
-
-export { EmptyInput, NoteInput, ProfileInput, SearchInput, SimilarInput };
+export const EmptyInput = Schema.Struct({});

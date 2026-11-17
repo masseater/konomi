@@ -50,7 +50,7 @@ const tagsOf = (
     Arr.dedupe,
   );
 
-const trackOf = (track: SoundcloudTrack): SubjectInput => ({
+export const trackOf = (track: SoundcloudTrack): SubjectInput => ({
   provider: "soundcloud",
   externalId: String(track.id),
   type: "track",
@@ -70,7 +70,7 @@ const trackOf = (track: SoundcloudTrack): SubjectInput => ({
   tags: tagsOf(track),
 });
 
-const playlistOf = (playlist: SoundcloudPlaylist): SubjectInput => ({
+export const playlistOf = (playlist: SoundcloudPlaylist): SubjectInput => ({
   provider: "soundcloud",
   externalId: String(playlist.id),
   type: "playlist",
@@ -80,7 +80,5 @@ const playlistOf = (playlist: SoundcloudPlaylist): SubjectInput => ({
   tags: tagsOf(playlist),
 });
 
-const followedUserOf = (user: SoundcloudUser): SubjectInput =>
+export const followedUserOf = (user: SoundcloudUser): SubjectInput =>
   withRelations({ credits: [], tags: [] })(userOf(user));
-
-export { followedUserOf, playlistOf, trackOf };

@@ -32,11 +32,11 @@ const OptionalTrack = Schema.optional(Schema.NullOr(Track));
 
 const Played = Schema.Struct({ track: Track, played_at: Schema.String });
 
-const RecentlyPlayed = Schema.Struct({ items: Schema.Array(Played) });
+export const RecentlyPlayed = Schema.Struct({ items: Schema.Array(Played) });
 
 const Saved = Schema.Struct({ added_at: Schema.String, track: Track });
 
-const SavedTracks = Schema.Struct({ items: Schema.Array(Saved), next: Next });
+export const SavedTracks = Schema.Struct({ items: Schema.Array(Saved), next: Next });
 
 const Genres = Schema.Array(Schema.String);
 
@@ -47,15 +47,15 @@ const Artist = Schema.Struct({
 
 const ArtistPage = Schema.Struct({ items: Schema.Array(Artist), next: Next });
 
-const FollowedArtists = Schema.Struct({ artists: ArtistPage });
+export const FollowedArtists = Schema.Struct({ artists: ArtistPage });
 
-const Me = Schema.Struct({ id: Schema.String });
+export const Me = Schema.Struct({ id: Schema.String });
 
 const Owner = Schema.Struct({ id: Schema.String });
 
 const Playlist = Schema.Struct({ id: Schema.String, name: Schema.String, owner: Owner });
 
-const Playlists = Schema.Struct({ items: Schema.Array(Playlist), next: Next });
+export const Playlists = Schema.Struct({ items: Schema.Array(Playlist), next: Next });
 
 const PlaylistEntry = Schema.Struct({
   added_at: OptionalText,
@@ -63,15 +63,12 @@ const PlaylistEntry = Schema.Struct({
   track: OptionalTrack,
 });
 
-const PlaylistItems = Schema.Struct({ items: Schema.Array(PlaylistEntry), next: Next });
+export const PlaylistItems = Schema.Struct({ items: Schema.Array(PlaylistEntry), next: Next });
 
-const Cursor = Schema.Struct({ backfilled: Schema.Boolean });
+export const Cursor = Schema.Struct({ backfilled: Schema.Boolean });
 
-type SpotifyTrack = typeof Track.Type;
-type SpotifyArtistRef = typeof ArtistRef.Type;
-type SpotifyArtist = typeof Artist.Type;
-type SpotifyUrls = typeof ExternalUrls.Type;
-type SpotifyPlaylistEntry = typeof PlaylistEntry.Type;
-
-export type { SpotifyArtist, SpotifyArtistRef, SpotifyPlaylistEntry, SpotifyTrack, SpotifyUrls };
-export { Cursor, FollowedArtists, Me, PlaylistItems, Playlists, RecentlyPlayed, SavedTracks };
+export type SpotifyTrack = typeof Track.Type;
+export type SpotifyArtistRef = typeof ArtistRef.Type;
+export type SpotifyArtist = typeof Artist.Type;
+export type SpotifyUrls = typeof ExternalUrls.Type;
+export type SpotifyPlaylistEntry = typeof PlaylistEntry.Type;

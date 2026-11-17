@@ -49,7 +49,10 @@ const pullList =
         ),
     });
 
-const pullAniList = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullAniList = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* anilist() {
     const user = yield* requireField(credential, FIELD.user);
     const fetchedAt = yield* Clock.currentTimeMillis;
@@ -61,5 +64,3 @@ const pullAniList = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, P
       cursor: yield* BACKFILLED,
     };
   }).pipe(Effect.withSpan("anilist.pull"));
-
-export { pullAniList };

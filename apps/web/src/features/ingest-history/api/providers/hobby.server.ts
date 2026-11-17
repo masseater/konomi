@@ -9,7 +9,7 @@ import { steam } from "./steam/index.server";
 import { vrchat } from "./vrchat/index.server";
 import { xbox } from "./xbox/index.server";
 
-const HOBBY_PROVIDERS = {
+export const HOBBY_PROVIDERS = {
   anilist,
   annict,
   myanimelist,
@@ -19,5 +19,3 @@ const HOBBY_PROVIDERS = {
   vrchat,
   xbox,
 } as const satisfies Readonly<Record<string, Provider>>;
-
-export { HOBBY_PROVIDERS };

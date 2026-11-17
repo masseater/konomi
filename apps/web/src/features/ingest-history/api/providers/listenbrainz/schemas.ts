@@ -30,7 +30,7 @@ const Listen = Schema.Struct({
 
 const ListensPayload = Schema.Struct({ listens: Schema.Array(Listen) });
 
-const Listens = Schema.Struct({ payload: ListensPayload });
+export const Listens = Schema.Struct({ payload: ListensPayload });
 
 const LovedRecording = Schema.Struct({
   created: Schema.Int,
@@ -39,11 +39,8 @@ const LovedRecording = Schema.Struct({
   track_metadata: Schema.optional(Schema.NullOr(TrackMetadata)),
 });
 
-const Feedback = Schema.Struct({ feedback: Schema.Array(LovedRecording) });
+export const Feedback = Schema.Struct({ feedback: Schema.Array(LovedRecording) });
 
-type ListenBrainzListen = typeof Listen.Type;
-type ListenBrainzLoved = typeof LovedRecording.Type;
-type ListenBrainzTrack = typeof TrackMetadata.Type;
-
-export type { ListenBrainzListen, ListenBrainzLoved, ListenBrainzTrack };
-export { Feedback, Listens };
+export type ListenBrainzListen = typeof Listen.Type;
+export type ListenBrainzLoved = typeof LovedRecording.Type;
+export type ListenBrainzTrack = typeof TrackMetadata.Type;

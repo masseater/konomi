@@ -24,20 +24,20 @@ const SHARE_DIGITS = 3;
 
 type Horizon = keyof typeof HORIZONS;
 
-type Trend = "rising" | "steady" | "fading";
+export type Trend = "rising" | "steady" | "fading";
 
-type SignalBucket = Readonly<{
+export type SignalBucket = Readonly<{
   subjectKey: string;
   kind: SignalKind;
   signals: number;
   atMs: number;
 }>;
 
-type SubjectInfo = Readonly<{ key: string; title: string; url: string; type: SubjectType }>;
+export type SubjectInfo = Readonly<{ key: string; title: string; url: string; type: SubjectType }>;
 
-type Link = Readonly<{ subjectKey: string; target: string }>;
+export type Link = Readonly<{ subjectKey: string; target: string }>;
 
-type TasteInput = Readonly<{
+export type TasteInput = Readonly<{
   nowMs: number;
   buckets: readonly SignalBucket[];
   subjects: readonly SubjectInfo[];
@@ -46,7 +46,7 @@ type TasteInput = Readonly<{
   limit: number;
 }>;
 
-type Affinity = Readonly<{
+export type Affinity = Readonly<{
   lasting: number;
   recent: number;
   trend: Trend;
@@ -54,13 +54,13 @@ type Affinity = Readonly<{
   lastAtMs: number;
 }>;
 
-type SubjectAffinity = Affinity & SubjectInfo;
+export type SubjectAffinity = Affinity & SubjectInfo;
 
-type TagAffinity = Affinity & Readonly<{ tag: string }>;
+export type TagAffinity = Affinity & Readonly<{ tag: string }>;
 
-type Facet<Item> = Readonly<{ top: readonly Item[]; rising: readonly Item[] }>;
+export type Facet<Item> = Readonly<{ top: readonly Item[]; rising: readonly Item[] }>;
 
-type Taste = Readonly<{
+export type Taste = Readonly<{
   subjects: Facet<SubjectAffinity>;
   creators: Facet<SubjectAffinity>;
   tags: Facet<TagAffinity>;
@@ -211,7 +211,7 @@ const facetOf = <Description extends object>(
   };
 };
 
-const tasteOf = (input: TasteInput): Taste => {
+export const tasteOf = (input: TasteInput): Taste => {
   const subjectScores = pipe(
     input.buckets,
     Arr.groupBy(({ subjectKey }) => subjectKey),
@@ -246,17 +246,3 @@ const tasteOf = (input: TasteInput): Taste => {
     tags: facetOf(rollUp(subjectScores, input.tags), (tag) => Option.some({ tag }), input.limit),
   };
 };
-
-export type {
-  Affinity,
-  Facet,
-  Link,
-  SignalBucket,
-  SubjectAffinity,
-  SubjectInfo,
-  TagAffinity,
-  Taste,
-  TasteInput,
-  Trend,
-};
-export { tasteOf };

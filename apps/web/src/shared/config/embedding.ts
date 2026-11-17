@@ -1,4 +1,2 @@
-const EMBEDDING_MODEL = "@cf/baai/bge-m3";
-const EMBEDDING_DIMENSIONS = 1024;
-
-export { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL };
+export const EMBEDDING_MODEL = "@cf/baai/bge-m3";
+export const EMBEDDING_DIMENSIONS = 1024;

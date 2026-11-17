@@ -101,7 +101,10 @@ const pullEntries = ({
   }).pipe(Effect.map(observeAll));
 };
 
-const pullAnnict = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullAnnict = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* annict() {
     const { backfilled } = pipe(
       decodeCursor(cursor),
@@ -119,5 +122,3 @@ const pullAnnict = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
       cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
     };
   }).pipe(Effect.withSpan("annict.pull"));
-
-export { pullAnnict };

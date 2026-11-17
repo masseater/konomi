@@ -8,7 +8,7 @@ import { SOCIAL_PROVIDERS } from "./social.server";
 import { VIDEO_PROVIDERS } from "./video.server";
 import { WEB_PROVIDERS } from "./web.server";
 
-const PROVIDERS: Readonly<Record<ProviderId, Provider>> = {
+export const PROVIDERS: Readonly<Record<ProviderId, Provider>> = {
   ...HOBBY_PROVIDERS,
   ...MUSIC_PROVIDERS,
   ...READING_PROVIDERS,
@@ -16,5 +16,3 @@ const PROVIDERS: Readonly<Record<ProviderId, Provider>> = {
   ...VIDEO_PROVIDERS,
   ...WEB_PROVIDERS,
 };
-
-export { PROVIDERS };

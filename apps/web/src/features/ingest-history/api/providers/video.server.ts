@@ -8,7 +8,7 @@ import { primeVideo } from "./prime-video/index.server";
 import { trakt } from "./trakt/index.server";
 import { youtube } from "./youtube/index.server";
 
-const VIDEO_PROVIDERS = {
+export const VIDEO_PROVIDERS = {
   filmarks,
   letterboxd,
   netflix,
@@ -17,5 +17,3 @@ const VIDEO_PROVIDERS = {
   trakt,
   youtube,
 } as const satisfies Readonly<Record<string, Provider>>;
-
-export { VIDEO_PROVIDERS };

@@ -6,10 +6,11 @@ import {
   Option,
   Predicate,
   Schema,
+  Stream,
   String as Str,
   pipe,
 } from "effect";
-import Papa from "papaparse";
+import { Csv } from "effect/encoding";
 
 import { IMPORT_ROWS_PER_REQUEST } from "#/features/ingest-history/model/import-limits";
 import type { ImportRow } from "#/features/ingest-history/model/provider";
@@ -17,11 +18,11 @@ import type { ProviderId } from "#/shared/config";
 
 import { connectionClient } from "./queries";
 
-type ImportOutcome =
+export type ImportOutcome =
   | Readonly<{ status: "imported"; recorded: number }>
   | Readonly<{ status: "rejected"; message: string }>;
 
-type ImportTarget = Readonly<{
+export type ImportTarget = Readonly<{
   provider: ProviderId;
   format: string;
   fields: Readonly<Record<string, string>>;
@@ -50,11 +51,14 @@ const Recorded = Schema.Struct({ recorded: Schema.Finite });
 
 const BYTE_ORDER_MARK = /^\uFEFF/u;
 
-const rowsOf = (text: string): readonly ImportRow[] =>
-  Papa.parse<ImportRow>(pipe(text, Str.replace(BYTE_ORDER_MARK, "")), {
-    header: true,
-    skipEmptyLines: true,
-  }).data;
+const rowsOf = (text: string): Effect.Effect<readonly ImportRow[], ImportFailed> =>
+  Stream.make(pipe(text, Str.replace(BYTE_ORDER_MARK, ""))).pipe(
+    Stream.pipeThroughChannel(Csv.decodeString({ headers: true, ignoreEmptyLines: true })),
+    Stream.runCollect,
+    Effect.mapError(({ line, message }) =>
+      ImportFailed.make({ message: `${line} 行目を読めない: ${message}` }),
+    ),
+  );
 
 const sendRows =
   (target: ImportTarget) =>
@@ -70,13 +74,13 @@ const sendRows =
       Effect.map(({ recorded }) => recorded),
     );
 
-const importFile = ({
+export const importFile = ({
   file,
   ...target
 }: ImportTarget & Readonly<{ file: Readonly<Pick<File, "text">> }>): Promise<ImportOutcome> =>
   run(
     Effect.promise(() => file.text()).pipe(
-      Effect.map(rowsOf),
+      Effect.flatMap(rowsOf),
       Effect.filterOrFail(Arr.isReadonlyArrayNonEmpty, () =>
         ImportFailed.make({ message: "ファイルに行が無い" }),
       ),
@@ -91,6 +95,3 @@ const importFile = ({
       ),
     ),
   );
-
-export type { ImportOutcome, ImportTarget };
-export { importFile };

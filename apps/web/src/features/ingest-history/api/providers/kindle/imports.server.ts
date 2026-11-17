@@ -6,7 +6,7 @@ import type { ImportFormat } from "#/features/ingest-history/model/provider";
 import { Library, Session } from "./schemas";
 import { libraryObservationsOf, sessionObservationsOf } from "./subjects";
 
-const KINDLE_IMPORTS: readonly ImportFormat[] = [
+export const KINDLE_IMPORTS: readonly ImportFormat[] = [
   fileFormat({
     id: "reading-sessions",
     file: "reading-insights-sessions_with_adjustments.csv",
@@ -28,5 +28,3 @@ const KINDLE_IMPORTS: readonly ImportFormat[] = [
     observe: ({ rows }) => Effect.succeed(libraryObservationsOf(rows)),
   }),
 ];
-
-export { KINDLE_IMPORTS };

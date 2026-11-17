@@ -19,10 +19,10 @@ const accountOf = (account: MastodonAccount): CreatorInput => ({
   url: account.url,
 });
 
-const followedOf = (account: MastodonAccount): SubjectInput =>
+export const followedOf = (account: MastodonAccount): SubjectInput =>
   withRelations({ credits: [], tags: [] })(accountOf(account));
 
-const statusOf = (status: MastodonStatus): SubjectInput => {
+export const statusOf = (status: MastodonStatus): SubjectInput => {
   const url = pipe(
     Option.fromNullishOr(status.url),
     Option.getOrElse(() => status.uri),
@@ -45,5 +45,3 @@ const statusOf = (status: MastodonStatus): SubjectInput => {
     ),
   };
 };
-
-export { followedOf, statusOf };

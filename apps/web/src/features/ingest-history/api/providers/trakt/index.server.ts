@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullTrakt } from "./pull.server";
 
-const trakt: Provider = {
+export const trakt: Provider = {
   id: "trakt",
   name: "Trakt",
   methods: [
@@ -24,5 +24,3 @@ const trakt: Provider = {
   pull: pullTrakt,
   renew: Effect.succeed,
 };
-
-export { trakt };

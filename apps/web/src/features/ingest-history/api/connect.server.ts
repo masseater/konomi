@@ -1,3 +1,4 @@
+import { env } from "cloudflare:workers";
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Connection } from "#/entities/connection";
@@ -9,7 +10,6 @@ import {
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import type { ProviderId } from "#/shared/config";
-import { SITE_ORIGIN } from "#/shared/config/index.server";
 
 import { exchangeFor, startByDiscovery, startByEndpoints } from "./authorization-flows.server";
 import type { Authorizing } from "./authorization-flows.server";
@@ -18,12 +18,12 @@ import { stateMatches } from "./providers/oauth.server";
 
 const HOME = "/";
 
-const redirectUriOf = (provider: ProviderId): string =>
-  `${SITE_ORIGIN}/api/connections/${provider}/callback`;
+export const redirectUriOf = (provider: ProviderId): string =>
+  `${env.SITE_ORIGIN}/api/connections/${provider}/callback`;
 
 const rejected = (message: string): CredentialRejected => CredentialRejected.make({ message });
 
-const connectionOf = (provider: ProviderId): Effect.Effect<Connection, CredentialRejected> =>
+export const connectionOf = (provider: ProviderId): Effect.Effect<Connection, CredentialRejected> =>
   listConnections.pipe(
     Effect.map(Arr.findFirst((found) => found.provider === provider)),
     Effect.flatMap(Effect.fromOption),
@@ -48,7 +48,7 @@ const authorizingOf = (provider: ProviderId): Effect.Effect<Authorizing, Credent
     ),
   );
 
-const startAuthorization = (provider: ProviderId): Effect.Effect<string, ProviderError> =>
+export const startAuthorization = (provider: ProviderId): Effect.Effect<string, ProviderError> =>
   authorizingOf(provider).pipe(
     Effect.flatMap((authorizing) =>
       pipe(
@@ -69,7 +69,7 @@ const startAuthorization = (provider: ProviderId): Effect.Effect<string, Provide
     Effect.withSpan("connect.start", { attributes: { provider } }),
   );
 
-const finishAuthorization = ({
+export const finishAuthorization = ({
   provider,
   code,
   state,
@@ -87,5 +87,3 @@ const finishAuthorization = ({
     yield* replaceCredential({ provider, credential: authorized });
     return HOME;
   }).pipe(Effect.withSpan("connect.finish", { attributes: { provider } }));
-
-export { connectionOf, finishAuthorization, redirectUriOf, startAuthorization };

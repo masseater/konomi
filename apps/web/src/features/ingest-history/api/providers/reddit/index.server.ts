@@ -11,7 +11,7 @@ const AUTHORIZATION: Authorization = {
   params: { duration: "permanent" },
 };
 
-const reddit: Provider = {
+export const reddit: Provider = {
   id: "reddit",
   name: "Reddit",
   methods: [
@@ -28,5 +28,3 @@ const reddit: Provider = {
   pull: pullReddit,
   renew: refreshAccess(AUTHORIZATION),
 };
-
-export { reddit };

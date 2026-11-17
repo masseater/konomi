@@ -9,7 +9,7 @@ import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 const NEXT = 1;
 
-type Numbering = Readonly<{ param: string; limit: number; start: number; step?: number }>;
+export type Numbering = Readonly<{ param: string; limit: number; start: number; step?: number }>;
 
 const numberedPageOf =
   ({ url, param, limit, step }: Numbering & Readonly<{ url: string }>) =>
@@ -30,7 +30,7 @@ const numberedPageOf =
     ),
   });
 
-const collectNumbered = <Item>({
+export const collectNumbered = <Item>({
   base,
   numbering,
   pages,
@@ -50,7 +50,7 @@ const collectNumbered = <Item>({
   });
 };
 
-const collectNumberedPages = <Body, Item>({
+export const collectNumberedPages = <Body, Item>({
   base,
   numbering,
   headers,
@@ -71,6 +71,3 @@ const collectNumberedPages = <Body, Item>({
     pages,
     fetchItems: (url) => fetchJson({ url, headers, schema }).pipe(Effect.map(itemsOf)),
   });
-
-export type { Numbering };
-export { collectNumbered, collectNumberedPages };

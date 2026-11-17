@@ -10,9 +10,6 @@ const Log = Schema.Struct({
 
 const Meta = Schema.Struct({ page: Schema.Int, maxPage: Schema.Int });
 
-const Posts = Schema.fromJsonString(Schema.Struct({ logs: Schema.Array(Log), meta: Meta }));
+export const Posts = Schema.fromJsonString(Schema.Struct({ logs: Schema.Array(Log), meta: Meta }));
 
-type TwilogLog = typeof Log.Type;
-
-export type { TwilogLog };
-export { Posts };
+export type TwilogLog = typeof Log.Type;

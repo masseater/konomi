@@ -3,7 +3,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { renewNiconico } from "./login.server";
 import { pullNiconico } from "./pull.server";
 
-const niconico: Provider = {
+export const niconico: Provider = {
   id: "niconico",
   name: "ニコニコ動画",
   methods: [
@@ -31,5 +31,3 @@ const niconico: Provider = {
   pull: pullNiconico,
   renew: renewNiconico,
 };
-
-export { niconico };

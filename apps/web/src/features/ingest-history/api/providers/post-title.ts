@@ -5,7 +5,7 @@ const TITLE_START = 0;
 const TAG = /<[^>]*>/gu;
 const SPACES = /\s+/gu;
 
-const postTitleOf = ({
+export const postTitleOf = ({
   text,
   fallback,
 }: Readonly<{ text: Option.Option<string>; fallback: string }>): string =>
@@ -17,7 +17,5 @@ const postTitleOf = ({
     Option.getOrElse(() => fallback),
   );
 
-const plainTextOf = (html: string): string =>
+export const plainTextOf = (html: string): string =>
   pipe(html, Str.replaceAll(TAG, " "), Str.replaceAll(SPACES, " "), Str.trim);
-
-export { plainTextOf, postTitleOf };

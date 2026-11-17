@@ -8,13 +8,13 @@ import { db } from "#/shared/db/index.server";
 
 const LATEST = 1;
 
-type TasteNote = Readonly<{
+export type TasteNote = Readonly<{
   statements: readonly Statement[];
   coversUntilMs: number;
   createdAtMs: number;
 }>;
 
-const latestTasteNote: Effect.Effect<Option.Option<TasteNote>> = Effect.promise(() =>
+export const latestTasteNote: Effect.Effect<Option.Option<TasteNote>> = Effect.promise(() =>
   db
     .select({
       statements: tasteNote.statements,
@@ -29,7 +29,7 @@ const latestTasteNote: Effect.Effect<Option.Option<TasteNote>> = Effect.promise(
   Effect.withSpan("taste-note.latest"),
 );
 
-const saveTasteNote = (
+export const saveTasteNote = (
   note: Readonly<{ statements: readonly Statement[]; coversUntilMs: number }>,
 ): Effect.Effect<TasteNote> =>
   Clock.currentTimeMillis.pipe(
@@ -37,6 +37,3 @@ const saveTasteNote = (
     Effect.tap((saved) => Effect.promise(() => db.insert(tasteNote).values(saved))),
     Effect.withSpan("taste-note.save"),
   );
-
-export type { TasteNote };
-export { latestTasteNote, saveTasteNote };

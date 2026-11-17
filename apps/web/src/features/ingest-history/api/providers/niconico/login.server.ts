@@ -98,7 +98,7 @@ const signIn =
       );
     });
 
-const renewNiconico = (credential: Credential): Effect.Effect<Credential, ProviderError> =>
+export const renewNiconico = (credential: Credential): Effect.Effect<Credential, ProviderError> =>
   loginOf(credential).pipe(
     Effect.flatMap((login) => browse(signIn(login))),
     Effect.map((session) => ({
@@ -107,5 +107,3 @@ const renewNiconico = (credential: Credential): Effect.Effect<Credential, Provid
     })),
     Effect.withSpan("niconico.renew"),
   );
-
-export { renewNiconico };

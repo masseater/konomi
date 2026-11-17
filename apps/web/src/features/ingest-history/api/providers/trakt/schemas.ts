@@ -31,7 +31,7 @@ const Watched = Schema.Union([
   Schema.Struct({ ...WATCHED, ...EPISODE }),
 ]);
 
-const History = Schema.Array(Watched);
+export const History = Schema.Array(Watched);
 
 const RATED = { rated_at: Schema.String, rating: Schema.Int };
 
@@ -42,15 +42,12 @@ const Rated = Schema.Union([
   Schema.Struct({ ...RATED, ...EPISODE }),
 ]);
 
-const Ratings = Schema.Array(Rated);
+export const Ratings = Schema.Array(Rated);
 
-type TraktWork = typeof Work.Type;
+export type TraktWork = typeof Work.Type;
 
-type TraktEpisode = typeof Episode.Type;
+export type TraktEpisode = typeof Episode.Type;
 
-type TraktWatched = typeof Watched.Type;
+export type TraktWatched = typeof Watched.Type;
 
-type TraktRated = typeof Rated.Type;
-
-export type { TraktEpisode, TraktRated, TraktWatched, TraktWork };
-export { History, Ratings };
+export type TraktRated = typeof Rated.Type;

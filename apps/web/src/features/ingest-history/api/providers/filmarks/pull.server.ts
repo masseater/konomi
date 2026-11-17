@@ -32,7 +32,10 @@ const collectCards =
         ),
     });
 
-const pullFilmarks = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullFilmarks = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* filmarks() {
     const name = yield* requireField(credential, FIELD.user);
     const user = encodeURIComponent(name);
@@ -50,5 +53,3 @@ const pullFilmarks = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, 
       cursor: yield* BACKFILLED,
     };
   }).pipe(Effect.withSpan("filmarks.pull"));
-
-export { pullFilmarks };

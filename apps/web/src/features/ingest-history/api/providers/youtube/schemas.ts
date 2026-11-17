@@ -22,7 +22,7 @@ const Video = Schema.Struct({
   contentDetails: Schema.optional(Schema.NullOr(VideoDetails)),
 });
 
-const Videos = Schema.Struct({ items: Schema.Array(Video), nextPageToken: Next });
+export const Videos = Schema.Struct({ items: Schema.Array(Video), nextPageToken: Next });
 
 const ResourceId = Schema.Struct({ channelId: OptionalText, videoId: OptionalText });
 
@@ -34,13 +34,16 @@ const SubscriptionSnippet = Schema.Struct({
 
 const Subscription = Schema.Struct({ snippet: SubscriptionSnippet });
 
-const Subscriptions = Schema.Struct({ items: Schema.Array(Subscription), nextPageToken: Next });
+export const Subscriptions = Schema.Struct({
+  items: Schema.Array(Subscription),
+  nextPageToken: Next,
+});
 
 const PlaylistSnippet = Schema.Struct({ title: Schema.String });
 
 const Playlist = Schema.Struct({ id: Schema.String, snippet: PlaylistSnippet });
 
-const Playlists = Schema.Struct({ items: Schema.Array(Playlist), nextPageToken: Next });
+export const Playlists = Schema.Struct({ items: Schema.Array(Playlist), nextPageToken: Next });
 
 const ItemSnippet = Schema.Struct({
   title: Schema.String,
@@ -57,19 +60,19 @@ const PlaylistItem = Schema.Struct({
   contentDetails: Schema.optional(Schema.NullOr(ItemDetails)),
 });
 
-const PlaylistItems = Schema.Struct({ items: Schema.Array(PlaylistItem), nextPageToken: Next });
+export const PlaylistItems = Schema.Struct({
+  items: Schema.Array(PlaylistItem),
+  nextPageToken: Next,
+});
 
 const History = Schema.Array(Schema.String);
 
-const Cursor = Schema.Struct({
+export const Cursor = Schema.Struct({
   backfilled: Schema.Boolean,
   playlistsAtMs: Schema.optional(Schema.Finite),
   history: Schema.optional(History),
 });
 
-type YoutubeVideo = typeof Video.Type;
-type YoutubeSubscription = typeof Subscription.Type;
-type YoutubePlaylistItem = typeof PlaylistItem.Type;
-
-export type { YoutubePlaylistItem, YoutubeSubscription, YoutubeVideo };
-export { Cursor, PlaylistItems, Playlists, Subscriptions, Videos };
+export type YoutubeVideo = typeof Video.Type;
+export type YoutubeSubscription = typeof Subscription.Type;
+export type YoutubePlaylistItem = typeof PlaylistItem.Type;

@@ -13,7 +13,10 @@ import type { VideoParts } from "./subjects";
 
 const KEPT_HISTORY = 50;
 
-type Watched = Readonly<{ observations: readonly Observation[]; history: readonly string[] }>;
+export type Watched = Readonly<{
+  observations: readonly Observation[];
+  history: readonly string[];
+}>;
 
 const watchedOf =
   ({ previous, fetchedAt }: Readonly<{ previous: readonly string[]; fetchedAt: number }>) =>
@@ -37,7 +40,7 @@ const watchedOf =
     };
   };
 
-const pullWatched = ({
+export const pullWatched = ({
   credential,
   previous,
   fetchedAt,
@@ -50,6 +53,3 @@ const pullWatched = ({
     onNone: () => Effect.succeed({ observations: [], history: previous }),
     onSome: (value) => pullHistory(value).pipe(Effect.map(watchedOf({ previous, fetchedAt }))),
   });
-
-export type { Watched };
-export { pullWatched };

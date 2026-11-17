@@ -9,7 +9,7 @@ import {
 
 import { PROVIDER_IDS, SIGNAL_KINDS, SUBJECT_TYPES } from "#/shared/config";
 
-const subject = sqliteTable(
+export const subject = sqliteTable(
   "subject",
   {
     key: text().primaryKey(),
@@ -27,7 +27,7 @@ const subject = sqliteTable(
   ],
 );
 
-const credit = sqliteTable(
+export const credit = sqliteTable(
   "credit",
   {
     subjectKey: text()
@@ -43,7 +43,7 @@ const credit = sqliteTable(
   ],
 );
 
-const subjectTag = sqliteTable(
+export const subjectTag = sqliteTable(
   "subject_tag",
   {
     subjectKey: text()
@@ -57,7 +57,7 @@ const subjectTag = sqliteTable(
   ],
 );
 
-const signal = sqliteTable(
+export const signal = sqliteTable(
   "signal",
   {
     id: integer().primaryKey({ autoIncrement: true }),
@@ -79,5 +79,3 @@ const signal = sqliteTable(
     index("signal_occurred_at").on(table.occurredAtMs),
   ],
 );
-
-export { credit, signal, subject, subjectTag };

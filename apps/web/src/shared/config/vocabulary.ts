@@ -1,4 +1,4 @@
-const PROVIDER_IDS = [
+export const PROVIDER_IDS = [
   "anilist",
   "annict",
   "apple-music",
@@ -35,11 +35,11 @@ const PROVIDER_IDS = [
   "youtube",
 ] as const;
 
-const SIGNAL_KINDS = ["consumed", "endorsed", "collected", "followed"] as const;
+export const SIGNAL_KINDS = ["consumed", "endorsed", "collected", "followed"] as const;
 
-const EVENT_SIGNAL_KINDS = ["consumed"] as const;
+export const EVENT_SIGNAL_KINDS = ["consumed"] as const;
 
-const SUBJECT_TYPES = [
+export const SUBJECT_TYPES = [
   "video",
   "track",
   "album",
@@ -59,11 +59,8 @@ const SUBJECT_TYPES = [
   "page",
 ] as const;
 
-type ProviderId = (typeof PROVIDER_IDS)[number];
+export type ProviderId = (typeof PROVIDER_IDS)[number];
 
-type SignalKind = (typeof SIGNAL_KINDS)[number];
+export type SignalKind = (typeof SIGNAL_KINDS)[number];
 
-type SubjectType = (typeof SUBJECT_TYPES)[number];
-
-export type { ProviderId, SignalKind, SubjectType };
-export { EVENT_SIGNAL_KINDS, PROVIDER_IDS, SIGNAL_KINDS, SUBJECT_TYPES };
+export type SubjectType = (typeof SUBJECT_TYPES)[number];

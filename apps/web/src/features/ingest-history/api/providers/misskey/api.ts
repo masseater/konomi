@@ -1,4 +1,2 @@
-const LIMIT = 100;
-const FIELD = { instance: "instance", accessToken: "accessToken" } as const;
-
-export { FIELD, LIMIT };
+export const LIMIT = 100;
+export const FIELD = { instance: "instance", accessToken: "accessToken" } as const;

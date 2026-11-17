@@ -4,11 +4,11 @@ import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal"
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { SignalKind } from "#/shared/config";
 
-type Fetching = Readonly<{ headers: Readonly<Record<string, string>>; fetchedAt: number }>;
+export type Fetching = Readonly<{ headers: Readonly<Record<string, string>>; fetchedAt: number }>;
 
 type Observed = readonly [SubjectInput, number];
 
-const epochOr =
+export const epochOr =
   (fallback: number) =>
   (text: string | null | undefined): number =>
     pipe(
@@ -34,7 +34,7 @@ const observed =
     ...contextOf(context),
   });
 
-const observeAt =
+export const observeAt =
   ({
     kind,
     context,
@@ -56,17 +56,14 @@ const observeAt =
       Option.map((found) => observed({ kind, context })([found, at(occurredAt)])),
     );
 
-const withRelations =
+export const withRelations =
   (relations: Pick<SubjectInput, "credits" | "tags">) =>
   (creator: CreatorInput): SubjectInput => ({ ...creator, ...relations });
 
-const pageOf = <Item>({
+export const pageOf = <Item>({
   items,
   next,
 }: Readonly<{ items: readonly Item[]; next?: string | null | undefined }>): Page<Item> => ({
   items,
   next: Option.fromNullishOr(next),
 });
-
-export type { Fetching };
-export { epochOr, observeAt, pageOf, withRelations };

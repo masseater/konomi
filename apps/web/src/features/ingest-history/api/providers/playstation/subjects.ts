@@ -6,7 +6,7 @@ import { epochOr } from "#/features/ingest-history/api/providers/observe";
 
 import { STORE } from "./api";
 
-type PlayedGame = Readonly<
+export type PlayedGame = Readonly<
   Pick<
     UserPlayedGamesResponse["titles"][number],
     "localizedName" | "firstPlayedDateTime" | "lastPlayedDateTime"
@@ -25,7 +25,7 @@ const gameOf = (game: PlayedGame): SubjectInput => ({
   tags: [],
 });
 
-const playedObservationsOf =
+export const playedObservationsOf =
   (fetchedAt: number) =>
   (games: readonly PlayedGame[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
@@ -40,6 +40,3 @@ const playedObservationsOf =
       }),
     );
   };
-
-export type { PlayedGame };
-export { playedObservationsOf };

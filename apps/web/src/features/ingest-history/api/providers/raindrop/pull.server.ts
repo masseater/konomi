@@ -11,7 +11,10 @@ import { raindropObservationsOf } from "./subjects";
 
 const NUMBERING = { param: "page", limit: LIMIT, start: 0 } as const;
 
-const pullRaindrop = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullRaindrop = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* raindrop() {
     const token = yield* requireField(credential, FIELD.token);
     const fetchedAt = yield* Clock.currentTimeMillis;
@@ -28,5 +31,3 @@ const pullRaindrop = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, 
       cursor: yield* BACKFILLED,
     };
   }).pipe(Effect.withSpan("raindrop.pull"));
-
-export { pullRaindrop };

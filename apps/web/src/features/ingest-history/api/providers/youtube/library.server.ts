@@ -10,7 +10,7 @@ import { collectTokenPages } from "./page";
 import { Subscriptions, Videos } from "./schemas";
 import { likedVideoOf, subscribedChannelOf } from "./subjects";
 
-const pullLiked = ({
+export const pullLiked = ({
   headers,
   fetchedAt,
   pages,
@@ -30,7 +30,7 @@ const pullLiked = ({
     ),
   );
 
-const pullSubscriptions = ({
+export const pullSubscriptions = ({
   headers,
   fetchedAt,
   pages,
@@ -55,5 +55,3 @@ const pullSubscriptions = ({
       Arr.getSomes,
     );
   });
-
-export { pullLiked, pullSubscriptions };

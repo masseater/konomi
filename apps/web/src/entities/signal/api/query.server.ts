@@ -9,7 +9,7 @@ import { db } from "#/shared/db/index.server";
 
 const creator = alias(subject, "creator");
 
-type SignalFilter = Readonly<{
+export type SignalFilter = Readonly<{
   keyword: Option.Option<string>;
   kinds: Option.Option<readonly SignalKind[]>;
   types: Option.Option<readonly SubjectType[]>;
@@ -19,7 +19,7 @@ type SignalFilter = Readonly<{
   limit: number;
 }>;
 
-type FoundSignal = Readonly<{
+export type FoundSignal = Readonly<{
   key: string;
   kind: SignalKind;
   context: string;
@@ -32,7 +32,7 @@ type FoundSignal = Readonly<{
   tags: readonly string[];
 }>;
 
-type KindCount = Readonly<{
+export type KindCount = Readonly<{
   provider: ProviderId;
   type: SubjectType;
   kind: SignalKind;
@@ -65,7 +65,7 @@ const keywordCondition = (keyword: string): SQL | undefined => {
   );
 };
 
-const conditionsOf = (filter: SignalFilter): SQL | undefined => {
+export const conditionsOf = (filter: SignalFilter): SQL | undefined => {
   const keyword = pipe(filter.keyword, Option.map(keywordCondition));
   const kinds = pipe(
     filter.kinds,
@@ -90,7 +90,7 @@ const conditionsOf = (filter: SignalFilter): SQL | undefined => {
   return and(...Arr.getSomes([keyword, kinds, types, providers, since, until]));
 };
 
-const creditsOf = (
+export const creditsOf = (
   keys: readonly string[],
 ): Effect.Effect<
   readonly Readonly<{
@@ -115,7 +115,7 @@ const creditsOf = (
       .where(inArray(credit.subjectKey, [...keys])),
   );
 
-const tagsOf = (
+export const tagsOf = (
   keys: readonly string[],
 ): Effect.Effect<readonly Readonly<{ subjectKey: string; tag: string }>[]> =>
   Effect.promise(() =>
@@ -147,7 +147,7 @@ const signalRows = (filter: SignalFilter): Effect.Effect<readonly SignalRow[]> =
       .limit(filter.limit),
   );
 
-const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundSignal[]> =>
+export const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundSignal[]> =>
   signalRows(filter).pipe(
     Effect.flatMap((rows) => {
       const keys = pipe(
@@ -192,7 +192,7 @@ const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundSignal[]
     Effect.withSpan("signal.find"),
   );
 
-const countByKind = (filter: SignalFilter): Effect.Effect<readonly KindCount[]> =>
+export const countByKind = (filter: SignalFilter): Effect.Effect<readonly KindCount[]> =>
   Effect.promise(() =>
     db
       .select({
@@ -207,13 +207,10 @@ const countByKind = (filter: SignalFilter): Effect.Effect<readonly KindCount[]> 
       .groupBy(subject.provider, subject.type, signal.kind),
   ).pipe(Effect.withSpan("signal.count-by-kind"));
 
-const existingSubjectKeys = (keys: readonly string[]): Effect.Effect<readonly string[]> =>
+export const existingSubjectKeys = (keys: readonly string[]): Effect.Effect<readonly string[]> =>
   Effect.promise(() =>
     db
       .select({ key: subject.key })
       .from(subject)
       .where(inArray(subject.key, [...keys])),
   ).pipe(Effect.map(Arr.map(({ key }) => key)));
-
-export type { FoundSignal, KindCount, SignalFilter };
-export { conditionsOf, countByKind, creditsOf, existingSubjectKeys, findSignals, tagsOf };

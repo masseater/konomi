@@ -17,8 +17,6 @@ const client = createIsomorphicFn()
   .server(() => serverClient<ConnectionRoutes>(loadConnectionHandle))
   .client(() => browserClient<ConnectionRoutes>());
 
-const connectionClient = client();
+export const connectionClient = client();
 
-const connectionQueries = createQueries<ConnectionRoutes>(connectionClient);
-
-export { connectionClient, connectionQueries };
+export const connectionQueries = createQueries<ConnectionRoutes>(connectionClient);

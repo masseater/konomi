@@ -83,11 +83,9 @@ const syncConnection = (connection: Connection): Effect.Effect<void> =>
     Effect.withSpan("ingest.sync", { attributes: { provider: connection.provider } }),
   );
 
-const syncAll: Effect.Effect<void> = listConnections.pipe(
+export const syncAll: Effect.Effect<void> = listConnections.pipe(
   Effect.flatMap((connections) =>
     Effect.forEach(connections, syncConnection, { concurrency: 1, discard: true }),
   ),
   Effect.withSpan("ingest.run"),
 );
-
-export { syncAll };

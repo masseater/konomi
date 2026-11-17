@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { SIGNAL_LABELS } from "#/features/ingest-history/model/labels";
 import type { SignalKind } from "#/shared/config";
 
-const KindTotals = ({
+export const KindTotals = ({
   totals,
 }: Readonly<{ totals: readonly Readonly<{ kind: SignalKind; signals: number }>[] }>): ReactNode => (
   <ul className="flex gap-3 text-sm">
@@ -18,5 +18,3 @@ const KindTotals = ({
     )}
   </ul>
 );
-
-export { KindTotals };

@@ -1,6 +1,6 @@
 import type { ProviderId, SignalKind, SubjectType } from "#/shared/config";
 
-type CreatorInput = Readonly<{
+export type CreatorInput = Readonly<{
   provider: ProviderId;
   externalId: string;
   type: SubjectType;
@@ -10,16 +10,14 @@ type CreatorInput = Readonly<{
   publishedAtMs?: number;
 }>;
 
-type SubjectInput = CreatorInput &
+export type SubjectInput = CreatorInput &
   Readonly<{ credits: readonly CreatorInput[]; tags: readonly string[] }>;
 
-type Observation = Readonly<{
+export type Observation = Readonly<{
   kind: SignalKind;
   subject: SubjectInput;
   occurredAtMs: number;
   context?: string;
 }>;
 
-type ListingKind = Extract<SignalKind, "endorsed" | "collected">;
-
-export type { CreatorInput, ListingKind, Observation, SubjectInput };
+export type ListingKind = Extract<SignalKind, "endorsed" | "collected">;

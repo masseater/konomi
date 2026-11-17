@@ -2,7 +2,7 @@ import { Schema } from "effect";
 
 const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
 
-const Users = Schema.Struct({
+export const Users = Schema.Struct({
   items: Schema.Array(Schema.Struct({ id: Schema.Int, name: Schema.String })),
 });
 
@@ -26,11 +26,8 @@ const Song = Schema.Struct({
 
 const Rated = Schema.Struct({ date: Schema.String, rating: Schema.String, song: Song });
 
-const RatedSongs = Schema.Struct({ items: Schema.Array(Rated) });
+export const RatedSongs = Schema.Struct({ items: Schema.Array(Rated) });
 
-type VocaDbCredit = typeof Credit.Type;
+export type VocaDbCredit = typeof Credit.Type;
 
-type VocaDbRated = typeof Rated.Type;
-
-export type { VocaDbCredit, VocaDbRated };
-export { RatedSongs, Users };
+export type VocaDbRated = typeof Rated.Type;

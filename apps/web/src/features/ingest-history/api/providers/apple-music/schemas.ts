@@ -23,21 +23,18 @@ const Song = Schema.Struct({
   attributes: Schema.optional(Schema.NullOr(SongAttributes)),
 });
 
-const Songs = Schema.Struct({ data: Schema.Array(Song), next: OptionalText });
+export const Songs = Schema.Struct({ data: Schema.Array(Song), next: OptionalText });
 
 const Storefront = Schema.Struct({ id: Schema.String });
 
-const Storefronts = Schema.Struct({ data: Schema.NonEmptyArray(Storefront) });
+export const Storefronts = Schema.Struct({ data: Schema.NonEmptyArray(Storefront) });
 
 const Recent = Schema.Array(Schema.String);
 
-const Cursor = Schema.Struct({
+export const Cursor = Schema.Struct({
   storefront: Schema.optional(Schema.String),
   recent: Schema.optional(Recent),
   libraryAtMs: Schema.optional(Schema.Finite),
 });
 
-type AppleSong = typeof Song.Type;
-
-export type { AppleSong };
-export { Cursor, Songs, Storefronts };
+export type AppleSong = typeof Song.Type;

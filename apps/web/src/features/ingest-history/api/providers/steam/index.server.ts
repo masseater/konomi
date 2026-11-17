@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullSteam } from "./pull.server";
 
-const steam: Provider = {
+export const steam: Provider = {
   id: "steam",
   name: "Steam",
   methods: [
@@ -24,5 +24,3 @@ const steam: Provider = {
   pull: pullSteam,
   renew: Effect.succeed,
 };
-
-export { steam };

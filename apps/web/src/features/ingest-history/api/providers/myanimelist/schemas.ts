@@ -25,11 +25,8 @@ const Next = Schema.Struct({ next: Schema.optional(Schema.NullOr(Schema.String))
 
 const Paging = Schema.optional(Schema.NullOr(Next));
 
-const UserList = Schema.Struct({ data: Schema.Array(Entry), paging: Paging });
+export const UserList = Schema.Struct({ data: Schema.Array(Entry), paging: Paging });
 
-type MalEntry = typeof Entry.Type;
+export type MalEntry = typeof Entry.Type;
 
-type MalGenre = typeof Genre.Type;
-
-export type { MalEntry, MalGenre };
-export { UserList };
+export type MalGenre = typeof Genre.Type;

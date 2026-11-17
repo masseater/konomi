@@ -39,7 +39,10 @@ const friendsOf =
       itemsOf: (friends) => friends,
     }).pipe(Effect.withSpan("vrchat.friends", { attributes: { offline } }));
 
-const pullVrchat = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullVrchat = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* vrchat() {
     const auth = yield* requireField(credential, FIELD.auth);
     const fetchedAt = yield* Clock.currentTimeMillis;
@@ -60,5 +63,3 @@ const pullVrchat = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
     );
     return { observations: Arr.flatten(groups), cursor: yield* BACKFILLED };
   }).pipe(Effect.withSpan("vrchat.pull"));
-
-export { pullVrchat };

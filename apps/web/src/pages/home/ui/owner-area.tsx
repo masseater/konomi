@@ -7,7 +7,7 @@ import { sessionQuery } from "#/pages/home/api/session";
 
 const SIGN_IN = "ログインしてサービスをつなぐ";
 
-const OwnerArea = (): ReactNode => {
+export const OwnerArea = (): ReactNode => {
   const session = useQuery(sessionQuery);
   if (session.status !== "success") {
     return false;
@@ -21,5 +21,3 @@ const OwnerArea = (): ReactNode => {
   }
   return <ConnectionList />;
 };
-
-export { OwnerArea };

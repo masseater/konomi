@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullMisskey } from "./pull.server";
 
-const misskey: Provider = {
+export const misskey: Provider = {
   id: "misskey",
   name: "Misskey",
   methods: [
@@ -24,5 +24,3 @@ const misskey: Provider = {
   pull: pullMisskey,
   renew: Effect.succeed,
 };
-
-export { misskey };

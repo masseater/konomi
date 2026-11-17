@@ -8,7 +8,7 @@ import { CredentialForm } from "./credential-form";
 import { ImportForm } from "./import-form";
 import { KindTotals } from "./kind-totals";
 
-const ProviderCard = ({ state }: Readonly<{ state: ProviderState }>): ReactNode => {
+export const ProviderCard = ({ state }: Readonly<{ state: ProviderState }>): ReactNode => {
   const { connection } = state;
   const failure = Match.value(connection).pipe(
     Match.when({ status: "unconnected" }, () => ""),
@@ -42,5 +42,3 @@ const ProviderCard = ({ state }: Readonly<{ state: ProviderState }>): ReactNode 
     </article>
   );
 };
-
-export { ProviderCard };

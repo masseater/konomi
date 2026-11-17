@@ -10,7 +10,10 @@ import { API, LIMIT } from "./api";
 import { Pins } from "./schemas";
 import { pinObservationsOf } from "./subjects";
 
-const pullPinterest = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullPinterest = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* pinterest() {
     const headers = yield* bearerHeadersOf(credential);
     const fetchedAt = yield* Clock.currentTimeMillis;
@@ -31,5 +34,3 @@ const pullPinterest = ({ credential, cursor }: PullInput): Effect.Effect<Pulled,
     });
     return { observations: pinObservationsOf(fetchedAt)(pins), cursor: yield* BACKFILLED };
   }).pipe(Effect.withSpan("pinterest.pull"));
-
-export { pullPinterest };

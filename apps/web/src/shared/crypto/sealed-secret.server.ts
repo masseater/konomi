@@ -32,7 +32,7 @@ const sealingKey: Effect.Effect<CryptoKey> = Effect.promise(() =>
   ),
 );
 
-const sealSecret = (secret: string): Effect.Effect<string> =>
+export const sealSecret = (secret: string): Effect.Effect<string> =>
   sealingKey.pipe(
     Effect.flatMap((key) =>
       Effect.promise(() =>
@@ -41,7 +41,7 @@ const sealSecret = (secret: string): Effect.Effect<string> =>
     ),
   );
 
-const openSecret = (sealed: string): Effect.Effect<string> =>
+export const openSecret = (sealed: string): Effect.Effect<string> =>
   sealingKey.pipe(
     Effect.flatMap((key) =>
       Effect.promise(() =>
@@ -53,5 +53,3 @@ const openSecret = (sealed: string): Effect.Effect<string> =>
     ),
     Effect.map(({ plaintext }) => textDecoder.decode(plaintext)),
   );
-
-export { openSecret, sealSecret };

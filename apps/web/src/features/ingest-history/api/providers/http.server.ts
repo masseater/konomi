@@ -67,7 +67,7 @@ const requestJson = <Body extends Schema.Top>({
 
 const MAX_REDIRECTS = 10;
 
-type Browser = Readonly<{
+export type Browser = Readonly<{
   open: (
     url: string,
   ) => Effect.Effect<Readonly<{ url: string; text: string }>, ProviderUnavailable>;
@@ -129,14 +129,14 @@ const openBrowser: Effect.Effect<Browser, never, HttpClient.HttpClient> = Effect
   },
 );
 
-const browse = <Value, Failure>(
+export const browse = <Value, Failure>(
   run: (browser: Browser) => Effect.Effect<Value, Failure>,
 ): Effect.Effect<Value, Failure> =>
   withFetch(openBrowser.pipe(Effect.flatMap(run))).pipe(
     Effect.provideService(FetchHttpClient.RequestInit, { redirect: "manual" }),
   );
 
-type Headers = Readonly<Record<string, string>>;
+export type Headers = Readonly<Record<string, string>>;
 
 const sendJson = <Body extends Schema.Top>(
   request: HttpClientRequest.HttpClientRequest,
@@ -144,7 +144,7 @@ const sendJson = <Body extends Schema.Top>(
 ): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"]> =>
   withFetch(requestJson({ request, schema }));
 
-const fetchJson = <Body extends Schema.Top>({
+export const fetchJson = <Body extends Schema.Top>({
   url,
   headers,
   schema,
@@ -154,7 +154,7 @@ const fetchJson = <Body extends Schema.Top>({
   Body["DecodingServices"]
 > => sendJson(HttpClientRequest.get(url, { headers }), schema);
 
-const postJson = <Payload extends Schema.Top, Body extends Schema.Top>({
+export const postJson = <Payload extends Schema.Top, Body extends Schema.Top>({
   url,
   headers,
   payload,
@@ -177,7 +177,7 @@ const postJson = <Payload extends Schema.Top, Body extends Schema.Top>({
     Effect.flatMap((request) => sendJson(request, schema)),
   );
 
-const postForm = <Body extends Schema.Top>({
+export const postForm = <Body extends Schema.Top>({
   url,
   headers,
   fields,
@@ -193,7 +193,7 @@ const postForm = <Body extends Schema.Top>({
     schema,
   );
 
-const fetchText = ({
+export const fetchText = ({
   url,
   headers,
 }: Readonly<{ url: string; headers: Headers }>): Effect.Effect<string, ProviderError> =>
@@ -206,6 +206,3 @@ const fetchText = ({
       ),
     ),
   );
-
-export type { Browser, Headers };
-export { browse, fetchJson, fetchText, postForm, postJson };

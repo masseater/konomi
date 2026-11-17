@@ -17,7 +17,10 @@ const CursorJson = Schema.fromJsonString(Cursor);
 const decodeCursor = Schema.decodeUnknownOption(CursorJson);
 const encodeCursor = Schema.encodeEffect(CursorJson);
 
-const pullYoutube = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullYoutube = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* youtube() {
     const fetching: Fetching = {
       headers: yield* bearerHeadersOf(credential),
@@ -57,5 +60,3 @@ const pullYoutube = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, P
       }).pipe(Effect.orDie),
     };
   }).pipe(Effect.withSpan("youtube.pull"));
-
-export { pullYoutube };

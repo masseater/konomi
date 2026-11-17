@@ -21,25 +21,22 @@ const VideoItem = Schema.Struct({
 
 const VideoItems = Schema.Array(VideoItem);
 
-const VideoPage = Schema.Struct({
+export const VideoPage = Schema.Struct({
   data: Schema.Struct({ items: VideoItems, hasNext: Schema.optional(Schema.Boolean) }),
 });
 
 const MylistSummaries = Schema.Array(Schema.Struct({ id: Schema.Int, name: Schema.String }));
 
-const MylistIndex = Schema.Struct({ data: Schema.Struct({ mylists: MylistSummaries }) });
+export const MylistIndex = Schema.Struct({ data: Schema.Struct({ mylists: MylistSummaries }) });
 
 const Mylist = Schema.Struct({ items: VideoItems });
 
-const MylistPage = Schema.Struct({ data: Schema.Struct({ mylist: Mylist }) });
+export const MylistPage = Schema.Struct({ data: Schema.Struct({ mylist: Mylist }) });
 
 const FollowedUsers = Schema.Array(Schema.Struct({ id: Schema.Int, nickname: Schema.String }));
 
-const FollowingPage = Schema.Struct({ data: Schema.Struct({ items: FollowedUsers }) });
+export const FollowingPage = Schema.Struct({ data: Schema.Struct({ items: FollowedUsers }) });
 
-const Cursor = Schema.Struct({ backfilled: Schema.Boolean });
+export const Cursor = Schema.Struct({ backfilled: Schema.Boolean });
 
-type VideoEntry = typeof VideoItem.Type;
-
-export type { VideoEntry };
-export { Cursor, FollowingPage, MylistIndex, MylistPage, VideoPage };
+export type VideoEntry = typeof VideoItem.Type;

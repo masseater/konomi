@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullAppleMusic } from "./pull.server";
 
-const appleMusic: Provider = {
+export const appleMusic: Provider = {
   id: "apple-music",
   name: "Apple Music",
   methods: [
@@ -26,5 +26,3 @@ const appleMusic: Provider = {
   pull: pullAppleMusic,
   renew: Effect.succeed,
 };
-
-export { appleMusic };

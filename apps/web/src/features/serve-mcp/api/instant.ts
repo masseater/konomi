@@ -10,9 +10,7 @@ const epochMillisOf = (text: string): Effect.Effect<number, ToolError> =>
     }),
   );
 
-const optionalMillis = (
+export const optionalMillis = (
   text: string | undefined,
 ): Effect.Effect<Option.Option<number>, ToolError> =>
   pipe(Option.fromUndefinedOr(text), Option.map(epochMillisOf), Effect.transposeOption);
-
-export { optionalMillis };
