@@ -11,5 +11,3 @@
 ## 構成
 
 - `alchemy.app-name.ts` の `APP_NAME` を変えるとリソースは作り直される。
-- `apps/lp` は静的な LP の見本で、このスタックが `Website.StaticSite` で
-  デプロイする。
