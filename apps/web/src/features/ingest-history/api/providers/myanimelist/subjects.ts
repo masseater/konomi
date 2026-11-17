@@ -7,7 +7,7 @@ import { WEB } from "./api";
 import type { LISTS } from "./api";
 import type { MalEntry, MalGenre } from "./schemas";
 
-type MalList = (typeof LISTS)[number];
+export type MalList = (typeof LISTS)[number];
 
 const LIKED_SCORE = 8;
 const STATUS_LABEL: Readonly<Record<string, string>> = {
@@ -54,7 +54,7 @@ const contextOf = (status: Option.Option<string>): Readonly<{ context?: string }
     Option.getOrElse(() => ({})),
   );
 
-const entryObservationsOf =
+export const entryObservationsOf =
   ({ list, fetchedAt }: Readonly<{ list: MalList; fetchedAt: number }>) =>
   (entry: MalEntry): readonly Observation[] => {
     const subject = entryOf(list)(entry);
@@ -80,6 +80,3 @@ const entryObservationsOf =
     );
     return [collected, ...liked, ...completed];
   };
-
-export type { MalList };
-export { entryObservationsOf };

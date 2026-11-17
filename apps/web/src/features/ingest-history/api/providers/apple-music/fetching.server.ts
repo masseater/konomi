@@ -14,7 +14,7 @@ import type { AppleSong } from "./schemas";
 
 const API_ORIGIN = new URL(API).origin;
 
-const headersOf = (credential: Credential): Effect.Effect<Headers, ProviderError> =>
+export const headersOf = (credential: Credential): Effect.Effect<Headers, ProviderError> =>
   Effect.all(
     {
       developerToken: signDeveloperToken(credential),
@@ -30,7 +30,7 @@ const headersOf = (credential: Credential): Effect.Effect<Headers, ProviderError
 
 const absoluteOf = (path: string): string => new URL(path, API_ORIGIN).toString();
 
-const fetchSongs =
+export const fetchSongs =
   (headers: Headers) =>
   (url: string): Effect.Effect<Page<AppleSong>, ProviderError> =>
     fetchJson({ url: absoluteOf(url), headers, schema: Songs }).pipe(
@@ -40,9 +40,7 @@ const fetchSongs =
       })),
     );
 
-const storefrontOf = (headers: Headers): Effect.Effect<string, ProviderError> =>
+export const storefrontOf = (headers: Headers): Effect.Effect<string, ProviderError> =>
   fetchJson({ url: `${API}/me/storefront`, headers, schema: Storefronts }).pipe(
     Effect.map(({ data }) => Arr.headNonEmpty(data).id),
   );
-
-export { fetchSongs, headersOf, storefrontOf };

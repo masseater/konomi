@@ -38,7 +38,7 @@ const outcomeText = (outcome: ImportOutcome): string =>
     Match.orElse(({ message }) => message),
   );
 
-const ImportForm = ({
+export const ImportForm = ({
   provider,
   format,
 }: Readonly<{ provider: ProviderId; format: ImportView }>): ReactNode => {
@@ -74,5 +74,3 @@ const ImportForm = ({
     </form>
   );
 };
-
-export { ImportForm };

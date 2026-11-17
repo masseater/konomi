@@ -16,12 +16,9 @@ const Person = Schema.Struct({ xuid: Schema.String, gamertag: Schema.String });
 const Titles = Schema.optional(Schema.Array(Title));
 const People = Schema.optional(Schema.Array(Person));
 
-const TitlesResponse = Schema.Struct({ content: Schema.Struct({ titles: Titles }) });
+export const TitlesResponse = Schema.Struct({ content: Schema.Struct({ titles: Titles }) });
 
-const FriendsResponse = Schema.Struct({ content: Schema.Struct({ people: People }) });
+export const FriendsResponse = Schema.Struct({ content: Schema.Struct({ people: People }) });
 
-type XboxTitle = typeof Title.Type;
-type XboxPerson = typeof Person.Type;
-
-export type { XboxPerson, XboxTitle };
-export { FriendsResponse, TitlesResponse };
+export type XboxTitle = typeof Title.Type;
+export type XboxPerson = typeof Person.Type;

@@ -18,7 +18,7 @@ const renderCard = (state: ProviderState): ReactNode => (
 
 const syncNow = (): Promise<unknown> => connectionClient.api.connections.sync.post();
 
-const ConnectionList = (): ReactNode => {
+export const ConnectionList = (): ReactNode => {
   const queryClient = useQueryClient();
   const connections = useQuery(connectionQueries.api.connections.get.queryOptions());
   const { mutate, status } = useMutation({
@@ -41,5 +41,3 @@ const ConnectionList = (): ReactNode => {
     </section>
   );
 };
-
-export { ConnectionList };

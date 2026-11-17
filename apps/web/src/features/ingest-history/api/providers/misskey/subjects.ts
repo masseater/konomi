@@ -28,12 +28,12 @@ const accountOf =
     };
   };
 
-const followedOf =
+export const followedOf =
   (origin: string) =>
   (user: MisskeyUser): SubjectInput =>
     withRelations({ credits: [], tags: [] })(accountOf(origin)(user));
 
-const noteOf =
+export const noteOf =
   (origin: string) =>
   (note: MisskeyNote): SubjectInput => {
     const url = `${origin}/notes/${note.id}`;
@@ -51,5 +51,3 @@ const noteOf =
       ),
     };
   };
-
-export { followedOf, noteOf };

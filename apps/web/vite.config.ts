@@ -9,7 +9,7 @@ import { defineConfig } from "vite-plus";
 import { SEARCH_INDEX_ORIGIN, SITEMAP_FILE } from "./src/shared/config/index.ts";
 
 export default defineConfig({
-  msch: { lint: { overrides: [{ files: ["src/**/*.{ts,tsx}"], use: ["decision"] }] } },
+  msch: { lint: { overrides: [{ files: ["src/**/*.{ts,tsx}"], use: ["decision", "traced"] }] } },
   run: {
     tasks: {
       dev: { command: "alchemy dev", cache: false },
@@ -24,6 +24,13 @@ export default defineConfig({
       ],
       login: { command: "alchemy profile edit --add Cloudflare", cache: false },
       deploy: { command: "alchemy deploy", cache: false },
+      "deploy:production": {
+        command: [
+          "alchemy deploy --stage production --yes",
+          `WORKERS_TRACES_SINK=masseater-dev-trace-sink workers-traces --request https://konomi.masseater.dev/ --expect GET --expect "GET /" --wait 300`,
+        ],
+        cache: false,
+      },
       destroy: { command: "alchemy destroy", cache: false },
     },
   },

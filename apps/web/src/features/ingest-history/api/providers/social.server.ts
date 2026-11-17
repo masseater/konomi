@@ -7,7 +7,7 @@ import { reddit } from "./reddit/index.server";
 import { twilog } from "./twilog/index.server";
 import { twitch } from "./twitch/index.server";
 
-const SOCIAL_PROVIDERS = {
+export const SOCIAL_PROVIDERS = {
   bluesky,
   mastodon,
   misskey,
@@ -15,5 +15,3 @@ const SOCIAL_PROVIDERS = {
   twilog,
   twitch,
 } as const satisfies Readonly<Record<string, Provider>>;
-
-export { SOCIAL_PROVIDERS };

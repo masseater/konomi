@@ -37,7 +37,10 @@ const pullList =
     }).pipe(Effect.map(Arr.flatMap(observe)));
   };
 
-const pullMyAnimeList = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullMyAnimeList = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* myanimelist() {
     const account = yield* userClientOf(credential, FIELD);
     const pull = pullList({
@@ -51,5 +54,3 @@ const pullMyAnimeList = ({ credential, cursor }: PullInput): Effect.Effect<Pulle
     );
     return { observations: Arr.flatten(lists), cursor: yield* BACKFILLED };
   }).pipe(Effect.withSpan("myanimelist.pull"));
-
-export { pullMyAnimeList };

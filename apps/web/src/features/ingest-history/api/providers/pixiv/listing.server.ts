@@ -10,9 +10,9 @@ import { ProviderUnavailable } from "#/features/ingest-history/model/provider-un
 
 import { FIRST_PAGE } from "./api";
 
-type Paged = Readonly<{ nextUrl: string | null }>;
+export type Paged = Readonly<{ nextUrl: string | null }>;
 
-type Listing<Body extends Paged, Item> = Readonly<{
+export type Listing<Body extends Paged, Item> = Readonly<{
   name: string;
   list: (cursor: Readonly<ParsedNextUrl>) => PromiseLike<Result<Body, PixivError>>;
   itemsOf: (body: Body) => readonly Item[];
@@ -52,12 +52,9 @@ const fetchPageOf =
       Effect.withSpan("pixiv.list", { attributes: { name } }),
     );
 
-const collectListing =
+export const collectListing =
   (pages: number) =>
   <Body extends Paged, Item>(
     listing: Listing<Body, Item>,
   ): Effect.Effect<readonly Item[], ProviderError> =>
     collectPages({ first: FIRST_PAGE, pages, fetchPage: fetchPageOf(listing) });
-
-export type { Listing, Paged };
-export { collectListing };

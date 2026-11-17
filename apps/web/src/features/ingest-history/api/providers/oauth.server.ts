@@ -16,7 +16,7 @@ import type { Authorization, ProviderError } from "#/features/ingest-history/mod
 import { fieldOf, requireField } from "./credential-field";
 import { postForm } from "./http.server";
 
-const OAUTH_FIELD = {
+export const OAUTH_FIELD = {
   clientId: "clientId",
   clientSecret: "clientSecret",
   refreshToken: "refreshToken",
@@ -24,7 +24,7 @@ const OAUTH_FIELD = {
   state: "oauthState",
 } as const;
 
-const CLIENT_FIELDS = [
+export const CLIENT_FIELDS = [
   { name: OAUTH_FIELD.clientId, label: "Client ID", secret: false, optional: false },
   { name: OAUTH_FIELD.clientSecret, label: "Client Secret", secret: true, optional: false },
 ] as const;
@@ -103,7 +103,7 @@ const requestTokens = (
     Effect.map((tokens) => withTokens(credential, tokens)),
   );
 
-const refreshAccess =
+export const refreshAccess =
   (authorization: Authorization) =>
   (credential: Credential): Effect.Effect<Credential, ProviderError> =>
     requireField(credential, OAUTH_FIELD.refreshToken).pipe(
@@ -116,7 +116,7 @@ const refreshAccess =
       Effect.withSpan("oauth.refresh"),
     );
 
-const exchangeCode = ({
+export const exchangeCode = ({
   authorization,
   credential,
   code,
@@ -133,9 +133,10 @@ const exchangeCode = ({
     redirect_uri: redirectUri,
   }).pipe(Effect.withSpan("oauth.exchange"));
 
-const newState = (): string => Hex.encode(crypto.getRandomValues(new Uint8Array(STATE_BYTES)));
+export const newState = (): string =>
+  Hex.encode(crypto.getRandomValues(new Uint8Array(STATE_BYTES)));
 
-const authorizeUrlOf = ({
+export const authorizeUrlOf = ({
   authorization,
   clientId,
   redirectUri,
@@ -161,27 +162,16 @@ const authorizeUrlOf = ({
   return url.toString();
 };
 
-const bearerHeadersOf = (
+export const bearerHeadersOf = (
   credential: Credential,
 ): Effect.Effect<Readonly<Record<string, string>>, ProviderError> =>
   requireField(credential, OAUTH_FIELD.accessToken).pipe(
     Effect.map((token) => ({ Authorization: `Bearer ${token}` })),
   );
 
-const stateMatches: {
+export const stateMatches: {
   (state: string): (credential: Credential) => boolean;
   (credential: Credential, state: string): boolean;
 } = Fn.dual(BINARY, (credential: Credential, state: string): boolean =>
   Option.exists(fieldOf(credential, OAUTH_FIELD.state), (expected) => expected === state),
 );
-
-export {
-  CLIENT_FIELDS,
-  OAUTH_FIELD,
-  authorizeUrlOf,
-  bearerHeadersOf,
-  exchangeCode,
-  newState,
-  refreshAccess,
-  stateMatches,
-};

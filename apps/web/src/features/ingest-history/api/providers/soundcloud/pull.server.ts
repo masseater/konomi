@@ -104,7 +104,10 @@ const pullFollowings = (session: Pulling): Effect.Effect<readonly Observation[],
     ),
   );
 
-const pullSoundcloud = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullSoundcloud = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* soundcloud() {
     const session = yield* sessionOf({ credential, fetchedAt: yield* Clock.currentTimeMillis });
     const me = yield* fetchFrom({ session, schema: Me })(firstUrlOf("/me"));
@@ -124,5 +127,3 @@ const pullSoundcloud = ({ credential, cursor }: PullInput): Effect.Effect<Pulled
       cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
     };
   }).pipe(Effect.withSpan("soundcloud.pull"));
-
-export { pullSoundcloud };

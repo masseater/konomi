@@ -2,6 +2,8 @@ import { fileImportProvider } from "#/features/ingest-history/api/providers/file
 
 import { NETFLIX_IMPORTS } from "./imports.server";
 
-const netflix = fileImportProvider({ id: "netflix", name: "Netflix", imports: NETFLIX_IMPORTS });
-
-export { netflix };
+export const netflix = fileImportProvider({
+  id: "netflix",
+  name: "Netflix",
+  imports: NETFLIX_IMPORTS,
+});

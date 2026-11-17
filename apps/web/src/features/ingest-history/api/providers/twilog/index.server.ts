@@ -18,7 +18,7 @@ const AUTHORIZATION: Authorization = {
   discovery: DISCOVERY,
 };
 
-const twilog: Provider = {
+export const twilog: Provider = {
   id: "twilog",
   name: "X（twilog）",
   methods: [
@@ -35,5 +35,3 @@ const twilog: Provider = {
   pull: pullTwilog,
   renew: refreshDiscovered(DISCOVERY),
 };
-
-export { twilog };

@@ -93,7 +93,7 @@ const writeNote = (input: typeof NoteInput.Type): Effect.Effect<TasteNote, ToolE
     ),
   );
 
-const registerTasteTools = (server: McpServer): McpServer => {
+export const registerTasteTools = (server: McpServer): McpServer => {
   server.registerTool(
     "find_similar",
     {
@@ -126,5 +126,3 @@ const registerTasteTools = (server: McpServer): McpServer => {
   );
   return server;
 };
-
-export { registerTasteTools };

@@ -13,9 +13,9 @@ import { requireField } from "./providers/credential-field";
 import { finishDiscovered, startDiscovered } from "./providers/discovered-oauth.server";
 import { OAUTH_FIELD, authorizeUrlOf, exchangeCode, newState } from "./providers/oauth.server";
 
-type Authorizing = Readonly<{ authorization: Authorization; credential: Credential }>;
+export type Authorizing = Readonly<{ authorization: Authorization; credential: Credential }>;
 
-const startByEndpoints = ({
+export const startByEndpoints = ({
   provider,
   authorization,
   credential,
@@ -42,7 +42,7 @@ const startByEndpoints = ({
     });
   });
 
-const startByDiscovery = ({
+export const startByDiscovery = ({
   provider,
   authorization,
   credential,
@@ -65,7 +65,7 @@ const startByDiscovery = ({
     return started.url;
   });
 
-const exchangeFor = ({
+export const exchangeFor = ({
   authorization,
   credential,
   code,
@@ -81,6 +81,3 @@ const exchangeFor = ({
       onSome: (discovery) => finishDiscovered({ discovery, credential, code, redirectUri }),
     }),
   );
-
-export type { Authorizing };
-export { exchangeFor, startByDiscovery, startByEndpoints };

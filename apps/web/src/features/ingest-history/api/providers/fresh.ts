@@ -14,7 +14,7 @@ const alignsAt =
     );
   };
 
-const freshOf = ({
+export const freshOf = ({
   previous,
   current,
 }: Readonly<{ previous: readonly string[]; current: readonly string[] }>): readonly string[] =>
@@ -29,5 +29,3 @@ const freshOf = ({
       onSome: (index) => pipe(current, Arr.take(index)),
     }),
   );
-
-export { freshOf };

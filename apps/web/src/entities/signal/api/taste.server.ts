@@ -64,7 +64,7 @@ const tagsOf = (filter: SignalFilter): Effect.Effect<readonly Link[]> =>
       .where(inArray(subjectTag.subjectKey, matchingSubjects(filter))),
   );
 
-const tasteProfile = (filter: SignalFilter): Effect.Effect<Taste> =>
+export const tasteProfile = (filter: SignalFilter): Effect.Effect<Taste> =>
   Effect.all(
     {
       now: DateTime.now,
@@ -91,5 +91,3 @@ const tasteProfile = (filter: SignalFilter): Effect.Effect<Taste> =>
     ),
     Effect.withSpan("signal.taste"),
   );
-
-export { tasteProfile };

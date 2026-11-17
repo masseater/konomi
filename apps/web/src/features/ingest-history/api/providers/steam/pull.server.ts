@@ -21,7 +21,10 @@ const ownedGamesUrl = ({
   return url.toString();
 };
 
-const pullSteam = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullSteam = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* steam() {
     const account = yield* Effect.all(
       {
@@ -42,5 +45,3 @@ const pullSteam = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pro
     );
     return { observations: gamesObservedAt(fetchedAt)(games), cursor };
   }).pipe(Effect.withSpan("steam.pull"));
-
-export { pullSteam };

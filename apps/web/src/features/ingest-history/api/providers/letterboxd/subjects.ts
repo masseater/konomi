@@ -61,7 +61,7 @@ const observationsFor =
     return Arr.filter([watched, liked], ({ kind }) => kind === "consumed" || likedOf(entry));
   };
 
-const letterboxdObservationsOf =
+export const letterboxdObservationsOf =
   (fetchedAt: number) =>
   (entries: readonly LetterboxdEntry[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
@@ -76,5 +76,3 @@ const letterboxdObservationsOf =
       ),
     );
   };
-
-export { letterboxdObservationsOf };

@@ -89,7 +89,9 @@ const trackOf =
     };
   };
 
-const listenObservationsOf = (listens: readonly ListenBrainzListen[]): readonly Observation[] =>
+export const listenObservationsOf = (
+  listens: readonly ListenBrainzListen[],
+): readonly Observation[] =>
   pipe(
     listens,
     Arr.map((listen): Observation => ({
@@ -119,7 +121,5 @@ const lovedObservationOf = (recording: ListenBrainzLoved): Option.Option<Observa
   );
 };
 
-const lovedObservationsOf = (loved: readonly ListenBrainzLoved[]): readonly Observation[] =>
+export const lovedObservationsOf = (loved: readonly ListenBrainzLoved[]): readonly Observation[] =>
   pipe(loved, Arr.map(lovedObservationOf), Arr.getSomes);
-
-export { listenObservationsOf, lovedObservationsOf };

@@ -19,16 +19,16 @@ const TEXT_START = 0;
 
 const taggedError = Schema.TaggedError;
 
-class EmbeddingFailed extends taggedError<EmbeddingFailed, { readonly brand: unique symbol }>()(
-  "EmbeddingFailed",
-  { message: Schema.String },
-) {}
+export class EmbeddingFailed extends taggedError<
+  EmbeddingFailed,
+  { readonly brand: unique symbol }
+>()("EmbeddingFailed", { message: Schema.String }) {}
 
 const textEncoder = new TextEncoder();
 
 const clip = Str.slice(TEXT_START, MAX_CHARS);
 
-const vectorIdOf = (key: string): Effect.Effect<string> =>
+export const vectorIdOf = (key: string): Effect.Effect<string> =>
   Effect.promise(() => crypto.subtle.digest("SHA-256", textEncoder.encode(key))).pipe(
     Effect.map((digest) => Hex.encode(new Uint8Array(digest))),
   );
@@ -45,15 +45,16 @@ const isComplete =
 const noEmbeddings = (): EmbeddingFailed =>
   EmbeddingFailed.make({ message: `${EMBEDDING_MODEL} returned no embeddings` });
 
-const embedTexts = (
+export const embedTexts = (
   texts: readonly string[],
 ): Effect.Effect<readonly (readonly number[])[], EmbeddingFailed> =>
   Effect.tryPromise({
     try: () =>
-      env.AI.run(EMBEDDING_MODEL, {
-        text: pipe(texts, Arr.map(clip)),
-        truncate_inputs: true,
-      }),
+      env.AI.run(
+        EMBEDDING_MODEL,
+        { text: pipe(texts, Arr.map(clip)), truncate_inputs: true },
+        { gateway: { id: "default", metadata: { caller: "konomi.signal-embed" } } },
+      ),
     catch: (cause) => EmbeddingFailed.make({ message: String(cause) }),
   }).pipe(
     Effect.flatMap((output) => {
@@ -157,7 +158,7 @@ const embedChunk = (pending: readonly Pending[]): Effect.Effect<void, EmbeddingF
     Effect.flatMap((vectors) => storeVectors(pending, vectors)),
   );
 
-const embedPendingSubjects: Effect.Effect<void> = pendingSubjects.pipe(
+export const embedPendingSubjects: Effect.Effect<void> = pendingSubjects.pipe(
   Effect.tap((pending) => Effect.annotateCurrentSpan({ pending: pending.length })),
   Effect.flatMap((pending) =>
     Effect.forEach(pipe(pending, Arr.chunksOf(EMBEDS_PER_CALL)), embedChunk, {
@@ -168,5 +169,3 @@ const embedPendingSubjects: Effect.Effect<void> = pendingSubjects.pipe(
   Effect.catchTag("EmbeddingFailed", (failed) => Effect.logWarning("embedding failed", failed)),
   Effect.withSpan("signal.embed-pending"),
 );
-
-export { EmbeddingFailed, embedPendingSubjects, embedTexts, vectorIdOf };

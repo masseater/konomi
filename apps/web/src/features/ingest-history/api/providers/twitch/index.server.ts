@@ -11,7 +11,7 @@ const AUTHORIZATION: Authorization = {
   clientAuthentication: "body",
 };
 
-const twitch: Provider = {
+export const twitch: Provider = {
   id: "twitch",
   name: "Twitch",
   methods: [
@@ -28,5 +28,3 @@ const twitch: Provider = {
   pull: pullTwitch,
   renew: refreshAccess(AUTHORIZATION),
 };
-
-export { twitch };

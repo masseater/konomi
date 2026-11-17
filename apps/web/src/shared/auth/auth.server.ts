@@ -5,7 +5,7 @@ import { jwt } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { env } from "cloudflare:workers";
 
-import { MCP_URL, SITE_ORIGIN } from "#/shared/config/index.server";
+import { MCP_URL } from "#/shared/config/index.server";
 import { db } from "#/shared/db/client.server";
 
 import {
@@ -25,8 +25,8 @@ import {
 } from "./generated/auth.table";
 import { rejectSecondOwner } from "./owner-guard.server";
 
-const auth = betterAuth({
-  baseURL: SITE_ORIGIN,
+export const auth = betterAuth({
+  baseURL: env.SITE_ORIGIN,
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema: {
@@ -62,5 +62,3 @@ const auth = betterAuth({
   ],
   secret: env.BETTER_AUTH_SECRET,
 });
-
-export { auth };

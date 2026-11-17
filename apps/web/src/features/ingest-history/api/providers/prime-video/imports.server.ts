@@ -6,7 +6,7 @@ import type { ImportFormat } from "#/features/ingest-history/model/provider";
 import { Viewing } from "./schemas";
 import { viewingObservationsOf } from "./subjects";
 
-const PRIME_VIDEO_IMPORTS: readonly ImportFormat[] = [
+export const PRIME_VIDEO_IMPORTS: readonly ImportFormat[] = [
   fileFormat({
     id: "viewing-history",
     file: "PrimeVideo.ViewingHistory.csv",
@@ -18,5 +18,3 @@ const PRIME_VIDEO_IMPORTS: readonly ImportFormat[] = [
     observe: ({ rows }) => Effect.succeed(viewingObservationsOf(rows)),
   }),
 ];
-
-export { PRIME_VIDEO_IMPORTS };

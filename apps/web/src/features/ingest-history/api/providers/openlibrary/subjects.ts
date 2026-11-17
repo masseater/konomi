@@ -43,7 +43,7 @@ const isoOf = (logged: string | null | undefined): string | undefined =>
     Option.getOrUndefined,
   );
 
-const shelfObservationsOf =
+export const shelfObservationsOf =
   ({
     kind,
     context,
@@ -61,5 +61,3 @@ const shelfObservationsOf =
       })),
     );
   };
-
-export { shelfObservationsOf };

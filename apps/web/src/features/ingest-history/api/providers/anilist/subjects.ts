@@ -43,7 +43,7 @@ const mediaOf = (media: AniListMedia): SubjectInput => ({
   ],
 });
 
-const entryObservationsOf =
+export const entryObservationsOf =
   (fetchedAt: number) =>
   (entry: AniListEntry): readonly Observation[] => {
     const subject = mediaOf(entry.media);
@@ -75,5 +75,3 @@ const entryObservationsOf =
     );
     return [collected, ...liked, ...completed];
   };
-
-export { entryObservationsOf };

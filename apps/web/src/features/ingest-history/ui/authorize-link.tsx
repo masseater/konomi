@@ -5,7 +5,7 @@ import type { ProviderId } from "#/shared/config";
 const REGISTER_REDIRECT = "アプリの設定のリダイレクト URI に次を登録してから、保存して許可する";
 const AUTHORIZE = "保存した Client ID で許可する";
 
-const AuthorizeLink = ({
+export const AuthorizeLink = ({
   provider,
   redirectUri,
 }: Readonly<{ provider: ProviderId; redirectUri: string }>): ReactNode => (
@@ -17,5 +17,3 @@ const AuthorizeLink = ({
     </a>
   </div>
 );
-
-export { AuthorizeLink };

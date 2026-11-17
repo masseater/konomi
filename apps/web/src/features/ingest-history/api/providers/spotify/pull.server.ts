@@ -13,7 +13,10 @@ const CursorJson = Schema.fromJsonString(Cursor);
 const decodeCursor = Schema.decodeUnknownOption(CursorJson);
 const encodeCursor = Schema.encodeEffect(CursorJson);
 
-const pullSpotify = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullSpotify = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* spotify() {
     const fetching: Fetching = {
       headers: yield* bearerHeadersOf(credential),
@@ -35,5 +38,3 @@ const pullSpotify = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, P
       cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
     };
   }).pipe(Effect.withSpan("spotify.pull"));
-
-export { pullSpotify };

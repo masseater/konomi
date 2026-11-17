@@ -98,7 +98,10 @@ const pullFollows = ({
   );
 };
 
-const pullBluesky = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullBluesky = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* bluesky() {
     const session = yield* signIn(credential);
     const { backfilled } = pipe(
@@ -116,5 +119,3 @@ const pullBluesky = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, P
       cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
     };
   }).pipe(Effect.withSpan("bluesky.pull"));
-
-export { pullBluesky };

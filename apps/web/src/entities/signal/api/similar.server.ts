@@ -11,7 +11,7 @@ import { EmbeddingFailed, embedTexts, vectorIdOf } from "./embedding.server";
 const SELF = 1;
 const NO_SIGNALS = 0;
 
-type SimilarSubject = Readonly<{
+export type SimilarSubject = Readonly<{
   key: string;
   title: string;
   url: string;
@@ -20,7 +20,7 @@ type SimilarSubject = Readonly<{
   signals: number;
 }>;
 
-type SimilarQuery =
+export type SimilarQuery =
   | Readonly<{ by: "text"; text: string; limit: number }>
   | Readonly<{ by: "subject"; subjectKey: string; limit: number }>;
 
@@ -130,7 +130,7 @@ const joinMatches = (matches: readonly Match[]): Effect.Effect<readonly SimilarS
     ),
   );
 
-const findSimilar = (
+export const findSimilar = (
   query: SimilarQuery,
 ): Effect.Effect<readonly SimilarSubject[], EmbeddingFailed> =>
   matchesOf(query).pipe(
@@ -144,6 +144,3 @@ const findSimilar = (
     ),
     Effect.withSpan("signal.find-similar", { attributes: { by: query.by } }),
   );
-
-export type { SimilarQuery, SimilarSubject };
-export { findSimilar };

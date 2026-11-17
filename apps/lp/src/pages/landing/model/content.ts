@@ -1,11 +1,11 @@
-const hero = {
+export const hero = {
   title: "konomi",
   lead: "見た動画・聴いた曲・高評価・フォローを自分の Cloudflare に集め、AI が MCP で読めるようにする。",
   action: "GitHub で見る",
   href: "https://github.com/masseater/konomi",
 } as const;
 
-const features = {
+export const features = {
   title: "できること",
   items: [
     {
@@ -23,7 +23,7 @@ const features = {
   ],
 } as const;
 
-const steps = {
+export const steps = {
   title: "始め方",
   items: [
     "このリポジトリを fork して apps/web/alchemy.run.ts の DEFAULT_DOMAIN を自分のドメインにする",
@@ -31,5 +31,3 @@ const steps = {
     "サービスのログイン情報を貼り、MCP クライアントに /mcp を登録する",
   ],
 } as const;
-
-export { features, hero, steps };

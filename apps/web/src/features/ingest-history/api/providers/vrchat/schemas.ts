@@ -15,11 +15,8 @@ const Friend = Schema.Struct({
   displayName: Schema.String,
 });
 
-const Works = Schema.Array(Work);
-const Friends = Schema.Array(Friend);
+export const Works = Schema.Array(Work);
+export const Friends = Schema.Array(Friend);
 
-type VrchatWork = typeof Work.Type;
-type VrchatFriend = typeof Friend.Type;
-
-export type { VrchatFriend, VrchatWork };
-export { Friends, Works };
+export type VrchatWork = typeof Work.Type;
+export type VrchatFriend = typeof Friend.Type;

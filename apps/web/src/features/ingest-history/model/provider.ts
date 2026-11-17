@@ -7,16 +7,16 @@ import type { ProviderId } from "#/shared/config";
 import type { ImportRejected } from "./import-rejected";
 import type { ProviderError } from "./provider-error";
 
-type CredentialField = Readonly<{
+export type CredentialField = Readonly<{
   name: string;
   label: string;
   secret: boolean;
   optional: boolean;
 }>;
 
-type Discovery = Readonly<{ issuer: string; registration: string; resource: string }>;
+export type Discovery = Readonly<{ issuer: string; registration: string; resource: string }>;
 
-type Authorization = Readonly<{
+export type Authorization = Readonly<{
   authorizeUrl: string;
   tokenUrl: string;
   scopes: readonly string[];
@@ -25,7 +25,7 @@ type Authorization = Readonly<{
   discovery?: Discovery;
 }>;
 
-type CredentialMethod = Readonly<{
+export type CredentialMethod = Readonly<{
   id: string;
   label: string;
   howTo: string;
@@ -35,14 +35,14 @@ type CredentialMethod = Readonly<{
   authorizePath?: string;
 }>;
 
-type ImportRow = Readonly<Record<string, string>>;
+export type ImportRow = Readonly<Record<string, string>>;
 
-type ImportInput = Readonly<{
+export type ImportInput = Readonly<{
   rows: readonly ImportRow[];
   fields: Readonly<Record<string, string>>;
 }>;
 
-type ImportFormat = Readonly<{
+export type ImportFormat = Readonly<{
   id: string;
   label: string;
   howTo: string;
@@ -50,15 +50,15 @@ type ImportFormat = Readonly<{
   observe: (input: ImportInput) => Effect.Effect<readonly Observation[], ImportRejected>;
 }>;
 
-type PullInput = Readonly<{ credential: Credential; cursor: string }>;
+export type PullInput = Readonly<{ credential: Credential; cursor: string }>;
 
-type Pulled = Readonly<{
+export type Pulled = Readonly<{
   observations: readonly Observation[];
   cursor: string;
   credential?: Credential;
 }>;
 
-type Provider = Readonly<{
+export type Provider = Readonly<{
   id: ProviderId;
   name: string;
   methods: readonly CredentialMethod[];
@@ -68,15 +68,3 @@ type Provider = Readonly<{
 }>;
 
 export type { ProviderError } from "./provider-error";
-export type {
-  Authorization,
-  CredentialField,
-  Discovery,
-  CredentialMethod,
-  ImportFormat,
-  ImportInput,
-  ImportRow,
-  Provider,
-  PullInput,
-  Pulled,
-};

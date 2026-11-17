@@ -34,7 +34,10 @@ const playedPage =
 
 const FIRST_OFFSET = "0";
 
-const pullPlaystation = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullPlaystation = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* playstation() {
     const accessToken = yield* accessTokenOf(credential);
     const fetchedAt = yield* Clock.currentTimeMillis;
@@ -45,5 +48,3 @@ const pullPlaystation = ({ credential, cursor }: PullInput): Effect.Effect<Pulle
     });
     return { observations: playedObservationsOf(fetchedAt)(games), cursor: yield* BACKFILLED };
   }).pipe(Effect.withSpan("playstation.pull"));
-
-export { pullPlaystation };

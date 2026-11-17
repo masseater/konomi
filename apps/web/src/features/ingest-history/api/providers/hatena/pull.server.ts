@@ -12,7 +12,10 @@ import { hatenaObservationsOf } from "./subjects";
 
 const NUMBERING = { param: "page", limit: PAGE_SIZE, start: 1 } as const;
 
-const pullHatena = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullHatena = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* hatena() {
     const user = yield* requireField(credential, FIELD.user);
     const fetchedAt = yield* Clock.currentTimeMillis;
@@ -30,5 +33,3 @@ const pullHatena = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
       cursor: yield* BACKFILLED,
     };
   }).pipe(Effect.withSpan("hatena.pull"));
-
-export { pullHatena };

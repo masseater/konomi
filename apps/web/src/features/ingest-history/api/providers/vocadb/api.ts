@@ -1,6 +1,4 @@
-const API = "https://vocadb.net/api";
-const WEB = "https://vocadb.net";
-const LIMIT = 50;
-const FIELD = { user: "user" } as const;
-
-export { API, FIELD, LIMIT, WEB };
+export const API = "https://vocadb.net/api";
+export const WEB = "https://vocadb.net";
+export const LIMIT = 50;
+export const FIELD = { user: "user" } as const;

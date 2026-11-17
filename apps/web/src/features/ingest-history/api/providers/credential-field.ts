@@ -5,7 +5,7 @@ import { CredentialRejected } from "#/features/ingest-history/model/credential-r
 
 const BINARY = 2;
 
-const fieldOf: {
+export const fieldOf: {
   (name: string): (credential: Credential) => Option.Option<string>;
   (credential: Credential, name: string): Option.Option<string>;
 } = Fn.dual(BINARY, (credential: Credential, name: string): Option.Option<string> =>
@@ -16,7 +16,7 @@ const fieldOf: {
   ),
 );
 
-const requireField: {
+export const requireField: {
   (name: string): (credential: Credential) => Effect.Effect<string, CredentialRejected>;
   (credential: Credential, name: string): Effect.Effect<string, CredentialRejected>;
 } = Fn.dual(
@@ -29,9 +29,9 @@ const requireField: {
     ),
 );
 
-type UserClientFields = Readonly<{ user: string; clientId: string }>;
+export type UserClientFields = Readonly<{ user: string; clientId: string }>;
 
-const userClientOf: {
+export const userClientOf: {
   (
     fields: UserClientFields,
   ): (credential: Credential) => Effect.Effect<UserClientFields, CredentialRejected>;
@@ -53,6 +53,3 @@ const userClientOf: {
       { concurrency: 1 },
     ),
 );
-
-export type { UserClientFields };
-export { fieldOf, requireField, userClientOf };

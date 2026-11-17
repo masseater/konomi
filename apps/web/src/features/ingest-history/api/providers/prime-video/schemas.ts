@@ -16,11 +16,8 @@ const HourlyViewing = Schema.Struct({
   [VIEWING_COLUMN.videoType]: Schema.optional(Schema.String),
 });
 
-const Viewing = Schema.Union([SessionViewing, HourlyViewing]);
+export const Viewing = Schema.Union([SessionViewing, HourlyViewing]);
 
-type SessionViewingRow = typeof SessionViewing.Type;
-type HourlyViewingRow = typeof HourlyViewing.Type;
-type ViewingRow = typeof Viewing.Type;
-
-export type { HourlyViewingRow, SessionViewingRow, ViewingRow };
-export { Viewing };
+export type SessionViewingRow = typeof SessionViewing.Type;
+export type HourlyViewingRow = typeof HourlyViewing.Type;
+export type ViewingRow = typeof Viewing.Type;

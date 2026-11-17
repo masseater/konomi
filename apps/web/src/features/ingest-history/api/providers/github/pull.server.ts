@@ -12,7 +12,10 @@ import { followObservationsOf, starObservationsOf } from "./subjects";
 
 const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
 
-const pullGitHub = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullGitHub = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* github() {
     const name = yield* requireField(credential, FIELD.user);
     const user = encodeURIComponent(name);
@@ -41,5 +44,3 @@ const pullGitHub = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
     ];
     return { observations, cursor: yield* BACKFILLED };
   }).pipe(Effect.withSpan("github.pull"));
-
-export { pullGitHub };

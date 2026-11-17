@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullHatena } from "./pull.server";
 
-const hatena: Provider = {
+export const hatena: Provider = {
   id: "hatena",
   name: "はてなブックマーク",
   methods: [
@@ -21,5 +21,3 @@ const hatena: Provider = {
   pull: pullHatena,
   renew: Effect.succeed,
 };
-
-export { hatena };

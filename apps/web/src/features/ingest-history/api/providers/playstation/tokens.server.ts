@@ -72,7 +72,9 @@ const withTokens =
       })),
     );
 
-const renewPlaystation = (credential: Credential): Effect.Effect<Credential, ProviderError> =>
+export const renewPlaystation = (
+  credential: Credential,
+): Effect.Effect<Credential, ProviderError> =>
   pipe(
     fieldOf(credential, FIELD.refreshToken),
     Option.match({
@@ -87,7 +89,7 @@ const renewPlaystation = (credential: Credential): Effect.Effect<Credential, Pro
     Effect.flatMap(withTokens(credential)),
   );
 
-const accessTokenOf = (credential: Credential): Effect.Effect<string, ProviderError> =>
+export const accessTokenOf = (credential: Credential): Effect.Effect<string, ProviderError> =>
   Effect.gen(function* access() {
     const now = yield* Clock.currentTimeMillis;
     const fresh = pipe(
@@ -100,5 +102,3 @@ const accessTokenOf = (credential: Credential): Effect.Effect<string, ProviderEr
     }
     return yield* requireField(credential, FIELD.accessToken);
   });
-
-export { accessTokenOf, renewPlaystation };

@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullFilmarks } from "./pull.server";
 
-const filmarks: Provider = {
+export const filmarks: Provider = {
   id: "filmarks",
   name: "Filmarks",
   methods: [
@@ -21,5 +21,3 @@ const filmarks: Provider = {
   pull: pullFilmarks,
   renew: Effect.succeed,
 };
-
-export { filmarks };

@@ -13,15 +13,12 @@ const Repository = Schema.Struct({
 
 const Star = Schema.Struct({ starred_at: Schema.String, repo: Repository });
 
-const Stars = Schema.Array(Star);
+export const Stars = Schema.Array(Star);
 
 const Account = Schema.Struct({ login: Schema.String, id: Schema.Int, html_url: Schema.String });
 
-const Accounts = Schema.Array(Account);
+export const Accounts = Schema.Array(Account);
 
-type GitHubStar = typeof Star.Type;
+export type GitHubStar = typeof Star.Type;
 
-type GitHubAccount = typeof Account.Type;
-
-export type { GitHubAccount, GitHubStar };
-export { Accounts, Stars };
+export type GitHubAccount = typeof Account.Type;

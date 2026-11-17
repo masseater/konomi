@@ -5,8 +5,8 @@ import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal"
 
 import { WEB } from "./api";
 
-type User = Pick<PixivUser, "id" | "name">;
-type Work = Readonly<{
+export type User = Pick<PixivUser, "id" | "name">;
+export type Work = Readonly<{
   id: number;
   title: string;
   user: User;
@@ -45,17 +45,17 @@ const collectedAt =
   (fetchedAt: number) =>
   (subject: SubjectInput): Observation => ({ kind: "collected", subject, occurredAtMs: fetchedAt });
 
-const illustObservationsOf =
+export const illustObservationsOf =
   (fetchedAt: number) =>
   (illusts: readonly Work[]): readonly Observation[] =>
     pipe(illusts, Arr.map(illustOf), Arr.map(collectedAt(fetchedAt)));
 
-const novelObservationsOf =
+export const novelObservationsOf =
   (fetchedAt: number) =>
   (novels: readonly Work[]): readonly Observation[] =>
     pipe(novels, Arr.map(novelOf), Arr.map(collectedAt(fetchedAt)));
 
-const followObservationsOf =
+export const followObservationsOf =
   (fetchedAt: number) =>
   (users: readonly User[]): readonly Observation[] =>
     pipe(
@@ -66,6 +66,3 @@ const followObservationsOf =
         occurredAtMs: fetchedAt,
       })),
     );
-
-export type { User, Work };
-export { followObservationsOf, illustObservationsOf, novelObservationsOf };

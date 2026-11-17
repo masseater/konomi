@@ -4,13 +4,13 @@ import { useCallback } from "react";
 
 import { connectionQueries } from "#/features/ingest-history/api/queries";
 
-type ConnectionForm<Result> = Readonly<{
+export type ConnectionForm<Result> = Readonly<{
   submit: (form: Readonly<FormData>) => void;
   status: MutationStatus;
   data: Result | undefined;
 }>;
 
-const useConnectionForm = <Result>(
+export const useConnectionForm = <Result>(
   send: (form: Readonly<FormData>) => Promise<Result>,
 ): ConnectionForm<Result> => {
   const queryClient = useQueryClient();
@@ -27,6 +27,3 @@ const useConnectionForm = <Result>(
   );
   return { submit, status, data };
 };
-
-export type { ConnectionForm };
-export { useConnectionForm };

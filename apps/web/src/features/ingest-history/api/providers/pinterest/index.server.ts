@@ -10,7 +10,7 @@ const AUTHORIZATION: Authorization = {
   params: {},
 };
 
-const pinterest: Provider = {
+export const pinterest: Provider = {
   id: "pinterest",
   name: "Pinterest",
   methods: [
@@ -27,5 +27,3 @@ const pinterest: Provider = {
   pull: pullPinterest,
   renew: refreshAccess(AUTHORIZATION),
 };
-
-export { pinterest };

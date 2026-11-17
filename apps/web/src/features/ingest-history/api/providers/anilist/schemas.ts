@@ -4,7 +4,7 @@ import { MEDIA_TYPES } from "./api";
 
 const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
 
-const Query = Schema.Struct({
+export const Query = Schema.Struct({
   query: Schema.String,
   variables: Schema.Struct({
     user: Schema.String,
@@ -37,11 +37,8 @@ const PageInfo = Schema.Struct({ hasNextPage: Schema.Boolean, currentPage: Schem
 
 const Page = Schema.Struct({ mediaList: Schema.Array(Entry), pageInfo: PageInfo });
 
-const MediaListPage = Schema.Struct({ data: Schema.Struct({ Page }) });
+export const MediaListPage = Schema.Struct({ data: Schema.Struct({ Page }) });
 
-type AniListEntry = typeof Entry.Type;
+export type AniListEntry = typeof Entry.Type;
 
-type AniListMedia = typeof Media.Type;
-
-export type { AniListEntry, AniListMedia };
-export { MediaListPage, Query };
+export type AniListMedia = typeof Media.Type;

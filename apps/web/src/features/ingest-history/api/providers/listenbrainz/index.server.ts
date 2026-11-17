@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullListenbrainz } from "./pull.server";
 
-const listenbrainz: Provider = {
+export const listenbrainz: Provider = {
   id: "listenbrainz",
   name: "ListenBrainz",
   methods: [
@@ -21,5 +21,3 @@ const listenbrainz: Provider = {
   pull: pullListenbrainz,
   renew: Effect.succeed,
 };
-
-export { listenbrainz };

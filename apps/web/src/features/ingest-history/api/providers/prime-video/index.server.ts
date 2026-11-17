@@ -2,10 +2,8 @@ import { fileImportProvider } from "#/features/ingest-history/api/providers/file
 
 import { PRIME_VIDEO_IMPORTS } from "./imports.server";
 
-const primeVideo = fileImportProvider({
+export const primeVideo = fileImportProvider({
   id: "prime-video",
   name: "Prime Video",
   imports: PRIME_VIDEO_IMPORTS,
 });
-
-export { primeVideo };

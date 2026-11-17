@@ -146,10 +146,8 @@ const viewingObservationOf = (row: ViewingRow): Option.Option<Observation> =>
     })),
   );
 
-const viewingObservationsOf = (rows: readonly ViewingRow[]): readonly Observation[] =>
+export const viewingObservationsOf = (rows: readonly ViewingRow[]): readonly Observation[] =>
   pipe(
     rows,
     Arr.flatMap((row) => Option.toArray(viewingObservationOf(row))),
   );
-
-export { viewingObservationsOf };

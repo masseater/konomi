@@ -1,6 +1,4 @@
-const API = "https://api.raindrop.io/rest/v1";
-const LIMIT = 50;
-const FIELD = { token: "token" } as const;
-const ALL_COLLECTIONS = 0;
-
-export { ALL_COLLECTIONS, API, FIELD, LIMIT };
+export const API = "https://api.raindrop.io/rest/v1";
+export const LIMIT = 50;
+export const FIELD = { token: "token" } as const;
+export const ALL_COLLECTIONS = 0;

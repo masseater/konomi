@@ -86,7 +86,7 @@ const filledFields = (fields: Readonly<Record<string, string>>): Record<string, 
     Rec.filter((value) => Str.isNonEmpty(value)),
   );
 
-const connectionRoutes = createRouter("/api/connections")
+export const connectionRoutes = createRouter("/api/connections")
   .onBeforeHandle(({ request, status }) =>
     rejectStranger({ request, reject: () => status(UNAUTHORIZED, "sign in first") }),
   )
@@ -139,8 +139,6 @@ const connectionRoutes = createRouter("/api/connections")
   )
   .post("/sync", () => runRequest(syncAll));
 
-type ConnectionRoutes = typeof connectionRoutes;
+export type ConnectionRoutes = typeof connectionRoutes;
 
 export type { ImportView, ProviderState } from "./status.server";
-export type { ConnectionRoutes };
-export { connectionRoutes };

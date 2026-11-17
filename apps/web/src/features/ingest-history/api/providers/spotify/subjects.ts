@@ -61,7 +61,7 @@ const genresOf = (artist: SpotifyArtist): readonly string[] =>
     Option.getOrElse((): readonly string[] => []),
   );
 
-const trackOf = (track: SpotifyTrack): Option.Option<SubjectInput> =>
+export const trackOf = (track: SpotifyTrack): Option.Option<SubjectInput> =>
   pipe(
     Option.fromNullishOr(track.id),
     Option.map((id) => {
@@ -83,9 +83,7 @@ const trackOf = (track: SpotifyTrack): Option.Option<SubjectInput> =>
     }),
   );
 
-const followedArtistOf = (artist: SpotifyArtist): Option.Option<SubjectInput> => {
+export const followedArtistOf = (artist: SpotifyArtist): Option.Option<SubjectInput> => {
   const relate = withRelations({ credits: [], tags: genresOf(artist) });
   return pipe(Option.fromNullishOr(artist.id), Option.map(creatorOf(artist)), Option.map(relate));
 };
-
-export { followedArtistOf, trackOf };

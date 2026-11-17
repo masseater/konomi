@@ -10,7 +10,7 @@ const EPISODE_PARTS = 3;
 
 const searchUrlOf = (query: string): string => `${WEB}/search?q=${encodeURIComponent(query)}`;
 
-const netflixSubjectOf = (title: string): SubjectInput => {
+export const netflixSubjectOf = (title: string): SubjectInput => {
   const parts = Str.split(title, SEPARATOR);
   return sharedTitleSubjectOf({
     provider: "netflix",
@@ -25,13 +25,11 @@ const netflixSubjectOf = (title: string): SubjectInput => {
 
 const NOTHING = "";
 
-const textOf = (text: string | undefined): string =>
+export const textOf = (text: string | undefined): string =>
   pipe(
     Option.fromUndefinedOr(text),
     Option.map(Str.trim),
     Option.getOrElse(() => NOTHING),
   );
 
-const isBlank = (text: string | undefined): boolean => Str.isEmpty(textOf(text));
-
-export { isBlank, textOf, netflixSubjectOf };
+export const isBlank = (text: string | undefined): boolean => Str.isEmpty(textOf(text));

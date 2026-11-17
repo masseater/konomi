@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullMyAnimeList } from "./pull.server";
 
-const myanimelist: Provider = {
+export const myanimelist: Provider = {
   id: "myanimelist",
   name: "MyAnimeList",
   methods: [
@@ -24,5 +24,3 @@ const myanimelist: Provider = {
   pull: pullMyAnimeList,
   renew: Effect.succeed,
 };
-
-export { myanimelist };

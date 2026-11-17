@@ -10,13 +10,13 @@ import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, FIELD, LIMIT } from "./api";
 
-type Session = Readonly<{
+export type Session = Readonly<{
   headers: Readonly<Record<string, string>>;
   clientId: string;
   fetchedAt: number;
 }>;
 
-const sessionOf = ({
+export const sessionOf = ({
   credential,
   fetchedAt,
 }: Readonly<{ credential: Credential; fetchedAt: number }>): Effect.Effect<
@@ -37,7 +37,8 @@ const sessionOf = ({
     })),
   );
 
-const firstUrlOf = (path: string): string => `${API}${path}?limit=${LIMIT}&linked_partitioning=1`;
+export const firstUrlOf = (path: string): string =>
+  `${API}${path}?limit=${LIMIT}&linked_partitioning=1`;
 
 const withClientId =
   (clientId: string) =>
@@ -47,7 +48,7 @@ const withClientId =
     return signed.toString();
   };
 
-const fetchFrom = <Body extends Schema.Top>({
+export const fetchFrom = <Body extends Schema.Top>({
   session: { headers, clientId },
   schema,
 }: Readonly<{ session: Session; schema: Body }>): ((
@@ -68,7 +69,7 @@ const collectionPageOf = <Item>({
   next: Option.fromNullishOr(nextHref),
 });
 
-const collectFrom = <Item>({
+export const collectFrom = <Item>({
   session,
   path,
   pages,
@@ -86,6 +87,3 @@ const collectFrom = <Item>({
     pages,
     fetchPage: (url) => fetchFrom({ session, schema })(url).pipe(Effect.map(collectionPageOf)),
   });
-
-export type { Session };
-export { collectFrom, fetchFrom, firstUrlOf, sessionOf };

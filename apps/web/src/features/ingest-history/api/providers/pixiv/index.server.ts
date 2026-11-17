@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullPixiv } from "./pull.server";
 
-const pixiv: Provider = {
+export const pixiv: Provider = {
   id: "pixiv",
   name: "pixiv",
   methods: [
@@ -21,5 +21,3 @@ const pixiv: Provider = {
   pull: pullPixiv,
   renew: Effect.succeed,
 };
-
-export { pixiv };

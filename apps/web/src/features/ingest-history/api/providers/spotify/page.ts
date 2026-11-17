@@ -7,7 +7,7 @@ import { pageOf } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-const collectOffsetPages = <Item>({
+export const collectOffsetPages = <Item>({
   first,
   headers,
   pages,
@@ -23,5 +23,3 @@ const collectOffsetPages = <Item>({
     pages,
     fetchPage: (url) => fetchJson({ url, headers, schema }).pipe(Effect.map(pageOf)),
   });
-
-export { collectOffsetPages };

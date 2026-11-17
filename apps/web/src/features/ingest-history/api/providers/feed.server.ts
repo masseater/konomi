@@ -16,7 +16,7 @@ const parser = new XMLParser({
   isArray: (name): boolean => name === ITEM,
 });
 
-const fetchFeed = <Feed>({
+export const fetchFeed = <Feed>({
   url,
   headers,
   schema,
@@ -39,10 +39,8 @@ const fetchFeed = <Feed>({
     ),
   );
 
-const itemsOf = <Item>(items: readonly Item[] | undefined): readonly Item[] =>
+export const itemsOf = <Item>(items: readonly Item[] | undefined): readonly Item[] =>
   pipe(
     Option.fromUndefinedOr(items),
     Option.getOrElse((): readonly Item[] => []),
   );
-
-export { fetchFeed, itemsOf };

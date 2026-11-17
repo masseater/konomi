@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullBluesky } from "./pull.server";
 
-const bluesky: Provider = {
+export const bluesky: Provider = {
   id: "bluesky",
   name: "Bluesky",
   methods: [
@@ -29,5 +29,3 @@ const bluesky: Provider = {
   pull: pullBluesky,
   renew: Effect.succeed,
 };
-
-export { bluesky };

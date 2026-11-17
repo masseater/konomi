@@ -40,7 +40,10 @@ const listingOf =
     }).pipe(Effect.map(Arr.map(observe)));
   };
 
-const pullReddit = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullReddit = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* reddit() {
     const headers = { ...(yield* bearerHeadersOf(credential)), "User-Agent": USER_AGENT };
     const { name } = yield* fetchJson({ url: `${API}/api/v1/me`, headers, schema: Me });
@@ -58,5 +61,3 @@ const pullReddit = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
       cursor: yield* BACKFILLED,
     };
   }).pipe(Effect.withSpan("reddit.pull"));
-
-export { pullReddit };

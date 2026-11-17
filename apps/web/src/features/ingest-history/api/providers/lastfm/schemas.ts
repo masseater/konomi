@@ -23,17 +23,14 @@ const PageAttr = Schema.Struct({
 
 const TrackPage = Schema.Struct({ track: Tracks, "@attr": PageAttr });
 
-const RecentTracks = Schema.Struct({ recenttracks: TrackPage });
+export const RecentTracks = Schema.Struct({ recenttracks: TrackPage });
 
-const LovedTracks = Schema.Struct({ lovedtracks: TrackPage });
+export const LovedTracks = Schema.Struct({ lovedtracks: TrackPage });
 
-const Cursor = Schema.Struct({
+export const Cursor = Schema.Struct({
   backfilled: Schema.Boolean,
   latestUts: Schema.optional(Schema.Int),
 });
 
-type LastfmTrack = typeof Track.Type;
-type LastfmTrackPage = typeof TrackPage.Type;
-
-export type { LastfmTrack, LastfmTrackPage };
-export { Cursor, LovedTracks, RecentTracks };
+export type LastfmTrack = typeof Track.Type;
+export type LastfmTrackPage = typeof TrackPage.Type;

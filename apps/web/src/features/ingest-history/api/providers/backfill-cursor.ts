@@ -13,8 +13,8 @@ const backfilledOf = (cursor: string): boolean =>
     Option.getOrElse(() => false),
   );
 
-const BACKFILLED: Effect.Effect<string> = encodeCursor({ backfilled: true }).pipe(Effect.orDie);
+export const BACKFILLED: Effect.Effect<string> = encodeCursor({ backfilled: true }).pipe(
+  Effect.orDie,
+);
 
-const pagesOf = (cursor: string): number => pagesFor(backfilledOf(cursor));
-
-export { BACKFILLED, pagesOf };
+export const pagesOf = (cursor: string): number => pagesFor(backfilledOf(cursor));

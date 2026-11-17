@@ -33,7 +33,7 @@ const call = (invocation: Invocation): Effect.Effect<unknown, MusicKitFailed> =>
 
 const decodeToken = Schema.decodeUnknownEffect(Schema.NonEmptyString);
 
-const authorizeMusicKit = (developerToken: string): Effect.Effect<string, MusicKitFailed> =>
+export const authorizeMusicKit = (developerToken: string): Effect.Effect<string, MusicKitFailed> =>
   Effect.gen(function* authorize() {
     const musicKit: unknown = Reflect.get(globalThis, "MusicKit");
     const instance = yield* call({
@@ -44,5 +44,3 @@ const authorizeMusicKit = (developerToken: string): Effect.Effect<string, MusicK
     const token = yield* call({ target: instance, name: "authorize", args: [] });
     return yield* decodeToken(token).pipe(Effect.mapError(failed("Apple ID の許可が取れなかった")));
   });
-
-export { authorizeMusicKit };

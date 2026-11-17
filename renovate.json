@@ -4,7 +4,8 @@
     "config:recommended",
     "security:minimumReleaseAgeNpm",
     ":semanticCommits",
-    "group:allNonMajor"
+    "group:allNonMajor",
+    "github>masseater/masseater.dev//libs/vite-plus-adopt/renovate"
   ],
   "automerge": true,
   "ignoreTests": true,
@@ -21,6 +22,11 @@
       "groupName": "effect and alchemy"
     },
     {
+      "description": "fallow は同じバージョンの fallow-type-aware しか読み込まない。",
+      "matchPackageNames": ["fallow", "fallow-type-aware"],
+      "groupName": "fallow"
+    },
+    {
       "matchDepTypes": ["pnpm-workspace.overrides"],
       "matchUpdateTypes": ["major"],
       "enabled": false
@@ -28,10 +34,6 @@
     {
       "matchPackageNames": ["typescript"],
       "allowedVersions": "/^(?:[7-9]|[1-9][0-9]+)\\.[0-9]+\\.[0-9]+(?:-(?:beta|rc)[0-9.]*)?$/"
-    },
-    {
-      "matchFileNames": ["skills-lock.json"],
-      "ignoreTests": false
     },
     {
       "matchManagers": ["github-actions"],
@@ -46,15 +48,6 @@
     }
   ],
   "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/^skills-lock\\.json$/"],
-      "matchStrings": [
-        "\"source\": \"(?<depName>[^\"]+)\",\\s*\"ref\": \"(?<currentDigest>[0-9a-f]{40})\",\\s*\"sourceType\": \"github\""
-      ],
-      "datasourceTemplate": "git-refs",
-      "packageNameTemplate": "https://github.com/{{{depName}}}"
-    },
     {
       "customType": "regex",
       "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],

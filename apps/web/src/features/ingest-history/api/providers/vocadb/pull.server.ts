@@ -33,7 +33,10 @@ const userIdOf = (name: string): Effect.Effect<number, ProviderError> =>
 const ratedUrl = (userId: number, start: string): string =>
   `${API}/users/${userId}/ratedSongs?fields=Artists&sort=RatingDate&maxResults=${LIMIT}&start=${start}`;
 
-const pullVocaDb = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullVocaDb = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* vocadb() {
     const userId = yield* requireField(credential, FIELD.user).pipe(Effect.flatMap(userIdOf));
     const fetchedAt = yield* Clock.currentTimeMillis;
@@ -53,5 +56,3 @@ const pullVocaDb = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
     });
     return { observations: ratedObservationsOf(fetchedAt)(rated), cursor: yield* BACKFILLED };
   }).pipe(Effect.withSpan("vocadb.pull"));
-
-export { pullVocaDb };

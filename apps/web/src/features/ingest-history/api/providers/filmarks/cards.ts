@@ -1,7 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 import { parse } from "node-html-parser";
 
-type Card = Readonly<{
+export type Card = Readonly<{
   path: string;
   title: string;
   label: string;
@@ -79,9 +79,6 @@ const cardsOf =
     };
   };
 
-const markCardsOf = cardsOf({ card: ".c-content-card", title: ".c-content-card__title a" });
+export const markCardsOf = cardsOf({ card: ".c-content-card", title: ".c-content-card__title a" });
 
-const clipCardsOf = cardsOf({ card: ".c-content-item", title: ".c-content-item__title a" });
-
-export type { Card };
-export { clipCardsOf, markCardsOf };
+export const clipCardsOf = cardsOf({ card: ".c-content-item", title: ".c-content-item__title a" });

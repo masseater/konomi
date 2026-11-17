@@ -19,23 +19,22 @@ const Note = Schema.Struct({
   tags: Tags,
 });
 
-const Favorites = Schema.Array(Schema.Struct({ createdAt: Schema.String, note: Note }));
+export const Favorites = Schema.Array(Schema.Struct({ createdAt: Schema.String, note: Note }));
 
 const Reaction = Schema.Struct({ createdAt: Schema.String, type: OptionalText, note: Note });
 
-const Reactions = Schema.Array(Reaction);
+export const Reactions = Schema.Array(Reaction);
 
 const Followee = Schema.optional(Schema.NullOr(User));
 
-const Following = Schema.Array(Schema.Struct({ createdAt: Schema.String, followee: Followee }));
+export const Following = Schema.Array(
+  Schema.Struct({ createdAt: Schema.String, followee: Followee }),
+);
 
-const Me = Schema.Struct({ id: Schema.String });
+export const Me = Schema.Struct({ id: Schema.String });
 
-const Request = Schema.Struct({ limit: Schema.Int, userId: Schema.optional(Schema.String) });
+export const Request = Schema.Struct({ limit: Schema.Int, userId: Schema.optional(Schema.String) });
 
-type MisskeyNote = typeof Note.Type;
+export type MisskeyNote = typeof Note.Type;
 
-type MisskeyUser = typeof User.Type;
-
-export type { MisskeyNote, MisskeyUser };
-export { Favorites, Following, Me, Reactions, Request };
+export type MisskeyUser = typeof User.Type;

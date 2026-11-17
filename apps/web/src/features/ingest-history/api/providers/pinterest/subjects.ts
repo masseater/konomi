@@ -30,7 +30,7 @@ const pinOf = (pin: PinterestPin): SubjectInput => {
   };
 };
 
-const pinObservationsOf =
+export const pinObservationsOf =
   (fetchedAt: number) =>
   (pins: readonly PinterestPin[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
@@ -43,5 +43,3 @@ const pinObservationsOf =
       })),
     );
   };
-
-export { pinObservationsOf };

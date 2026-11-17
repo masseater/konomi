@@ -9,10 +9,10 @@ import { Input } from "#/shared/ui/input";
 import { SignInFailure } from "./sign-in-failure";
 
 const EMAIL = "メールアドレス";
-const PASSWORD = "パスワード";
+const PASSWORD_LABEL = "パスワード";
 const SUBMIT = "ログイン";
 
-const SignInForm = (): ReactNode => {
+export const SignInForm = (): ReactNode => {
   const { mutate, status } = useMutation({ mutationFn: signIn });
   const submit = useCallback(
     (form: Readonly<FormData>) => {
@@ -34,8 +34,8 @@ const SignInForm = (): ReactNode => {
         type="password"
         name="password"
         autoComplete="current-password"
-        aria-label={PASSWORD}
-        placeholder={PASSWORD}
+        aria-label={PASSWORD_LABEL}
+        placeholder={PASSWORD_LABEL}
         required
       />
       <Button type="submit" disabled={status === "pending" || status === "success"}>
@@ -45,5 +45,3 @@ const SignInForm = (): ReactNode => {
     </form>
   );
 };
-
-export { SignInForm };

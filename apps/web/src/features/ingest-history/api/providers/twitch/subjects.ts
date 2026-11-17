@@ -3,7 +3,7 @@ import type { SubjectInput } from "#/entities/signal";
 import { WEB } from "./api";
 import type { TwitchFollowed } from "./schemas";
 
-const channelOf = (followed: TwitchFollowed): SubjectInput => ({
+export const channelOf = (followed: TwitchFollowed): SubjectInput => ({
   provider: "twitch",
   externalId: followed.broadcaster_id,
   type: "channel",
@@ -12,5 +12,3 @@ const channelOf = (followed: TwitchFollowed): SubjectInput => ({
   credits: [],
   tags: [],
 });
-
-export { channelOf };

@@ -55,7 +55,10 @@ const followingOf = ({
     );
   });
 
-const pullMastodon = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullMastodon = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* mastodon() {
     const reading: Reading = {
       origin: yield* instanceOriginOf(FIELD.instance)(credential),
@@ -72,5 +75,3 @@ const pullMastodon = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, 
     ];
     return { observations, cursor };
   }).pipe(Effect.withSpan("mastodon.pull"));
-
-export { pullMastodon };

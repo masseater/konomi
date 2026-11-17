@@ -13,7 +13,7 @@ const AUTHORIZATION: Authorization = {
   params: { access_type: "offline", prompt: "consent" },
 };
 
-const youtube: Provider = {
+export const youtube: Provider = {
   id: "youtube",
   name: "YouTube",
   methods: [
@@ -33,5 +33,3 @@ const youtube: Provider = {
   pull: pullYoutube,
   renew: refreshAccess(AUTHORIZATION),
 };
-
-export { youtube };

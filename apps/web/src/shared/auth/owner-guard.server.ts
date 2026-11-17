@@ -7,7 +7,5 @@ import { user } from "./generated/auth.table";
 
 const NO_OWNERS = 0;
 
-const rejectSecondOwner = (): Promise<boolean> =>
+export const rejectSecondOwner = (): Promise<boolean> =>
   run(Effect.promise(() => db.$count(user)).pipe(Effect.map((owners) => owners === NO_OWNERS)));
-
-export { rejectSecondOwner };

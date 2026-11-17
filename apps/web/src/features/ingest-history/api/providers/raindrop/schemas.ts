@@ -13,9 +13,6 @@ const Raindrop = Schema.Struct({
   tags: Tags,
 });
 
-const Raindrops = Schema.Struct({ items: Schema.Array(Raindrop) });
+export const Raindrops = Schema.Struct({ items: Schema.Array(Raindrop) });
 
-type RaindropItem = typeof Raindrop.Type;
-
-export type { RaindropItem };
-export { Raindrops };
+export type RaindropItem = typeof Raindrop.Type;

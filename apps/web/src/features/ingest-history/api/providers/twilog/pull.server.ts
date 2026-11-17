@@ -23,7 +23,10 @@ const timelineOf =
       fetchPage: (page) => postsPage({ accessToken, timeline, page: Number(page) }),
     });
 
-const pullTwilog = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullTwilog = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* twilog() {
     const timeline = timelineOf({
       accessToken: yield* requireField(credential, OAUTH_FIELD.accessToken),
@@ -38,5 +41,3 @@ const pullTwilog = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
     ];
     return { observations, cursor: yield* BACKFILLED };
   }).pipe(Effect.withSpan("twilog.pull"));
-
-export { pullTwilog };

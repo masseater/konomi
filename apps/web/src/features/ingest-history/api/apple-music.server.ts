@@ -9,12 +9,11 @@ import { signDeveloperToken } from "./providers/apple-music/developer-token.serv
 
 const PROVIDER = "apple-music";
 
-const appleDeveloperToken: Effect.Effect<string, ProviderError> = connectionOf(PROVIDER).pipe(
-  Effect.flatMap(openCredential),
-  Effect.flatMap(signDeveloperToken),
-);
+export const appleDeveloperToken: Effect.Effect<string, ProviderError> = connectionOf(
+  PROVIDER,
+).pipe(Effect.flatMap(openCredential), Effect.flatMap(signDeveloperToken));
 
-const saveAppleUserToken = (token: string): Effect.Effect<void, ProviderError> =>
+export const saveAppleUserToken = (token: string): Effect.Effect<void, ProviderError> =>
   connectionOf(PROVIDER).pipe(
     Effect.flatMap(openCredential),
     Effect.flatMap((credential) =>
@@ -28,5 +27,3 @@ const saveAppleUserToken = (token: string): Effect.Effect<void, ProviderError> =
     ),
     Effect.withSpan("apple-music.save-user-token"),
   );
-
-export { appleDeveloperToken, saveAppleUserToken };

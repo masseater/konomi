@@ -7,7 +7,7 @@ import { collectPages } from "#/features/ingest-history/api/providers/paging.ser
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-type TokenPage<Item> = Readonly<{
+export type TokenPage<Item> = Readonly<{
   items: readonly Item[];
   nextPageToken?: string | null | undefined;
 }>;
@@ -26,7 +26,7 @@ const tokenPageOf =
     ),
   });
 
-const collectTokenPages = <Item>({
+export const collectTokenPages = <Item>({
   first,
   headers,
   pages,
@@ -42,6 +42,3 @@ const collectTokenPages = <Item>({
     pages,
     fetchPage: (url) => fetchJson({ url, headers, schema }).pipe(Effect.map(tokenPageOf(url))),
   });
-
-export type { TokenPage };
-export { collectTokenPages };

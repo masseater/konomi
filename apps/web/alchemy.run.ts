@@ -1,14 +1,12 @@
 import { D1, Vectorize, Website, Workers, providers, state } from "@alchemy.run/cloudflare";
 import type { InferEnv } from "@alchemy.run/cloudflare";
 import { withWorkersTracing } from "@r_masseater/workers-tracing/alchemy";
-import { Stack, makeRandom } from "alchemy";
+import { RemovalPolicy, Stack, makeRandom } from "alchemy";
 import { Config, Effect, Hash, Schema } from "effect";
 import { SECURITY_HEADERS, STATIC_PAGE_HEADERS, assetHeaders } from "security-headers";
 
-import { APP_NAME, requireAppPrefix } from "./app-name.ts";
+import { APP_NAME, requireAppPrefix } from "./alchemy.app-name.ts";
 import { EMBEDDING_DIMENSIONS } from "./src/shared/config/embedding.ts";
-
-const WEB_LIMITS = { cpuMs: 1000 } as const;
 
 const API_RATE_LIMIT = Workers.RateLimit("API_RATE_LIMIT", {
   namespaceId: Math.abs(Hash.string(APP_NAME)),
@@ -22,7 +20,7 @@ const INGEST_SCHEDULE = "17 * * * *";
 const DEFAULT_DOMAIN = "konomi.masseater.dev";
 
 const web = Effect.gen(function* web() {
-  const DB = yield* D1.Database("DB", { migrations: "./drizzle" });
+  const DB = yield* D1.Database("DB", { migrations: "./drizzle" }).pipe(RemovalPolicy.protect());
   const SUBJECT_VECTORS = yield* Vectorize.Index("SubjectVectors", {
     dimensions: EMBEDDING_DIMENSIONS,
     metric: "cosine",
@@ -34,10 +32,10 @@ const web = Effect.gen(function* web() {
   );
   return yield* Website.Vite("Web", {
     domain,
-    main: "src/app/server/main.worker.ts",
+    main: "src/app/server/render-and-sync.server.ts",
     crons: [INGEST_SCHEDULE],
     logpush: true,
-    limits: WEB_LIMITS,
+    limits: { cpuMs: 1000 },
     env: {
       AI: Workers.AI(),
       API_RATE_LIMIT,
@@ -63,9 +61,8 @@ const landingPage = Website.StaticSite("LandingPage", {
   dev: { command: "vp dev" },
 });
 
-type WebEnv = InferEnv<typeof web>;
+export type WebEnv = InferEnv<typeof web>;
 
-export type { WebEnv };
 export default Stack(
   APP_NAME,
   {

@@ -16,8 +16,8 @@ const API_ORIGIN = "https://nvapi.nicovideo.jp";
 const PAGE_SIZE = 100;
 const FIRST_PAGE = 1;
 const BACKFILL_PAGES = 10;
-const SESSION_COOKIE = "user_session";
-const SESSION_FIELD = "userSession";
+export const SESSION_COOKIE = "user_session";
+export const SESSION_FIELD = "userSession";
 
 type Fetching = Readonly<{ headers: Readonly<Record<string, string>>; fetchedAt: number }>;
 
@@ -132,7 +132,10 @@ const pullFollowing = ({
 
 const pagesFor = pagesUpTo(BACKFILL_PAGES);
 
-const pullNiconico = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullNiconico = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* niconico() {
     const session = yield* sessionOf(credential);
     const fetching: Fetching = {
@@ -153,5 +156,3 @@ const pullNiconico = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, 
       cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
     };
   }).pipe(Effect.withSpan("niconico.pull"));
-
-export { SESSION_COOKIE, SESSION_FIELD, pullNiconico };

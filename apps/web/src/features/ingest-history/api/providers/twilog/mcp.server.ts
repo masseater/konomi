@@ -53,7 +53,7 @@ const connected = ({
     (client) => Effect.promise(() => client.close()),
   );
 
-const callTool = ({
+export const callTool = ({
   resource,
   accessToken,
   name,
@@ -85,5 +85,3 @@ const callTool = ({
       ),
     ),
   ).pipe(Effect.withSpan("mcp.call_tool", { attributes: { resource, name } }));
-
-export { callTool };

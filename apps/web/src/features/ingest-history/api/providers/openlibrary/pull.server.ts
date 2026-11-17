@@ -42,7 +42,10 @@ const shelfOf =
         ),
     });
 
-const pullOpenlibrary = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullOpenlibrary = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* openlibrary() {
     const name = yield* requireField(credential, FIELD.user);
     const user = encodeURIComponent(name);
@@ -57,5 +60,3 @@ const pullOpenlibrary = ({ credential, cursor }: PullInput): Effect.Effect<Pulle
     );
     return { observations: Arr.flatten(observed), cursor: yield* BACKFILLED };
   }).pipe(Effect.withSpan("openlibrary.pull"));
-
-export { pullOpenlibrary };

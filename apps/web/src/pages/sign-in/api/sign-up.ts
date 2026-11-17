@@ -11,7 +11,7 @@ const Owner = Schema.Struct({
   password: Schema.String,
 });
 
-const signUp = (form: Readonly<FormData>): Promise<unknown> =>
+export const signUp = (form: Readonly<FormData>): Promise<unknown> =>
   run(
     Schema.decodeUnknownEffect(Owner)(Record.fromEntries(form)).pipe(
       Effect.flatMap((owner) =>
@@ -21,5 +21,3 @@ const signUp = (form: Readonly<FormData>): Promise<unknown> =>
       ),
     ),
   );
-
-export { signUp };

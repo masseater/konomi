@@ -16,7 +16,7 @@ const AUTHORIZATION: Authorization = {
   params: {},
 };
 
-const spotify: Provider = {
+export const spotify: Provider = {
   id: "spotify",
   name: "Spotify",
   methods: [
@@ -33,5 +33,3 @@ const spotify: Provider = {
   pull: pullSpotify,
   renew: refreshAccess(AUTHORIZATION),
 };
-
-export { spotify };

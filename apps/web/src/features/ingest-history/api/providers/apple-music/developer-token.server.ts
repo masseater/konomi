@@ -11,7 +11,9 @@ const ALGORITHM = "ES256";
 const TOKEN_TTL_SECONDS = 43_200;
 const MS_PER_SECOND = 1000;
 
-const signDeveloperToken = (credential: Credential): Effect.Effect<string, CredentialRejected> =>
+export const signDeveloperToken = (
+  credential: Credential,
+): Effect.Effect<string, CredentialRejected> =>
   Effect.gen(function* sign() {
     const teamId = yield* requireField(credential, FIELD.teamId);
     const keyId = yield* requireField(credential, FIELD.keyId);
@@ -30,5 +32,3 @@ const signDeveloperToken = (credential: Credential): Effect.Effect<string, Crede
         .sign(key),
     );
   }).pipe(Effect.withSpan("apple-music.developer-token"));
-
-export { signDeveloperToken };

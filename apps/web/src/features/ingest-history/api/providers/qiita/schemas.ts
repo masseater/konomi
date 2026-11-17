@@ -16,9 +16,6 @@ const Item = Schema.Struct({
   user: Author,
 });
 
-const Items = Schema.Array(Item);
+export const Items = Schema.Array(Item);
 
-type QiitaItem = typeof Item.Type;
-
-export type { QiitaItem };
-export { Items };
+export type QiitaItem = typeof Item.Type;

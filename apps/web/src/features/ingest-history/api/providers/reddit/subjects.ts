@@ -16,7 +16,7 @@ const authorOf = (author: string): CreatorInput => ({
   url: `${WEB}/user/${author}`,
 });
 
-const thingOf = ({ data }: RedditThing): SubjectInput => {
+export const thingOf = ({ data }: RedditThing): SubjectInput => {
   const url = pipe(
     Option.fromNullishOr(data.permalink),
     Option.map((permalink) => `${WEB}${permalink}`),
@@ -52,5 +52,3 @@ const thingOf = ({ data }: RedditThing): SubjectInput => {
     ),
   };
 };
-
-export { thingOf };

@@ -15,7 +15,7 @@ const renewClientId = (credential: Credential): Effect.Effect<Credential, Provid
     })),
   );
 
-const soundcloud: Provider = {
+export const soundcloud: Provider = {
   id: "soundcloud",
   name: "SoundCloud",
   methods: [
@@ -31,5 +31,3 @@ const soundcloud: Provider = {
   pull: pullSoundcloud,
   renew: renewClientId,
 };
-
-export { soundcloud };

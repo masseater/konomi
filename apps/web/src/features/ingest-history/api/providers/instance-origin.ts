@@ -12,7 +12,7 @@ const withScheme = (text: string): string =>
     Option.getOrElse(() => `https${SCHEME}${text}`),
   );
 
-const instanceOriginOf =
+export const instanceOriginOf =
   (name: string) =>
   (credential: Credential): Effect.Effect<string, CredentialRejected> =>
     requireField(credential, name).pipe(
@@ -23,5 +23,3 @@ const instanceOriginOf =
         }),
       ),
     );
-
-export { instanceOriginOf };

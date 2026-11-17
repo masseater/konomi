@@ -14,9 +14,6 @@ const Bookmark = Schema.Struct({
 
 const Bookmarks = Schema.Struct({ item: Schema.optional(Schema.Array(Bookmark)) });
 
-const BookmarkFeed = Schema.Struct({ "rdf:RDF": Bookmarks });
+export const BookmarkFeed = Schema.Struct({ "rdf:RDF": Bookmarks });
 
-type HatenaBookmark = typeof Bookmark.Type;
-
-export type { HatenaBookmark };
-export { BookmarkFeed };
+export type HatenaBookmark = typeof Bookmark.Type;

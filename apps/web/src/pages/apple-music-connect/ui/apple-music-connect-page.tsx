@@ -27,7 +27,7 @@ const resultOf = (status: MutationStatus): ReactNode =>
     Match.orElse(() => ""),
   );
 
-const AppleMusicConnectPage = (): ReactNode => {
+export const AppleMusicConnectPage = (): ReactNode => {
   const { mutate, status } = useMutation(connectAppleMusicMutation);
   const authorize = useCallback(() => {
     mutate();
@@ -47,5 +47,3 @@ const AppleMusicConnectPage = (): ReactNode => {
     </main>
   );
 };
-
-export { AppleMusicConnectPage };

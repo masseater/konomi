@@ -19,7 +19,7 @@ const isGame = (title: XboxTitle): boolean =>
     Option.match({ onNone: () => true, onSome: (type) => type === GAME }),
   );
 
-const playedObservationsOf = (titles: readonly XboxTitle[]): readonly Observation[] =>
+export const playedObservationsOf = (titles: readonly XboxTitle[]): readonly Observation[] =>
   pipe(
     titles,
     Arr.filter(isGame),
@@ -44,7 +44,7 @@ const playedObservationsOf = (titles: readonly XboxTitle[]): readonly Observatio
     ),
   );
 
-const friendObservationsOf =
+export const friendObservationsOf =
   (fetchedAt: number) =>
   (people: readonly XboxPerson[]): readonly Observation[] =>
     pipe(
@@ -63,5 +63,3 @@ const friendObservationsOf =
         },
       })),
     );
-
-export { friendObservationsOf, playedObservationsOf };

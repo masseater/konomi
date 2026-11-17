@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullAnnict } from "./pull.server";
 
-const annict: Provider = {
+export const annict: Provider = {
   id: "annict",
   name: "Annict",
   methods: [
@@ -23,5 +23,3 @@ const annict: Provider = {
   pull: pullAnnict,
   renew: Effect.succeed,
 };
-
-export { annict };

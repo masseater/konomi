@@ -29,7 +29,7 @@ const repositoryOf = ({ repo }: GitHubStar): SubjectInput => ({
   ],
 });
 
-const starObservationsOf =
+export const starObservationsOf =
   (fetchedAt: number) =>
   (stars: readonly GitHubStar[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
@@ -43,7 +43,7 @@ const starObservationsOf =
     );
   };
 
-const followObservationsOf =
+export const followObservationsOf =
   (fetchedAt: number) =>
   (accounts: readonly GitHubAccount[]): readonly Observation[] =>
     pipe(
@@ -54,5 +54,3 @@ const followObservationsOf =
         occurredAtMs: fetchedAt,
       })),
     );
-
-export { followObservationsOf, starObservationsOf };

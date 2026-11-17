@@ -36,7 +36,7 @@ const saveCredential =
       ),
     );
 
-const CredentialForm = ({
+export const CredentialForm = ({
   provider,
   method,
   redirectUri,
@@ -76,5 +76,3 @@ const CredentialForm = ({
     </form>
   );
 };
-
-export { CredentialForm };

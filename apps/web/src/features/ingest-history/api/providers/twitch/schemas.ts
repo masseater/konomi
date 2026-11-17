@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-const Users = Schema.Struct({ data: Schema.Array(Schema.Struct({ id: Schema.String })) });
+export const Users = Schema.Struct({ data: Schema.Array(Schema.Struct({ id: Schema.String })) });
 
 const Followed = Schema.Struct({
   broadcaster_id: Schema.String,
@@ -11,12 +11,9 @@ const Followed = Schema.Struct({
 
 const Pagination = Schema.Struct({ cursor: Schema.optional(Schema.NullOr(Schema.String)) });
 
-const FollowedChannels = Schema.Struct({
+export const FollowedChannels = Schema.Struct({
   data: Schema.Array(Followed),
   pagination: Schema.optional(Schema.NullOr(Pagination)),
 });
 
-type TwitchFollowed = typeof Followed.Type;
-
-export type { TwitchFollowed };
-export { FollowedChannels, Users };
+export type TwitchFollowed = typeof Followed.Type;

@@ -7,7 +7,7 @@ import { answerConsent, clientNameQuery } from "#/pages/mcp-consent/api/consent"
 
 import { ConsentActions } from "./consent-actions";
 
-const ConsentForm = ({ clientId }: Readonly<{ clientId: string }>): ReactNode => {
+export const ConsentForm = ({ clientId }: Readonly<{ clientId: string }>): ReactNode => {
   const client = useQuery(clientNameQuery(clientId));
   const clientName = Option.getOrElse(Option.fromUndefinedOr(client.data), () => clientId);
   const { mutate, status } = useMutation({ mutationFn: answerConsent });
@@ -24,5 +24,3 @@ const ConsentForm = ({ clientId }: Readonly<{ clientId: string }>): ReactNode =>
     </section>
   );
 };
-
-export { ConsentForm };

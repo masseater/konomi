@@ -87,7 +87,10 @@ const pullLibrary = ({
     );
   });
 
-const pullAppleMusic = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullAppleMusic = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* appleMusic() {
     const headers = yield* headersOf(credential);
     const fetchedAt = yield* Clock.currentTimeMillis;
@@ -119,5 +122,3 @@ const pullAppleMusic = ({ credential, cursor }: PullInput): Effect.Effect<Pulled
       }).pipe(Effect.orDie),
     };
   }).pipe(Effect.withSpan("apple-music.pull"));
-
-export { pullAppleMusic };

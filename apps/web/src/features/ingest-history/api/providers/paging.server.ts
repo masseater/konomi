@@ -2,12 +2,12 @@ import { Effect, Match, Option } from "effect";
 
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-type Page<Item> = Readonly<{ items: readonly Item[]; next: Option.Option<string> }>;
+export type Page<Item> = Readonly<{ items: readonly Item[]; next: Option.Option<string> }>;
 
 const FIRST_PAGE = 1;
 const BACKFILL_PAGES = 20;
 
-const pagesUpTo =
+export const pagesUpTo =
   (backfill: number) =>
   (backfilled: boolean): number =>
     Match.value(backfilled).pipe(
@@ -15,9 +15,9 @@ const pagesUpTo =
       Match.orElse(() => backfill),
     );
 
-const pagesFor = pagesUpTo(BACKFILL_PAGES);
+export const pagesFor = pagesUpTo(BACKFILL_PAGES);
 
-const collectPages = <Item>({
+export const collectPages = <Item>({
   first,
   pages,
   fetchPage,
@@ -36,6 +36,3 @@ const collectPages = <Item>({
     }
     return collected;
   });
-
-export type { Page };
-export { collectPages, pagesFor, pagesUpTo };

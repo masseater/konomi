@@ -45,9 +45,7 @@ const observationsOf =
       Option.getOrElse((): readonly Observation[] => []),
     );
 
-const gamesObservedAt =
+export const gamesObservedAt =
   (fetchedAt: number) =>
   (games: readonly SteamGame[]): readonly Observation[] =>
     pipe(games, Arr.flatMap(observationsOf(fetchedAt)));
-
-export { gamesObservedAt };

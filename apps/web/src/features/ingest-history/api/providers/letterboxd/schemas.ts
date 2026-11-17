@@ -14,9 +14,6 @@ const Entry = Schema.Struct({
 
 const Channel = Schema.Struct({ item: Schema.optional(Schema.Array(Entry)) });
 
-const DiaryFeed = Schema.Struct({ rss: Schema.Struct({ channel: Channel }) });
+export const DiaryFeed = Schema.Struct({ rss: Schema.Struct({ channel: Channel }) });
 
-type LetterboxdEntry = typeof Entry.Type;
-
-export type { LetterboxdEntry };
-export { DiaryFeed };
+export type LetterboxdEntry = typeof Entry.Type;

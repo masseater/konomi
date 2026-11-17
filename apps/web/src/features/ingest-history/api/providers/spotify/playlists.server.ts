@@ -43,7 +43,9 @@ const pullPlaylist = (
     );
   });
 
-const pullPlaylists = (fetching: Fetching): Effect.Effect<readonly Observation[], ProviderError> =>
+export const pullPlaylists = (
+  fetching: Fetching,
+): Effect.Effect<readonly Observation[], ProviderError> =>
   Effect.gen(function* playlists() {
     const me = yield* fetchJson({ url: `${API}/me`, headers: fetching.headers, schema: Me });
     const owned = yield* collectOffsetPages({
@@ -61,5 +63,3 @@ const pullPlaylists = (fetching: Fetching): Effect.Effect<readonly Observation[]
     });
     return Arr.flatten(lists);
   });
-
-export { pullPlaylists };

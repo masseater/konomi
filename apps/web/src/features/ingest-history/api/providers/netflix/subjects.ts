@@ -34,7 +34,7 @@ const watchedInFull =
     secondsOf(row[ACTIVITY_COLUMN.duration]) >= MIN_WATCHED_SEC &&
     (Str.isEmpty(profile) || row[ACTIVITY_COLUMN.profile] === profile);
 
-const activityObservationsOf = ({
+export const activityObservationsOf = ({
   rows,
   profile,
 }: Readonly<{ rows: readonly ActivityRow[]; profile: string }>): readonly Observation[] =>
@@ -49,7 +49,7 @@ const activityObservationsOf = ({
     Arr.filter(({ occurredAtMs }) => Number.isFinite(occurredAtMs)),
   );
 
-const historyObservationsOf = ({
+export const historyObservationsOf = ({
   rows,
   epochs,
 }: Readonly<{ rows: readonly HistoryRow[]; epochs: readonly number[] }>): readonly Observation[] =>
@@ -63,10 +63,8 @@ const historyObservationsOf = ({
     })),
   );
 
-const historyDatesOf = (rows: readonly HistoryRow[]): readonly string[] =>
+export const historyDatesOf = (rows: readonly HistoryRow[]): readonly string[] =>
   pipe(
     rows,
     Arr.map((row) => row[HISTORY_COLUMN.date]),
   );
-
-export { activityObservationsOf, historyDatesOf, historyObservationsOf };

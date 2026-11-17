@@ -4,7 +4,7 @@ import { FIELD } from "./api";
 import { pullPlaystation } from "./pull.server";
 import { renewPlaystation } from "./tokens.server";
 
-const playstation: Provider = {
+export const playstation: Provider = {
   id: "playstation",
   name: "PlayStation",
   methods: [
@@ -20,5 +20,3 @@ const playstation: Provider = {
   pull: pullPlaystation,
   renew: renewPlaystation,
 };
-
-export { playstation };

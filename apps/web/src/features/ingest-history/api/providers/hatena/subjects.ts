@@ -40,11 +40,9 @@ const observationOf =
     ...contextOf(bookmark.description),
   });
 
-const hatenaObservationsOf =
+export const hatenaObservationsOf =
   (fetchedAt: number) =>
   (bookmarks: readonly HatenaBookmark[]): readonly Observation[] => {
     const observe = observationOf(epochOr(fetchedAt));
     return pipe(bookmarks, Arr.map(observe));
   };
-
-export { hatenaObservationsOf };

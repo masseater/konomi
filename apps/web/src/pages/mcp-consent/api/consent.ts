@@ -6,7 +6,7 @@ import { authClient } from "#/shared/auth";
 
 const ConsentSearch = Schema.Struct({ client_id: Schema.optional(Schema.String) });
 
-const validateConsentSearch = Schema.toStandardSchemaV1(ConsentSearch);
+export const validateConsentSearch = Schema.toStandardSchemaV1(ConsentSearch);
 
 const fetchClientName = (clientId: string): Promise<string> =>
   run(
@@ -22,7 +22,7 @@ const fetchClientName = (clientId: string): Promise<string> =>
     ),
   );
 
-const clientNameQuery = (
+export const clientNameQuery = (
   clientId: string,
 ): ReturnType<typeof queryOptions<string, Error, string, readonly ["oauth-client", string]>> =>
   queryOptions({
@@ -30,7 +30,5 @@ const clientNameQuery = (
     queryFn: () => fetchClientName(clientId),
   });
 
-const answerConsent = (accept: boolean): Promise<unknown> =>
+export const answerConsent = (accept: boolean): Promise<unknown> =>
   authClient.oauth2.consent({ accept, fetchOptions: { throw: true } });
-
-export { answerConsent, clientNameQuery, validateConsentSearch };

@@ -23,17 +23,14 @@ const Status = Schema.Struct({
   tags: Tags,
 });
 
-const Statuses = Schema.Array(Status);
+export const Statuses = Schema.Array(Status);
 
-const Accounts = Schema.Array(Account);
+export const Accounts = Schema.Array(Account);
 
-const Verified = Schema.Struct({ id: Schema.String });
+export const Verified = Schema.Struct({ id: Schema.String });
 
-type MastodonAccount = typeof Account.Type;
+export type MastodonAccount = typeof Account.Type;
 
-type MastodonStatus = typeof Status.Type;
+export type MastodonStatus = typeof Status.Type;
 
-type MastodonTag = typeof Tag.Type;
-
-export type { MastodonAccount, MastodonStatus, MastodonTag };
-export { Accounts, Statuses, Verified };
+export type MastodonTag = typeof Tag.Type;

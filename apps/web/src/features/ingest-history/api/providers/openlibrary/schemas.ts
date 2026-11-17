@@ -15,9 +15,6 @@ const Entry = Schema.Struct({
   logged_date: Schema.optional(Schema.NullOr(Schema.String)),
 });
 
-const ReadingLog = Schema.Struct({ reading_log_entries: Schema.Array(Entry) });
+export const ReadingLog = Schema.Struct({ reading_log_entries: Schema.Array(Entry) });
 
-type OpenLibraryEntry = typeof Entry.Type;
-
-export type { OpenLibraryEntry };
-export { ReadingLog };
+export type OpenLibraryEntry = typeof Entry.Type;

@@ -149,12 +149,10 @@ const videoOf = ({ name, value }: Named): Option.Option<VideoParts> =>
     Match.orElse(() => fromLockup(value)),
   );
 
-const historyVideosOf = (page: unknown): readonly VideoParts[] =>
+export const historyVideosOf = (page: unknown): readonly VideoParts[] =>
   pipe(
     nodesNamed(page, [RENDERER, LOCKUP]),
     Arr.map(videoOf),
     Arr.getSomes,
     Arr.dedupeWith((left, right) => left.id === right.id),
   );
-
-export { historyVideosOf };

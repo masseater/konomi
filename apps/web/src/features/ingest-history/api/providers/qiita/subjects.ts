@@ -33,7 +33,7 @@ const articleOf = (item: QiitaItem): SubjectInput => ({
   ),
 });
 
-const stockObservationsOf =
+export const stockObservationsOf =
   (fetchedAt: number) =>
   (items: readonly QiitaItem[]): readonly Observation[] =>
     pipe(
@@ -44,5 +44,3 @@ const stockObservationsOf =
         occurredAtMs: fetchedAt,
       })),
     );
-
-export { stockObservationsOf };

@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullVocaDb } from "./pull.server";
 
-const vocadb: Provider = {
+export const vocadb: Provider = {
   id: "vocadb",
   name: "VocaDB",
   methods: [
@@ -20,5 +20,3 @@ const vocadb: Provider = {
   pull: pullVocaDb,
   renew: Effect.succeed,
 };
-
-export { vocadb };

@@ -37,7 +37,7 @@ const workOf = (card: Card): SubjectInput => ({
   tags: yearOf(card.label),
 });
 
-const markObservationsOf =
+export const markObservationsOf =
   (fetchedAt: number) =>
   (card: Card): readonly Observation[] => {
     const subject = workOf(card);
@@ -55,7 +55,7 @@ const markObservationsOf =
     );
   };
 
-const clipObservationOf =
+export const clipObservationOf =
   (fetchedAt: number) =>
   (card: Card): Observation => ({
     kind: "collected",
@@ -63,5 +63,3 @@ const clipObservationOf =
     occurredAtMs: fetchedAt,
     context: WANTED,
   });
-
-export { clipObservationOf, markObservationsOf };

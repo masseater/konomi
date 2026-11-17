@@ -75,7 +75,7 @@ const authorizationOf = (cookie: string): Effect.Effect<string, ProviderError> =
     return Arr.join(parts, " ");
   });
 
-const pullHistory = (cookie: string): Effect.Effect<readonly VideoParts[], ProviderError> =>
+export const pullHistory = (cookie: string): Effect.Effect<readonly VideoParts[], ProviderError> =>
   Effect.gen(function* history() {
     const authorization = yield* authorizationOf(cookie);
     const page = yield* postJson({
@@ -100,5 +100,3 @@ const pullHistory = (cookie: string): Effect.Effect<readonly VideoParts[], Provi
     });
     return historyVideosOf(page);
   }).pipe(Effect.withSpan("youtube.history"));
-
-export { pullHistory };

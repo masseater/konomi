@@ -29,6 +29,4 @@ const connectAppleMusic = (): Promise<unknown> =>
     ),
   );
 
-const connectAppleMusicMutation = mutationOptions({ mutationFn: connectAppleMusic });
-
-export { connectAppleMusicMutation };
+export const connectAppleMusicMutation = mutationOptions({ mutationFn: connectAppleMusic });

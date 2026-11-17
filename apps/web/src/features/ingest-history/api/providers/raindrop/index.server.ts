@@ -5,7 +5,7 @@ import type { Provider } from "#/features/ingest-history/model/provider";
 import { FIELD } from "./api";
 import { pullRaindrop } from "./pull.server";
 
-const raindrop: Provider = {
+export const raindrop: Provider = {
   id: "raindrop",
   name: "Raindrop.io",
   methods: [
@@ -21,5 +21,3 @@ const raindrop: Provider = {
   pull: pullRaindrop,
   renew: Effect.succeed,
 };
-
-export { raindrop };

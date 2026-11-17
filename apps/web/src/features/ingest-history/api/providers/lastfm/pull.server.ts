@@ -150,7 +150,10 @@ const latestUtsOf = (
     Arr.match({ onEmpty: Option.none, onNonEmpty: (all) => Option.some(Math.max(...all)) }),
   );
 
-const pullLastfm = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+export const pullLastfm = ({
+  credential,
+  cursor,
+}: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* lastfm() {
     const account = yield* accountOf(credential);
     const fetchedAt = yield* Clock.currentTimeMillis;
@@ -172,5 +175,3 @@ const pullLastfm = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, Pr
       cursor: yield* encodeCursor(next).pipe(Effect.orDie),
     };
   }).pipe(Effect.withSpan("lastfm.pull"));
-
-export { pullLastfm };

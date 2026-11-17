@@ -14,7 +14,7 @@ const FIRST_VISIT = 0;
 const STEP = 1;
 const EMPTY = 0;
 
-type Named = Readonly<{ name: string; value: unknown }>;
+export type Named = Readonly<{ name: string; value: unknown }>;
 
 const childrenOf = (node: unknown): readonly unknown[] =>
   Match.value(node).pipe(
@@ -53,12 +53,12 @@ const walk = (root: unknown, names: readonly string[]): readonly Named[] => {
   return found;
 };
 
-const nodesNamed: {
+export const nodesNamed: {
   (names: readonly string[]): (root: unknown) => readonly Named[];
   (root: unknown, names: readonly string[]): readonly Named[];
 } = Fn.dual(BINARY, walk);
 
-const valuesNamed: {
+export const valuesNamed: {
   (name: string): (root: unknown) => readonly unknown[];
   (root: unknown, name: string): readonly unknown[];
 } = Fn.dual(BINARY, (root: unknown, name: string): readonly unknown[] =>
@@ -67,6 +67,3 @@ const valuesNamed: {
     Arr.map(({ value }) => value),
   ),
 );
-
-export type { Named };
-export { nodesNamed, valuesNamed };

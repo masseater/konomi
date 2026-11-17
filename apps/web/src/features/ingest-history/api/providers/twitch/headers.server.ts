@@ -6,7 +6,7 @@ import type { Headers } from "#/features/ingest-history/api/providers/http.serve
 import { OAUTH_FIELD } from "#/features/ingest-history/api/providers/oauth.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-const headersOf = (credential: Credential): Effect.Effect<Headers, ProviderError> =>
+export const headersOf = (credential: Credential): Effect.Effect<Headers, ProviderError> =>
   Effect.all(
     {
       token: requireField(credential, OAUTH_FIELD.accessToken),
@@ -19,5 +19,3 @@ const headersOf = (credential: Credential): Effect.Effect<Headers, ProviderError
       "Client-Id": clientId,
     })),
   );
-
-export { headersOf };

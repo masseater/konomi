@@ -71,7 +71,7 @@ const pullListens = ({
       ),
   });
 
-const pullListenbrainz = ({
+export const pullListenbrainz = ({
   credential,
   cursor,
 }: PullInput): Effect.Effect<Pulled, ProviderError> =>
@@ -86,5 +86,3 @@ const pullListenbrainz = ({
       cursor: yield* BACKFILLED,
     };
   }).pipe(Effect.withSpan("listenbrainz.pull"));
-
-export { pullListenbrainz };

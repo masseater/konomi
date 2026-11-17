@@ -51,11 +51,9 @@ const ratedObservationOf =
     ),
   });
 
-const ratedObservationsOf =
+export const ratedObservationsOf =
   (fetchedAt: number) =>
   (rated: readonly VocaDbRated[]): readonly Observation[] => {
     const observe = ratedObservationOf(epochOr(fetchedAt));
     return pipe(rated, Arr.map(observe));
   };
-
-export { ratedObservationsOf };
