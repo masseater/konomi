@@ -9,7 +9,7 @@ catalogMode: prefer
 
 catalog:
   "@r_masseater/msch": 0.38.1
-  "@cloudflare/workers-types": 5.20261114.1
+  "@cloudflare/workers-types": 5.20261115.1
   "@effect/platform-node": 4.1.4
   "@types/node": 26.6.6
   vite: npm:@voidzero-dev/vite-plus-core@1.6.0
@@ -20,8 +20,8 @@ catalog:
   "@yarnpkg/parsers": 3.1.0
   jose: 6.2.17
   otpauth: 9.6.0
-  "@better-auth/mcp": 1.7.23
-  "@better-auth/oauth-provider": 1.7.23
+  "@better-auth/mcp": 1.7.25
+  "@better-auth/oauth-provider": 1.7.25
   "@modelcontextprotocol/client": 2.4.0
   fast-xml-parser: 5.12.1
   "@nodable/entities": 3.1.0
@@ -42,7 +42,7 @@ catalogs:
     "@alchemy.run/cloudflare": 2.0.0-beta.87
     "@alchemy.run/fly": 2.0.0-beta.87
     alchemy: 2.0.0-beta.87
-    better-auth: 1.7.23
+    better-auth: 1.7.25
     drizzle-kit: 1.0.0-rc.5-ab785fc
     drizzle-orm: 1.0.0-rc.5-ab785fc
     eden-tanstack-react-query: 0.5.1
