@@ -8,12 +8,12 @@ packages:
 catalogMode: prefer
 
 catalog:
-  "@r_masseater/msch": 0.38.1
-  "@cloudflare/workers-types": 5.20261116.1
+  "@r_masseater/msch": 0.41.0
+  "@cloudflare/workers-types": 5.20261117.1
   "@effect/platform-node": 4.1.4
   "@types/node": 26.6.6
   vite: npm:@voidzero-dev/vite-plus-core@1.6.0
-  "@tanstack/react-query-devtools": 5.107.1
+  "@tanstack/react-query-devtools": 5.107.2
   "@vitejs/plugin-react": 6.3.0
   "@vitejs/plugin-rsc": 0.5.39
   "@tanstack/intent": 0.5.6
@@ -29,15 +29,15 @@ catalog:
   psn-api: 2.18.1
   "@modelcontextprotocol/server": 2.4.0
   "@r_masseater/web-vitals-flow": 0.2.0
-  "@r_masseater/workers-tracing": 0.3.0
+  "@r_masseater/workers-tracing": 0.5.0
   "@book000/pixivts": 0.64.0
 catalogs:
   stack:
     "@distilled.cloud/cloudflare": 1.0.0-rc.20
     "@effect/atom-react": 4.1.4
-    "@effect/tsgo": 0.69.0
+    "@effect/tsgo": 0.70.0
     "@elysiajs/eden": 1.4.9
-    "@tanstack/react-query": 5.107.1
+    "@tanstack/react-query": 5.107.2
     "@tanstack/react-start": 1.169.5
     "@alchemy.run/cloudflare": 2.0.0-beta.87
     "@alchemy.run/fly": 2.0.0-beta.87
@@ -51,10 +51,10 @@ catalogs:
     fallow: 3.43.2
     fallow-type-aware: 3.43.2
     radix-ui: 1.8.1
-    renovate: 44.240.0
+    renovate: 44.249.3
     tailwindcss: 4.3.5
     typescript: 7.1.0-beta
-    vite-plus: 1.6.0
+    vite-plus: 1.7.0
 overrides:
   "capnp-es>typescript": "-"
   vite@*: "catalog:"
