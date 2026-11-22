@@ -298,8 +298,8 @@ catalogs:
       specifier: 1.8.1
       version: 1.8.1
     renovate:
-      specifier: 44.252.7
-      version: 44.252.7
+      specifier: 44.252.9
+      version: 44.252.9
     tailwindcss:
       specifier: 4.3.5
       version: 4.3.5
@@ -354,7 +354,7 @@ importers:
         version: 3.43.2
       renovate:
         specifier: catalog:stack
-        version: 44.252.7(supports-color@8.1.1)(typanion@3.14.0)
+        version: 44.252.9(supports-color@8.1.1)(typanion@3.14.0)
       vite-plus:
         specifier: catalog:stack
         version: 1.7.0(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(@vitest/ui@5.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1)
@@ -4285,8 +4285,8 @@ packages:
     peerDependencies:
       '@redis/client': ^6.2.1
 
-  '@renovatebot/base-image@13.172.4':
-    resolution: {integrity: sha512-7lMTTuVNCBqSayRa4vNWfhu+owpy9DsxGTuJOIsNBoeIwHqMiJRSQXG5AILHS3Nloab7ohTSTjamsZQp/qeqIQ==}
+  '@renovatebot/base-image@13.172.5':
+    resolution: {integrity: sha512-Q3Q9W8XIw22xVfhGXJ28FhSfoMOkCfdaNCrBCo2ctENbTF2cljd+7XsJE49LELXdzivbBT56t/D0dIM8IgQbmA==}
     engines: {node: '>=24.10.0'}
     peerDependencies:
       zod: ^4.0.0
@@ -8912,6 +8912,11 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
+  prettier@3.10.1:
+    resolution: {integrity: sha512-70vp3ZUYoPlFbF9uiTdXHUUCGEIp7d4+6p+8DYbkm2jP7x/3i/paXVF6dopSI3zd/CEitrZN1rc4i85xWmmXlg==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   prettier@3.9.10:
     resolution: {integrity: sha512-skGHTH1Yb9QvaTC4hWnRTzEYtCpApF0UMBPz+t/0ZPzP8ihefo/btKd+QA7pUE0fEwA1SbS/NmhyEcstdXOIdA==}
     engines: {node: '>=14'}
@@ -9129,8 +9134,8 @@ packages:
   remove-accents@0.5.0:
     resolution: {integrity: sha512-8g3/Otx1eJaVD12e31UbJj1YzdtVvzH85HV7t+9MJYk/u3XmkOUJ5Ys9wQrf9PCPK8+xn4ymzqYCiZl6QWKn+A==}
 
-  renovate@44.252.7:
-    resolution: {integrity: sha512-VpbKHbzmXc6Y1ebftn00X9wmm3WWMrGZBuIZQkaaM8HFkyyP0421gSKLOdn5UfKyK1gL3apf8aZfaNKy+SHeMw==}
+  renovate@44.252.9:
+    resolution: {integrity: sha512-zT7UVgWK9KP8+jzLKMnZw5cWHzaIWuOiru8kxRF8qmYfJhL5i32+kiNFxnNPFHRGFOjSwvPYJgFkvq+td3xbnA==}
     engines: {node: ^24.11.0 || ^26.13.0, pnpm: ^11.0.0}
     hasBin: true
 
@@ -14036,7 +14041,7 @@ snapshots:
     dependencies:
       '@redis/client': 6.2.1(@opentelemetry/api@1.10.0)
 
-  '@renovatebot/base-image@13.172.4(zod@4.6.7)':
+  '@renovatebot/base-image@13.172.5(zod@4.6.7)':
     dependencies:
       '@containerbase/base': 14.67.3(zod@4.6.7)
     optionalDependencies:
@@ -19159,6 +19164,8 @@ snapshots:
 
   prettier@3.10.0: {}
 
+  prettier@3.10.1: {}
+
   prettier@3.9.10: {}
 
   pretty-format@27.5.1:
@@ -19513,7 +19520,7 @@ snapshots:
 
   remove-accents@0.5.0: {}
 
-  renovate@44.252.7(supports-color@8.1.1)(typanion@3.14.0):
+  renovate@44.252.9(supports-color@8.1.1)(typanion@3.14.0):
     dependencies:
       '@aws-sdk/client-codecommit': 3.1139.0
       '@aws-sdk/client-ec2': 3.1139.0
@@ -19546,7 +19553,7 @@ snapshots:
       '@pnpm/parse-overrides': 1001.0.4
       '@qnighy/marshal': 0.1.3
       '@redis/client': 6.3.1(@opentelemetry/api@1.10.0)
-      '@renovatebot/base-image': 13.172.4(zod@4.6.7)
+      '@renovatebot/base-image': 13.172.5(zod@4.6.7)
       '@renovatebot/detect-tools': 5.0.0
       '@renovatebot/good-enough-parser': 4.0.3
       '@renovatebot/osv-offline': 4.5.10(supports-color@8.1.1)(zod@4.6.7)
@@ -19612,7 +19619,7 @@ snapshots:
       p-queue: 9.3.5
       p-throttle: 8.1.1
       parse-link-header: 2.0.0
-      prettier: 3.10.0
+      prettier: 3.10.1
       protobufjs: 8.8.1
       punycode: 2.3.1
       remark: 15.0.1(supports-color@8.1.1)
