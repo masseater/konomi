@@ -9,7 +9,7 @@ catalogMode: prefer
 
 catalog:
   "@r_masseater/msch": 0.50.0
-  "@cloudflare/workers-types": 5.20261118.1
+  "@cloudflare/workers-types": 5.20261119.1
   "@effect/platform-node": 4.1.4
   "@types/node": 26.6.6
   vite: npm:@voidzero-dev/vite-plus-core@8.3.8000
@@ -18,7 +18,7 @@ catalog:
   "@vitejs/plugin-rsc": 0.5.39
   "@tanstack/intent": 0.5.6
   "@yarnpkg/parsers": 3.1.0
-  jose: 6.2.17
+  jose: 6.2.18
   otpauth: 9.6.0
   "@better-auth/mcp": 1.7.26
   "@better-auth/oauth-provider": 1.7.26
@@ -51,7 +51,7 @@ catalogs:
     fallow: 3.43.2
     fallow-type-aware: 3.43.2
     radix-ui: 1.8.1
-    renovate: 44.252.6
+    renovate: 44.252.7
     tailwindcss: 4.3.5
     typescript: 7.1.0-beta
     vite-plus: 1.7.0
