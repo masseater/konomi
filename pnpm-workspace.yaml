@@ -51,7 +51,7 @@ catalogs:
     fallow: 3.44.0
     fallow-type-aware: 3.44.0
     radix-ui: 1.8.1
-    renovate: 44.255.1
+    renovate: 44.255.2
     tailwindcss: 4.3.5
     typescript: 7.1.0-beta
     vite-plus: 1.7.0
