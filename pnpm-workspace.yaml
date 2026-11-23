@@ -10,7 +10,7 @@ catalogMode: prefer
 catalog:
   "@r_masseater/msch": 0.53.0
   "@cloudflare/workers-types": 5.20261120.1
-  "@effect/platform-node": 4.1.4
+  "@effect/platform-node": 4.1.5
   "@types/node": 26.6.6
   vite: npm:@voidzero-dev/vite-plus-core@8.3.8000
   "@tanstack/react-query-devtools": 5.108.1
@@ -34,7 +34,7 @@ catalog:
 catalogs:
   stack:
     "@distilled.cloud/cloudflare": 1.0.0-rc.20
-    "@effect/atom-react": 4.1.4
+    "@effect/atom-react": 4.1.5
     "@effect/tsgo": 0.73.2
     "@elysiajs/eden": 1.4.9
     "@tanstack/react-query": 5.108.1
@@ -46,7 +46,7 @@ catalogs:
     drizzle-kit: 1.0.0-rc.5-ab785fc
     drizzle-orm: 1.0.0-rc.5-ab785fc
     eden-tanstack-react-query: 0.5.1
-    effect: 4.1.4
+    effect: 4.1.5
     elysia: 1.4.32
     fallow: 3.44.0
     fallow-type-aware: 3.44.0
