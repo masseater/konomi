@@ -108,9 +108,9 @@ export const browse = <Value, Failure>(
 
 export type Headers = Readonly<Record<string, string>>;
 
-type Endpoint = Readonly<{ url: string; headers: Headers }>;
+export type Endpoint = Readonly<{ url: string; headers: Headers }>;
 
-type Decoded<Body extends Schema.Top, Needs = never> = Effect.Effect<
+export type Decoded<Body extends Schema.Top, Needs = never> = Effect.Effect<
   Body["Type"],
   ProviderError,
   Body["DecodingServices"] | Needs

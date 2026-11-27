@@ -51,6 +51,18 @@ const unavailable =
 const sdkCall = <Out>(step: string, run: () => Promise<Out>): Effect.Effect<Out, ProviderError> =>
   Effect.tryPromise({ try: run, catch: unavailable(step) });
 
+const registeredClientOf = (
+  credential: Credential,
+): Effect.Effect<Readonly<{ client_id: string }>, ProviderError> =>
+  requireField(credential, OAUTH_FIELD.clientId).pipe(
+    Effect.map((clientId) => ({ client_id: clientId })),
+  );
+
+const settled = (
+  credential: Credential,
+  tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
+): Credential => withTokens(credential, tokens, [OAUTH_FIELD.state, VERIFIER_FIELD]);
+
 const clientIdOf = ({
   discovery,
   credential,
@@ -135,32 +147,32 @@ export const finishDiscovered = ({
   redirectUri: string;
 }>): Effect.Effect<Credential, ProviderError> =>
   Effect.gen(function* finish() {
-    const clientId = yield* requireField(credential, OAUTH_FIELD.clientId);
+    const clientInformation = yield* registeredClientOf(credential);
     const codeVerifier = yield* requireField(credential, VERIFIER_FIELD);
     const tokens = yield* sdkCall("トークンの受け取り", () =>
       exchangeAuthorization(discovery.issuer, {
-        clientInformation: { client_id: clientId },
+        clientInformation,
         authorizationCode: code,
         codeVerifier,
         redirectUri,
         resource: new URL(discovery.resource),
       }),
     );
-    return withTokens(credential, tokens, [OAUTH_FIELD.state, VERIFIER_FIELD]);
+    return settled(credential, tokens);
   }).pipe(Effect.withSpan("oauth.discovered.finish"));
 
 export const refreshDiscovered =
   (discovery: Discovery) =>
   (credential: Credential): Effect.Effect<Credential, ProviderError> =>
     Effect.gen(function* refresh() {
-      const clientId = yield* requireField(credential, OAUTH_FIELD.clientId);
+      const clientInformation = yield* registeredClientOf(credential);
       const refreshToken = yield* requireField(credential, OAUTH_FIELD.refreshToken);
       const tokens = yield* sdkCall("トークンの更新", () =>
         refreshAuthorization(discovery.issuer, {
-          clientInformation: { client_id: clientId },
+          clientInformation,
           refreshToken,
           resource: new URL(discovery.resource),
         }),
       );
-      return withTokens(credential, tokens, [OAUTH_FIELD.state, VERIFIER_FIELD]);
+      return settled(credential, tokens);
     }).pipe(Effect.withSpan("oauth.discovered.refresh"));

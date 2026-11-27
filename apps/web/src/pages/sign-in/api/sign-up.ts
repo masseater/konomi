@@ -1,7 +1,8 @@
-import { run } from "@r_masseater/workers-tracing/effect";
-import { Effect, Record, Schema } from "effect";
+import { Schema } from "effect";
 
 import { authClient } from "#/shared/auth";
+
+import { submitOf } from "./submit-of";
 
 const HOME = "/";
 
@@ -11,13 +12,6 @@ const Owner = Schema.Struct({
   password: Schema.String,
 });
 
-export const signUp = (form: Readonly<FormData>): Promise<unknown> =>
-  run(
-    Schema.decodeUnknownEffect(Owner)(Record.fromEntries(form)).pipe(
-      Effect.flatMap((owner) =>
-        Effect.promise(() =>
-          authClient.signUp.email({ ...owner, callbackURL: HOME, fetchOptions: { throw: true } }),
-        ),
-      ),
-    ),
-  );
+export const signUp = submitOf(Schema.decodeUnknownEffect(Owner))((owner) =>
+  authClient.signUp.email({ ...owner, callbackURL: HOME, fetchOptions: { throw: true } }),
+);
