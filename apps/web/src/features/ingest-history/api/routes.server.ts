@@ -1,19 +1,9 @@
-import {
-  Array as Arr,
-  Effect,
-  Match,
-  Option,
-  Record as Rec,
-  Schema,
-  String as Str,
-  pipe,
-} from "effect";
+import { Effect, Match, Option, Record as Rec, Schema, String as Str, pipe } from "effect";
 
 import { forgetConnection, saveCredential } from "#/entities/connection/index.server";
 import { createRouter } from "#/shared/api/index.server";
 import { auth } from "#/shared/auth/index.server";
 import { PROVIDER_IDS } from "#/shared/config";
-import type { ProviderId } from "#/shared/config";
 import { runRequest } from "#/shared/observability/index.server";
 
 import {
@@ -24,7 +14,7 @@ import {
   importResponse,
   saveAppleUserTokenResponse,
 } from "./handlers.server";
-import { PROVIDERS } from "./providers/index.server";
+import { knowsMethod } from "./providers/index.server";
 import { statusOf } from "./status.server";
 import { syncAll } from "./sync.server";
 
@@ -73,12 +63,6 @@ const rejectStranger = <Rejection>({
     ),
   );
 
-const knowsMethod = (provider: ProviderId, method: string): boolean =>
-  pipe(
-    PROVIDERS[provider].methods,
-    Arr.some(({ id }) => id === method),
-  );
-
 const filledFields = (fields: Readonly<Record<string, string>>): Record<string, string> =>
   pipe(
     fields,
@@ -94,7 +78,7 @@ export const connectionRoutes = createRouter("/api/connections")
   .put(
     "/:provider",
     ({ params, body, status }) =>
-      Match.value(knowsMethod(params.provider, body.method)).pipe(
+      Match.value(knowsMethod(body.method)(params.provider)).pipe(
         Match.when(true, () =>
           runRequest(
             saveCredential({

@@ -1,7 +1,7 @@
 import { Array as Arr, DateTime, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { personMapper } from "#/features/ingest-history/api/providers/observe";
+import { creatorMapper, personMapper } from "#/features/ingest-history/api/providers/observe";
 
 import type { VideoEntry } from "./schemas";
 
@@ -14,12 +14,10 @@ const epochMillisOf = (text: string): Option.Option<number> =>
 
 export const personOf = personMapper({ provider: "niconico", idPrefix: "", urlBase: USER_URL });
 
-const channelOf = ({ id, name }: Readonly<{ id: string; name: string }>): CreatorInput => ({
+const channelOf = creatorMapper("channel")({
   provider: "niconico",
-  externalId: id,
-  type: "channel",
-  title: name,
-  url: `${CHANNEL_URL}${id}`,
+  idPrefix: "",
+  urlBase: CHANNEL_URL,
 });
 
 const ownerOf = ({ video }: VideoEntry): readonly CreatorInput[] => {

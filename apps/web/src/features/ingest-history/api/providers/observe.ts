@@ -1,6 +1,7 @@
 import { Array as Arr, Effect, Function as Fn, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import type { SignalKind } from "#/shared/config";
@@ -17,9 +18,7 @@ export const epochOr =
   (fallback: number) =>
   (text: string | null | undefined): number =>
     pipe(
-      Option.fromNullishOr(text),
-      Option.map((value) => Date.parse(value)),
-      Option.filter(Number.isFinite),
+      parsedEpoch(Option.fromNullishOr(text)),
       Option.getOrElse(() => fallback),
     );
 
@@ -147,17 +146,21 @@ export const datedObservationsOf = <Entry>({
   );
 };
 
-export const personInputOf = ({
-  provider,
-  externalId,
-  title,
-  url,
-}: Readonly<{
-  provider: CreatorInput["provider"];
-  externalId: string;
-  title: string;
-  url: string;
-}>): CreatorInput => ({ provider, externalId, type: "person", title, url });
+export const creatorInputOf =
+  (type: CreatorInput["type"]) =>
+  ({
+    provider,
+    externalId,
+    title,
+    url,
+  }: Readonly<{
+    provider: CreatorInput["provider"];
+    externalId: string;
+    title: string;
+    url: string;
+  }>): CreatorInput => ({ provider, externalId, type, title, url });
+
+export const personInputOf = creatorInputOf("person");
 
 export const nonEmptyOr =
   (fallback: string) =>
@@ -168,19 +171,22 @@ export const nonEmptyOr =
       Option.getOrElse(() => fallback),
     );
 
-export const personMapper =
+export const creatorMapper =
+  (type: CreatorInput["type"]) =>
   ({
     provider,
     idPrefix,
     urlBase,
   }: Readonly<{ provider: CreatorInput["provider"]; idPrefix: string; urlBase: string }>) =>
   ({ id, name }: Readonly<{ id: string | number; name: string }>): CreatorInput =>
-    personInputOf({
+    creatorInputOf(type)({
       provider,
       externalId: `${idPrefix}${id}`,
       title: name,
       url: `${urlBase}${id}`,
     });
+
+export const personMapper = creatorMapper("person");
 
 export const withRelations =
   (relations: Pick<SubjectInput, "credits" | "tags">) =>

@@ -1,5 +1,7 @@
 import { Option, pipe } from "effect";
 
+import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
+
 const MS_PER_SECOND = 1000;
 
 export const durationOf = (seconds: Option.Option<number>): Readonly<{ durationSec?: number }> =>
@@ -19,9 +21,7 @@ export const durationFromMs = (millis: Option.Option<number>): Readonly<{ durati
 
 export const publishedOf = (date: Option.Option<string>): Readonly<{ publishedAtMs?: number }> =>
   pipe(
-    date,
-    Option.map((text) => Date.parse(text)),
-    Option.filter(Number.isFinite),
+    parsedEpoch(date),
     Option.map((publishedAtMs) => ({ publishedAtMs })),
     Option.getOrElse(() => ({})),
   );

@@ -1,6 +1,7 @@
 import { Array as Arr, Option, Order, String as Str, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
+import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
 import { cellOf } from "#/features/ingest-history/api/providers/export-cell";
 
 import { LIBRARY_COLUMN, MIN_READ_MS, OWNED_ITEM, SESSION_COLUMN, STORE } from "./api";
@@ -8,12 +9,7 @@ import type { LibraryRow, SessionRow } from "./schemas";
 
 const MS_PER_DAY = 86_400_000;
 
-const epochOf = (text: string | undefined): Option.Option<number> =>
-  pipe(
-    cellOf(text),
-    Option.map((value) => Date.parse(value)),
-    Option.filter(Number.isFinite),
-  );
+const epochOf = (text: string | undefined): Option.Option<number> => parsedEpoch(cellOf(text));
 
 type Book = Readonly<{ asin: string; title: string; series: Option.Option<string> }>;
 

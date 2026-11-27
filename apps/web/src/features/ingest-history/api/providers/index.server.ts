@@ -1,3 +1,6 @@
+import { Option, pipe } from "effect";
+
+import { methodOf } from "#/features/ingest-history/model/provider";
 import type { Provider } from "#/features/ingest-history/model/provider";
 import type { ProviderId } from "#/shared/config";
 
@@ -16,3 +19,8 @@ export const PROVIDERS: Readonly<Record<ProviderId, Provider>> = {
   ...VIDEO_PROVIDERS,
   ...WEB_PROVIDERS,
 };
+
+export const knowsMethod =
+  (method: string) =>
+  (provider: ProviderId): boolean =>
+    Option.isSome(pipe(PROVIDERS[provider], methodOf(method)));
