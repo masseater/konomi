@@ -1,25 +1,23 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
+import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
 import { stampedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
 import { WEB } from "./api";
 import type { VocaDbCredit, VocaDbRated } from "./schemas";
 
+const artistOf = personMapper({
+  provider: "vocadb",
+  idPrefix: "artist:",
+  urlBase: `${WEB}/Ar/`,
+});
+
 const RATING_LABEL: Readonly<Record<string, string>> = { Favorite: "お気に入り", Like: "好き" };
 
 const creditOf = ({ artist }: VocaDbCredit): Option.Option<CreatorInput> =>
-  pipe(
-    Option.fromNullishOr(artist),
-    Option.map(({ id, name }) => ({
-      provider: "vocadb" as const,
-      externalId: `artist:${id}`,
-      type: "person" as const,
-      title: name,
-      url: `${WEB}/Ar/${id}`,
-    })),
-  );
+  pipe(Option.fromNullishOr(artist), Option.map(artistOf));
 
 const songOf = ({ song }: VocaDbRated): SubjectInput => ({
   provider: "vocadb",

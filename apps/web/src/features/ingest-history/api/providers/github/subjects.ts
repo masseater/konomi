@@ -1,6 +1,7 @@
 import { Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
+import { personIn } from "#/features/ingest-history/api/providers/creator-input";
 import {
   followedCreatorsAt,
   stampedObservationsOf,
@@ -8,13 +9,12 @@ import {
 
 import type { GitHubAccount, GitHubStar } from "./schemas";
 
-const accountOf = (account: GitHubAccount): CreatorInput => ({
-  provider: "github",
-  externalId: String(account.id),
-  type: "person",
-  title: account.login,
-  url: account.html_url,
-});
+const accountOf = (account: GitHubAccount): CreatorInput =>
+  personIn("github")({
+    externalId: String(account.id),
+    title: account.login,
+    url: account.html_url,
+  });
 
 const repositoryOf = ({ repo }: GitHubStar): SubjectInput => ({
   provider: "github",

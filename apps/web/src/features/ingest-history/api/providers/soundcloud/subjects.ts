@@ -1,7 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
+import { personIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
 import {
   durationFromMs,
   publishedOf,
@@ -11,13 +11,12 @@ import type { SoundcloudPlaylist, SoundcloudTrack, SoundcloudUser } from "./sche
 
 const TAG = /"(?<quoted>[^"]+)"|(?<bare>\S+)/gu;
 
-const userOf = (user: SoundcloudUser): CreatorInput => ({
-  provider: "soundcloud",
-  externalId: String(user.id),
-  type: "person",
-  title: user.username,
-  url: user.permalink_url,
-});
+const userOf = (user: SoundcloudUser): CreatorInput =>
+  personIn("soundcloud")({
+    externalId: String(user.id),
+    title: user.username,
+    url: user.permalink_url,
+  });
 
 const creditsOf = (user: SoundcloudUser | null | undefined): readonly CreatorInput[] =>
   pipe(Option.fromNullishOr(user), Option.map(userOf), Option.toArray);

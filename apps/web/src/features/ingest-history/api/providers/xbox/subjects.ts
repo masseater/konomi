@@ -1,6 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
+import { personIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
 
 import { GAME, WEB } from "./api";
 import type { XboxPerson, XboxTitle } from "./schemas";
@@ -52,14 +53,12 @@ export const friendObservationsOf =
       Arr.map(({ xuid, gamertag }) => ({
         kind: "followed" as const,
         occurredAtMs: fetchedAt,
-        subject: {
-          provider: "xbox" as const,
-          externalId: `user:${xuid}`,
-          type: "person" as const,
-          title: gamertag,
-          url: `${WEB}/play/user/${encodeURIComponent(gamertag)}`,
-          credits: [],
-          tags: [],
-        },
+        subject: withoutRelations(
+          personIn("xbox")({
+            externalId: `user:${xuid}`,
+            title: gamertag,
+            url: `${WEB}/play/user/${encodeURIComponent(gamertag)}`,
+          }),
+        ),
       })),
     );
