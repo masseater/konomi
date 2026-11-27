@@ -28,5 +28,3 @@ const Paging = Next.pipe(Schema.NullOr, Schema.optional);
 export const UserList = Schema.Struct({ data: Schema.Array(Entry), paging: Paging });
 
 export type MalEntry = typeof Entry.Type;
-
-export type MalGenre = typeof Genre.Type;

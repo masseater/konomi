@@ -2,6 +2,7 @@ import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
+import { subjectIn, textTagsOf } from "#/features/ingest-history/api/providers/subject-in";
 
 import { WEB } from "./api";
 import type { TraktEpisode, TraktRated, TraktWatched, TraktWork } from "./schemas";
@@ -14,42 +15,37 @@ const slugOf = (work: TraktWork): string =>
     Option.getOrElse(() => String(work.ids.trakt)),
   );
 
-const yearTagsOf = (work: TraktWork): readonly string[] =>
-  pipe(Option.fromNullishOr(work.year), Option.map(String), Option.toArray);
+const yearTagsOf = (work: TraktWork): readonly string[] => textTagsOf(work.year);
 
-const movieOf = (movie: TraktWork): SubjectInput => ({
-  provider: "trakt",
-  externalId: `movie:${movie.ids.trakt}`,
-  type: "movie",
-  title: movie.title,
-  url: `${WEB}/movies/${slugOf(movie)}`,
-  credits: [],
-  tags: yearTagsOf(movie),
-});
+const trakt = subjectIn("trakt");
 
-const showOf = (show: TraktWork): SubjectInput => ({
-  provider: "trakt",
-  externalId: `show:${show.ids.trakt}`,
-  type: "series",
-  title: show.title,
-  url: `${WEB}/shows/${slugOf(show)}`,
-  credits: [],
-  tags: yearTagsOf(show),
-});
+const workOf =
+  ({ prefix, type, path }: Readonly<{ prefix: string; type: "movie" | "series"; path: string }>) =>
+  (work: TraktWork): SubjectInput =>
+    trakt({
+      externalId: `${prefix}:${work.ids.trakt}`,
+      type,
+      title: work.title,
+      url: `${WEB}/${path}/${slugOf(work)}`,
+      tags: yearTagsOf(work),
+    });
 
-const episodeOf = (show: TraktWork, episode: TraktEpisode): SubjectInput => ({
-  provider: "trakt",
-  externalId: `episode:${episode.ids.trakt}`,
-  type: "episode",
-  title: pipe(
-    Option.fromNullishOr(episode.title),
-    Option.map((title) => `${show.title} S${episode.season}E${episode.number} ${title}`),
-    Option.getOrElse(() => `${show.title} S${episode.season}E${episode.number}`),
-  ),
-  url: `${WEB}/shows/${slugOf(show)}/seasons/${episode.season}/episodes/${episode.number}`,
-  credits: [],
-  tags: [show.title, ...yearTagsOf(show)],
-});
+const movieOf = workOf({ prefix: "movie", type: "movie", path: "movies" });
+
+const showOf = workOf({ prefix: "show", type: "series", path: "shows" });
+
+const episodeOf = (show: TraktWork, episode: TraktEpisode): SubjectInput =>
+  trakt({
+    externalId: `episode:${episode.ids.trakt}`,
+    type: "episode",
+    title: pipe(
+      Option.fromNullishOr(episode.title),
+      Option.map((title) => `${show.title} S${episode.season}E${episode.number} ${title}`),
+      Option.getOrElse(() => `${show.title} S${episode.season}E${episode.number}`),
+    ),
+    url: `${WEB}/shows/${slugOf(show)}/seasons/${episode.season}/episodes/${episode.number}`,
+    tags: [show.title, ...yearTagsOf(show)],
+  });
 
 const watchableOf = (entry: TraktWatched | TraktRated): SubjectInput =>
   Match.value(entry).pipe(
