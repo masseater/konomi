@@ -3,7 +3,7 @@
   "production": true,
   "typeAware": { "enabled": true, "require": "complete" },
   "failOnParseError": true,
-  "ignoreDependencies": ["@effect/language-service", "fallow"],
+  "ignoreDependencies": ["@effect/language-service", "fallow", "fallow-similar-code"],
   "ignorePatterns": [".claude/**"],
   "audit": { "gate": "all" },
   "security": {

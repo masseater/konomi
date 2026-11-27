@@ -1,18 +1,13 @@
-import { Clock, Effect, Option, pipe } from "effect";
+import { Clock, Effect } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { itemsOf } from "#/features/ingest-history/api/providers/feed.server";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
 
 import { API, FIELD, HEADERS } from "./api";
 import { FriendsResponse, TitlesResponse } from "./schemas";
 import { friendObservationsOf, playedObservationsOf } from "./subjects";
-
-const orEmpty = <Item>(items: readonly Item[] | undefined): readonly Item[] =>
-  pipe(
-    Option.fromUndefinedOr(items),
-    Option.getOrElse((): readonly Item[] => []),
-  );
 
 export const pullXbox = ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* xbox() {
@@ -31,8 +26,8 @@ export const pullXbox = ({ credential, cursor }: PullInput): Effect.Effect<Pulle
     }).pipe(Effect.withSpan("xbox.friends"));
     return {
       observations: [
-        ...playedObservationsOf(orEmpty(titles.content.titles)),
-        ...friendObservationsOf(fetchedAt)(orEmpty(friends.content.people)),
+        ...playedObservationsOf(itemsOf(titles.content.titles)),
+        ...friendObservationsOf(fetchedAt)(itemsOf(friends.content.people)),
       ],
       cursor,
     };
