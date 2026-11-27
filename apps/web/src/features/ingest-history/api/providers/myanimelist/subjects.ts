@@ -1,7 +1,7 @@
 import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
-import { epochOr } from "#/features/ingest-history/api/providers/observe";
+import { epochOr, listEntryObservationsOf } from "#/features/ingest-history/api/providers/observe";
 
 import { WEB } from "./api";
 import type { LISTS } from "./api";
@@ -46,12 +46,10 @@ const entryOf =
     ],
   });
 
-const contextOf = (status: Option.Option<string>): Readonly<{ context?: string }> =>
+const contextOf = (status: Option.Option<string>): Option.Option<string> =>
   pipe(
     status,
     Option.flatMap((value) => Option.fromUndefinedOr(STATUS_LABEL[value])),
-    Option.map((context) => ({ context })),
-    Option.getOrElse(() => ({})),
   );
 
 export const entryObservationsOf =
@@ -60,23 +58,14 @@ export const entryObservationsOf =
     const subject = entryOf(list)(entry);
     const { status, score, updated_at: updatedAt } = entry.list_status;
     const occurredAtMs = epochOr(fetchedAt)(updatedAt);
-    const collected: Observation = {
-      kind: "collected",
+    return listEntryObservationsOf({
       subject,
       occurredAtMs,
-      ...contextOf(Option.fromNullishOr(status)),
-    };
-    const liked = pipe(
-      Option.fromNullishOr(score),
-      Option.filter((value) => value >= LIKED_SCORE),
-      Option.map((): Observation => ({ kind: "endorsed", subject, occurredAtMs })),
-      Option.toArray,
-    );
-    const completed = pipe(
-      Option.fromNullishOr(status),
-      Option.filter((value) => value === "completed"),
-      Option.map((): Observation => ({ kind: "consumed", subject, occurredAtMs })),
-      Option.toArray,
-    );
-    return [collected, ...liked, ...completed];
+      context: contextOf(Option.fromNullishOr(status)),
+      liked: pipe(
+        Option.fromNullishOr(score),
+        Option.exists((value) => value >= LIKED_SCORE),
+      ),
+      completed: status === "completed",
+    });
   };

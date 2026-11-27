@@ -61,6 +61,47 @@ export const observeAt =
       Option.map((found) => observed({ kind, context })([found, at(occurredAt)])),
     );
 
+export const listEntryObservationsOf = ({
+  subject,
+  occurredAtMs,
+  context,
+  liked,
+  completed,
+}: Readonly<{
+  subject: SubjectInput;
+  occurredAtMs: number;
+  context: Option.Option<string>;
+  liked: boolean;
+  completed: boolean;
+}>): readonly Observation[] => [
+  { kind: "collected", subject, occurredAtMs, ...contextOf(context) },
+  ...pipe(
+    [
+      { kind: "endorsed", applies: liked },
+      { kind: "consumed", applies: completed },
+    ] as const,
+    Arr.filter(({ applies }) => applies),
+    Arr.map(({ kind }): Observation => ({ kind, subject, occurredAtMs })),
+  ),
+];
+
+export const libraryEntryObservationsOf = ({
+  subject,
+  collectedAtMs,
+  lastPlayedAtMs,
+}: Readonly<{
+  subject: SubjectInput;
+  collectedAtMs: number;
+  lastPlayedAtMs: Option.Option<number>;
+}>): readonly Observation[] => [
+  { kind: "collected", subject, occurredAtMs: collectedAtMs },
+  ...pipe(
+    lastPlayedAtMs,
+    Option.map((occurredAtMs): Observation => ({ kind: "consumed", subject, occurredAtMs })),
+    Option.toArray,
+  ),
+];
+
 export const datedObservationsOf = <Entry>({
   kind,
   listName,
