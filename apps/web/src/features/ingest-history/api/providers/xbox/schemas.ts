@@ -13,8 +13,8 @@ const Title = Schema.Struct({
 
 const Person = Schema.Struct({ xuid: Schema.String, gamertag: Schema.String });
 
-const Titles = Schema.optional(Schema.Array(Title));
-const People = Schema.optional(Schema.Array(Person));
+const Titles = Title.pipe(Schema.Array, Schema.optional);
+const People = Person.pipe(Schema.Array, Schema.optional);
 
 export const TitlesResponse = Schema.Struct({ content: Schema.Struct({ titles: Titles }) });
 

@@ -1,12 +1,12 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
 const Next = OptionalText;
 
 const SpotifyUrl = Schema.Struct({ spotify: OptionalText });
 
-const ExternalUrls = Schema.optional(Schema.NullOr(SpotifyUrl));
+const ExternalUrls = SpotifyUrl.pipe(Schema.NullOr, Schema.optional);
 
 const ArtistRef = Schema.Struct({
   id: OptionalText,
@@ -22,13 +22,13 @@ const Track = Schema.Struct({
   id: OptionalText,
   type: OptionalText,
   name: Schema.String,
-  duration_ms: Schema.optional(Schema.NullOr(Schema.Int)),
+  duration_ms: Schema.Int.pipe(Schema.NullOr, Schema.optional),
   external_urls: ExternalUrls,
-  artists: Schema.optional(Schema.NullOr(Artists)),
-  album: Schema.optional(Schema.NullOr(Album)),
+  artists: Artists.pipe(Schema.NullOr, Schema.optional),
+  album: Album.pipe(Schema.NullOr, Schema.optional),
 });
 
-const OptionalTrack = Schema.optional(Schema.NullOr(Track));
+const OptionalTrack = Track.pipe(Schema.NullOr, Schema.optional);
 
 const Played = Schema.Struct({ track: Track, played_at: Schema.String });
 
@@ -42,7 +42,7 @@ const Genres = Schema.Array(Schema.String);
 
 const Artist = Schema.Struct({
   ...ArtistRef.fields,
-  genres: Schema.optional(Schema.NullOr(Genres)),
+  genres: Genres.pipe(Schema.NullOr, Schema.optional),
 });
 
 const ArtistPage = Schema.Struct({ items: Schema.Array(Artist), next: Next });

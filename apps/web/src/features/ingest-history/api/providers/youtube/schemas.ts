@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
 const Next = OptionalText;
 
@@ -11,7 +11,7 @@ const VideoSnippet = Schema.Struct({
   channelId: OptionalText,
   channelTitle: OptionalText,
   publishedAt: OptionalText,
-  tags: Schema.optional(Schema.NullOr(Tags)),
+  tags: Tags.pipe(Schema.NullOr, Schema.optional),
 });
 
 const VideoDetails = Schema.Struct({ duration: OptionalText });
@@ -19,7 +19,7 @@ const VideoDetails = Schema.Struct({ duration: OptionalText });
 const Video = Schema.Struct({
   id: Schema.String,
   snippet: VideoSnippet,
-  contentDetails: Schema.optional(Schema.NullOr(VideoDetails)),
+  contentDetails: VideoDetails.pipe(Schema.NullOr, Schema.optional),
 });
 
 export const Videos = Schema.Struct({ items: Schema.Array(Video), nextPageToken: Next });
@@ -57,7 +57,7 @@ const ItemDetails = Schema.Struct({ videoPublishedAt: OptionalText });
 
 const PlaylistItem = Schema.Struct({
   snippet: ItemSnippet,
-  contentDetails: Schema.optional(Schema.NullOr(ItemDetails)),
+  contentDetails: ItemDetails.pipe(Schema.NullOr, Schema.optional),
 });
 
 export const PlaylistItems = Schema.Struct({

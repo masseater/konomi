@@ -2,7 +2,7 @@ import { Schema } from "effect";
 
 const Artist = Schema.Struct({
   name: Schema.String,
-  url: Schema.optional(Schema.NullOr(Schema.String)),
+  url: Schema.String.pipe(Schema.NullOr, Schema.optional),
 });
 
 const Scrobbled = Schema.Struct({ uts: Schema.FiniteFromString });
@@ -11,7 +11,7 @@ const Track = Schema.Struct({
   name: Schema.String,
   url: Schema.String,
   artist: Artist,
-  date: Schema.optional(Schema.NullOr(Scrobbled)),
+  date: Scrobbled.pipe(Schema.NullOr, Schema.optional),
 });
 
 const Tracks = Schema.Union([Schema.Array(Track), Track]);

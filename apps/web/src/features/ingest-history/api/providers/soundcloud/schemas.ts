@@ -1,8 +1,8 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
-const OptionalInt = Schema.optional(Schema.NullOr(Schema.Int));
+const OptionalInt = Schema.Int.pipe(Schema.NullOr, Schema.optional);
 
 const User = Schema.Struct({
   id: Schema.Int,
@@ -20,7 +20,7 @@ const Track = Schema.Struct({
   tag_list: OptionalText,
   display_date: OptionalText,
   created_at: OptionalText,
-  user: Schema.optional(Schema.NullOr(User)),
+  user: User.pipe(Schema.NullOr, Schema.optional),
 });
 
 const Playlist = Schema.Struct({
@@ -29,12 +29,12 @@ const Playlist = Schema.Struct({
   permalink_url: Schema.String,
   genre: OptionalText,
   tag_list: OptionalText,
-  user: Schema.optional(Schema.NullOr(User)),
+  user: User.pipe(Schema.NullOr, Schema.optional),
 });
 
 const Next = OptionalText;
 
-const OptionalTrack = Schema.optional(Schema.NullOr(Track));
+const OptionalTrack = Track.pipe(Schema.NullOr, Schema.optional);
 
 const Played = Schema.Struct({ played_at: Schema.Finite, track: OptionalTrack });
 
@@ -46,7 +46,7 @@ export const TrackLikes = Schema.Struct({ collection: Schema.Array(TrackLike), n
 
 const PlaylistLike = Schema.Struct({
   created_at: OptionalText,
-  playlist: Schema.optional(Schema.NullOr(Playlist)),
+  playlist: Playlist.pipe(Schema.NullOr, Schema.optional),
 });
 
 export const PlaylistLikes = Schema.Struct({

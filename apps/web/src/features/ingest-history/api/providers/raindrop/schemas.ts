@@ -1,8 +1,8 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
-const Tags = Schema.optional(Schema.NullOr(Schema.Array(Schema.String)));
+const Tags = Schema.String.pipe(Schema.Array, Schema.NullOr, Schema.optional);
 
 const Raindrop = Schema.Struct({
   _id: Schema.Int,

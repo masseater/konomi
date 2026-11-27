@@ -16,9 +16,9 @@ type Invocation = Readonly<{ target: unknown; name: string; args: readonly unkno
 const invocationOf = ({ target, name, args }: Invocation): Option.Option<() => Promise<unknown>> =>
   pipe(
     Option.liftPredicate(target, Predicate.isReadonlyObject),
-    Option.map((found) => Reflect.get(found, name)),
+    Option.map((found) => found[name]),
     Option.filter(Predicate.isFunction),
-    Option.map((method) => () => Promise.resolve(Reflect.apply(method, target, args))),
+    Option.map((method) => () => Promise.resolve(method.apply(target, [...args]))),
   );
 
 const call = (invocation: Invocation): Effect.Effect<unknown, MusicKitFailed> =>
@@ -35,7 +35,12 @@ const decodeToken = Schema.decodeUnknownEffect(Schema.NonEmptyString);
 
 export const authorizeMusicKit = (developerToken: string): Effect.Effect<string, MusicKitFailed> =>
   Effect.gen(function* authorize() {
-    const musicKit: unknown = Reflect.get(globalThis, "MusicKit");
+    const root: unknown = globalThis;
+    const musicKit = pipe(
+      Option.liftPredicate(root, Predicate.isReadonlyObject),
+      Option.map((found) => found["MusicKit"]),
+      Option.getOrUndefined,
+    );
     const instance = yield* call({
       target: musicKit,
       name: "configure",

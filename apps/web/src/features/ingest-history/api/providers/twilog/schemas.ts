@@ -2,8 +2,8 @@ import { Schema } from "effect";
 
 const Log = Schema.Struct({
   authorId: Schema.String,
-  authorName: Schema.optional(Schema.NullOr(Schema.String)),
-  content: Schema.optional(Schema.NullOr(Schema.String)),
+  authorName: Schema.String.pipe(Schema.NullOr, Schema.optional),
+  content: Schema.String.pipe(Schema.NullOr, Schema.optional),
   contentUrl: Schema.String,
   createdAt: Schema.String,
 });

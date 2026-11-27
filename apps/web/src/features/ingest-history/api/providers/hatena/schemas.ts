@@ -12,7 +12,7 @@ const Bookmark = Schema.Struct({
   "dc:subject": Schema.optional(Subjects),
 });
 
-const Bookmarks = Schema.Struct({ item: Schema.optional(Schema.Array(Bookmark)) });
+const Bookmarks = Schema.Struct({ item: Bookmark.pipe(Schema.Array, Schema.optional) });
 
 export const BookmarkFeed = Schema.Struct({ "rdf:RDF": Bookmarks });
 

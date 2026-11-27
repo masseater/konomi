@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
 const PlayParams = Schema.Struct({ id: OptionalText, catalogId: OptionalText });
 
@@ -9,18 +9,18 @@ const Genres = Schema.Array(Schema.String);
 const SongAttributes = Schema.Struct({
   name: Schema.String,
   artistName: OptionalText,
-  genreNames: Schema.optional(Schema.NullOr(Genres)),
-  durationInMillis: Schema.optional(Schema.NullOr(Schema.Int)),
+  genreNames: Genres.pipe(Schema.NullOr, Schema.optional),
+  durationInMillis: Schema.Int.pipe(Schema.NullOr, Schema.optional),
   releaseDate: OptionalText,
   url: OptionalText,
   dateAdded: OptionalText,
-  playParams: Schema.optional(Schema.NullOr(PlayParams)),
+  playParams: PlayParams.pipe(Schema.NullOr, Schema.optional),
 });
 
 const Song = Schema.Struct({
   id: Schema.String,
   type: Schema.String,
-  attributes: Schema.optional(Schema.NullOr(SongAttributes)),
+  attributes: SongAttributes.pipe(Schema.NullOr, Schema.optional),
 });
 
 export const Songs = Schema.Struct({ data: Schema.Array(Song), next: OptionalText });

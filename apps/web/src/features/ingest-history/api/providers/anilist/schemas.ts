@@ -2,7 +2,7 @@ import { Schema } from "effect";
 
 import { MEDIA_TYPES } from "./api";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
 export const Query = Schema.Struct({
   query: Schema.String,
@@ -15,21 +15,21 @@ export const Query = Schema.Struct({
 
 const Title = Schema.Struct({ romaji: OptionalText, native: OptionalText, english: OptionalText });
 
-const Genres = Schema.optional(Schema.NullOr(Schema.Array(Schema.String)));
+const Genres = Schema.String.pipe(Schema.Array, Schema.NullOr, Schema.optional);
 
 const Media = Schema.Struct({
   id: Schema.Int,
   siteUrl: Schema.String,
   type: Schema.Literals(MEDIA_TYPES),
-  seasonYear: Schema.optional(Schema.NullOr(Schema.Int)),
+  seasonYear: Schema.Int.pipe(Schema.NullOr, Schema.optional),
   title: Title,
   genres: Genres,
 });
 
 const Entry = Schema.Struct({
   status: Schema.String,
-  score: Schema.optional(Schema.NullOr(Schema.Finite)),
-  updatedAt: Schema.optional(Schema.NullOr(Schema.Int)),
+  score: Schema.Finite.pipe(Schema.NullOr, Schema.optional),
+  updatedAt: Schema.Int.pipe(Schema.NullOr, Schema.optional),
   media: Media,
 });
 

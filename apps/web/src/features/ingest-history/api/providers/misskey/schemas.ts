@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
 const User = Schema.Struct({
   id: Schema.String,
@@ -9,7 +9,7 @@ const User = Schema.Struct({
   name: OptionalText,
 });
 
-const Tags = Schema.optional(Schema.NullOr(Schema.Array(Schema.String)));
+const Tags = Schema.String.pipe(Schema.Array, Schema.NullOr, Schema.optional);
 
 const Note = Schema.Struct({
   id: Schema.String,
@@ -25,7 +25,7 @@ const Reaction = Schema.Struct({ createdAt: Schema.String, type: OptionalText, n
 
 export const Reactions = Schema.Array(Reaction);
 
-const Followee = Schema.optional(Schema.NullOr(User));
+const Followee = User.pipe(Schema.NullOr, Schema.optional);
 
 export const Following = Schema.Array(
   Schema.Struct({ createdAt: Schema.String, followee: Followee }),

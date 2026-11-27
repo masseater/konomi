@@ -1,25 +1,25 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
 const Artist = Schema.Struct({ artist_credit_name: Schema.String, artist_mbid: Schema.String });
 
 const Mapping = Schema.Struct({
   recording_mbid: OptionalText,
-  artists: Schema.optional(Schema.Array(Artist)),
+  artists: Artist.pipe(Schema.Array, Schema.optional),
 });
 
 const AdditionalInfo = Schema.Struct({
   recording_mbid: OptionalText,
-  duration_ms: Schema.optional(Schema.NullOr(Schema.Finite)),
+  duration_ms: Schema.Finite.pipe(Schema.NullOr, Schema.optional),
 });
 
 const TrackMetadata = Schema.Struct({
   track_name: Schema.String,
   artist_name: Schema.String,
   release_name: OptionalText,
-  additional_info: Schema.optional(Schema.NullOr(AdditionalInfo)),
-  mbid_mapping: Schema.optional(Schema.NullOr(Mapping)),
+  additional_info: AdditionalInfo.pipe(Schema.NullOr, Schema.optional),
+  mbid_mapping: Mapping.pipe(Schema.NullOr, Schema.optional),
 });
 
 const Listen = Schema.Struct({
@@ -36,7 +36,7 @@ const LovedRecording = Schema.Struct({
   created: Schema.Int,
   recording_mbid: OptionalText,
   recording_msid: OptionalText,
-  track_metadata: Schema.optional(Schema.NullOr(TrackMetadata)),
+  track_metadata: TrackMetadata.pipe(Schema.NullOr, Schema.optional),
 });
 
 export const Feedback = Schema.Struct({ feedback: Schema.Array(LovedRecording) });
