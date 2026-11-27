@@ -55,11 +55,10 @@ const pullLiked = <Entry extends Readonly<{ created_at?: string | null | undefin
   subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
 }>): Observing =>
   collectFrom({ session, path, pages: session.pages, schema }).pipe(
-    Effect.map((entries) =>
+    Effect.map(
       datedObservationsOf({
         kind: "endorsed",
         fetchedAt: session.fetchedAt,
-        entries,
         subjectOf,
         occurredAtOf: ({ created_at: createdAt }) => createdAt,
       }),

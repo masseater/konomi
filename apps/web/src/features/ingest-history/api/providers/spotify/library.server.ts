@@ -1,7 +1,7 @@
 import { Array as Arr, Effect, pipe } from "effect";
 
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { pageOf, datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import { datedObservationsOf, pageOf } from "#/features/ingest-history/api/providers/observe";
 import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectObserved } from "#/features/ingest-history/api/providers/observed-pages.server";
 import { collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
@@ -11,42 +11,43 @@ import { FollowedArtists, RecentlyPlayed, SavedTracks } from "./schemas";
 import { followedArtistOf, trackOf } from "./subjects";
 
 export const pullRecent = ({ headers, fetchedAt }: Fetching): Observing =>
-  Effect.gen(function* recent() {
-    const { items } = yield* fetchJson({
-      url: `${API}/me/player/recently-played?limit=${LIMIT}`,
-      headers,
-      schema: RecentlyPlayed,
-    });
-    return datedObservationsOf({
-      kind: "consumed",
-      fetchedAt,
-      entries: items,
-      subjectOf: ({ track }) => trackOf(track),
-      occurredAtOf: ({ played_at: playedAt }) => playedAt,
-    });
-  });
+  fetchJson({
+    url: `${API}/me/player/recently-played?limit=${LIMIT}`,
+    headers,
+    schema: RecentlyPlayed,
+  }).pipe(
+    Effect.map(({ items }) => items),
+    Effect.map(
+      datedObservationsOf({
+        kind: "consumed",
+        fetchedAt,
+        subjectOf: ({ track }) => trackOf(track),
+        occurredAtOf: ({ played_at: playedAt }) => playedAt,
+      }),
+    ),
+  );
 
 export const pullSaved = ({
   headers,
   fetchedAt,
   pages,
 }: Fetching & Readonly<{ pages: number }>): Observing =>
-  Effect.gen(function* saved() {
-    const items = yield* collectJsonPages({
-      first: `${API}/me/tracks?limit=${LIMIT}`,
-      headers,
-      pages,
-      schema: SavedTracks,
-      pageOf,
-    });
-    return datedObservationsOf({
-      kind: "endorsed",
-      fetchedAt,
-      entries: items,
-      subjectOf: ({ track }) => trackOf(track),
-      occurredAtOf: ({ added_at: addedAt }) => addedAt,
-    });
-  });
+  collectJsonPages({
+    first: `${API}/me/tracks?limit=${LIMIT}`,
+    headers,
+    pages,
+    schema: SavedTracks,
+    pageOf,
+  }).pipe(
+    Effect.map(
+      datedObservationsOf({
+        kind: "endorsed",
+        fetchedAt,
+        subjectOf: ({ track }) => trackOf(track),
+        occurredAtOf: ({ added_at: addedAt }) => addedAt,
+      }),
+    ),
+  );
 
 export const pullFollowed = ({
   headers,

@@ -32,18 +32,18 @@ export const pullSubscriptions = ({
   fetchedAt,
   pages,
 }: Fetching & Readonly<{ pages: number }>): Observing =>
-  Effect.gen(function* subscriptions() {
-    const items = yield* collectTokenPages({
-      first: `${API}/subscriptions?mine=true&part=snippet&maxResults=${LIMIT}`,
-      headers,
-      pages,
-      schema: Subscriptions,
-    });
-    return datedObservationsOf({
-      kind: "followed",
-      fetchedAt,
-      entries: items,
-      subjectOf: subscribedChannelOf,
-      occurredAtOf: (item) => item.snippet.publishedAt,
-    });
-  });
+  collectTokenPages({
+    first: `${API}/subscriptions?mine=true&part=snippet&maxResults=${LIMIT}`,
+    headers,
+    pages,
+    schema: Subscriptions,
+  }).pipe(
+    Effect.map(
+      datedObservationsOf({
+        kind: "followed",
+        fetchedAt,
+        subjectOf: subscribedChannelOf,
+        occurredAtOf: (item) => item.snippet.publishedAt,
+      }),
+    ),
+  );
