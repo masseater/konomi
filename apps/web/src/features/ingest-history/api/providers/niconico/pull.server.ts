@@ -1,14 +1,14 @@
-import { Array as Arr, Clock, Effect, Option, Schema, String as Str, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
+import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { pagesUpTo } from "#/features/ingest-history/api/providers/paging.server";
-import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { followedCreatorsAt } from "#/features/ingest-history/api/providers/observe";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { SignalKind } from "#/shared/config";
 
-import { Cursor, FollowingPage, MylistIndex, MylistPage, VideoPage } from "./schemas";
+import { FollowingPage, MylistIndex, MylistPage, VideoPage } from "./schemas";
 import type { VideoEntry } from "./schemas";
 import { personOf, stampOf, videoSubjectOf } from "./subjects";
 
@@ -28,25 +28,12 @@ const VIDEO_LISTINGS: readonly VideoListing[] = [
   { path: "/v1/users/me/likes", kind: "endorsed" },
 ];
 
-const CursorJson = Schema.fromJsonString(Cursor);
-const decodeCursor = Schema.decodeUnknownOption(CursorJson);
-const encodeCursor = Schema.encodeEffect(CursorJson);
-
 const headersOf = (session: string): Readonly<Record<string, string>> => ({
   Cookie: `${SESSION_COOKIE}=${session}`,
   "X-Frontend-Id": "6",
   "X-Frontend-Version": "0",
   "X-Niconico-Language": "ja-jp",
 });
-
-const sessionOf = ({ fields }: Credential): Effect.Effect<string, CredentialRejected> =>
-  pipe(
-    Option.fromUndefinedOr(fields[SESSION_FIELD]),
-    Option.map(Str.trim),
-    Option.filter(Str.isNonEmpty),
-    Effect.fromOption,
-    Effect.mapError(() => CredentialRejected.make({ message: "niconico のログインがまだ無い" })),
-  );
 
 const pageUrl = (path: string, page: number): string =>
   `${API_ORIGIN}${path}?page=${page}&pageSize=${PAGE_SIZE}`;
@@ -72,7 +59,7 @@ const pullVideoListing = (
   { headers, fetchedAt }: Fetching,
   pages: number,
   { path, kind }: VideoListing,
-): Effect.Effect<readonly Observation[], ProviderError> =>
+): Observing =>
   Effect.gen(function* listing() {
     const toObservation = observe({ kind, fetchedAt });
     const collected: Observation[] = [];
@@ -86,10 +73,7 @@ const pullVideoListing = (
     return collected;
   });
 
-const pullMylists = ({
-  headers,
-  fetchedAt,
-}: Fetching): Effect.Effect<readonly Observation[], ProviderError> =>
+const pullMylists = ({ headers, fetchedAt }: Fetching): Observing =>
   Effect.gen(function* mylists() {
     const { data } = yield* fetchJson({
       url: `${API_ORIGIN}/v1/users/me/mylists`,
@@ -109,50 +93,35 @@ const pullMylists = ({
     return collected;
   });
 
-const pullFollowing = ({
-  headers,
-  fetchedAt,
-}: Fetching): Effect.Effect<readonly Observation[], ProviderError> =>
+const pullFollowing = ({ headers, fetchedAt }: Fetching): Observing =>
   fetchJson({
     url: pageUrl("/v1/users/me/following/users", FIRST_PAGE),
     headers,
     schema: FollowingPage,
   }).pipe(
     Effect.map(({ data }) =>
-      pipe(
-        data.items,
-        Arr.map(({ id, nickname }): Observation => ({
-          kind: "followed",
-          subject: { ...personOf({ id: String(id), name: nickname }), credits: [], tags: [] },
-          occurredAtMs: fetchedAt,
-        })),
-      ),
+      followedCreatorsAt(({ id, nickname }: (typeof data.items)[number]) =>
+        personOf({ id: String(id), name: nickname }),
+      )(fetchedAt)(data.items),
     ),
   );
 
-const pagesFor = pagesUpTo(BACKFILL_PAGES);
-
-export const pullNiconico = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* niconico() {
-    const session = yield* sessionOf(credential);
-    const fetching: Fetching = {
-      headers: headersOf(session),
-      fetchedAt: yield* Clock.currentTimeMillis,
-    };
-    const { backfilled } = pipe(
-      decodeCursor(cursor),
-      Option.getOrElse(() => ({ backfilled: false })),
-    );
-    const observations: Observation[] = [];
-    for (const listing of VIDEO_LISTINGS) {
-      observations.push(...(yield* pullVideoListing(fetching, pagesFor(backfilled), listing)));
-    }
-    observations.push(...(yield* pullMylists(fetching)), ...(yield* pullFollowing(fetching)));
-    return {
-      observations,
-      cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
-    };
-  }).pipe(Effect.withSpan("niconico.pull"));
+export const pullNiconico = pullOf({
+  provider: "niconico",
+  cursor: "backfilled",
+  backfill: BACKFILL_PAGES,
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* niconico() {
+      const session = yield* requireField(credential, SESSION_FIELD);
+      const fetching: Fetching = {
+        headers: headersOf(session),
+        fetchedAt,
+      };
+      const observations: Observation[] = [];
+      for (const listing of VIDEO_LISTINGS) {
+        observations.push(...(yield* pullVideoListing(fetching, pages, listing)));
+      }
+      observations.push(...(yield* pullMylists(fetching)), ...(yield* pullFollowing(fetching)));
+      return observations;
+    }),
+});

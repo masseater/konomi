@@ -1,41 +1,17 @@
-import { Array as Arr, Clock, Effect, Option, Schema, pipe } from "effect";
+import { Effect, Option, pipe } from "effect";
 
-import type { Credential } from "#/entities/connection";
-import type { Observation } from "#/entities/signal";
-import { requireField } from "#/features/ingest-history/api/providers/credential-field";
-import { fetchJson, postJson } from "#/features/ingest-history/api/providers/http.server";
+import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
-import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
+import { collectObserved } from "#/features/ingest-history/api/providers/observed-pages.server";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { FIELD, LIMIT, SERVICE } from "./api";
-import { Follows, Likes, Login, Session } from "./schemas";
+import { LIMIT, SERVICE } from "./api";
+import { Follows, Likes } from "./schemas";
+import { signIn } from "./sign-in.server";
 import { followedOf, postOf } from "./subjects";
 
-const CursorJson = Schema.fromJsonString(Schema.Struct({ backfilled: Schema.Boolean }));
-const decodeCursor = Schema.decodeUnknownOption(CursorJson);
-const encodeCursor = Schema.encodeEffect(CursorJson);
-
 type Signed = Readonly<{ headers: Headers; did: string; pages: number; fetchedAt: number }>;
-
-const signIn = (credential: Credential): Effect.Effect<typeof Session.Type, ProviderError> =>
-  Effect.all(
-    {
-      identifier: requireField(credential, FIELD.identifier),
-      password: requireField(credential, FIELD.appPassword),
-    },
-    { concurrency: 1 },
-  ).pipe(
-    Effect.flatMap((body) =>
-      postJson({
-        url: `${SERVICE}/com.atproto.server.createSession`,
-        headers: {},
-        payload: Login,
-        body,
-        schema: Session,
-      }),
-    ),
-  );
 
 const pageUrl = (method: string, did: string): string =>
   `${SERVICE}/${method}?actor=${encodeURIComponent(did)}&limit=${LIMIT}`;
@@ -48,74 +24,48 @@ const withCursor =
       Option.map((value) => `${first}&cursor=${encodeURIComponent(value)}`),
     );
 
-const pullLikes = ({
-  headers,
-  did,
-  pages,
-  fetchedAt,
-}: Signed): Effect.Effect<readonly Observation[], ProviderError> => {
+const pullLikes = ({ headers, did, pages, fetchedAt }: Signed): Observing => {
   const first = pageUrl("app.bsky.feed.getActorLikes", did);
-  return collectPages({
+  return collectObserved({
+    kind: "endorsed",
     first,
     pages,
+    fetchedAt,
     fetchPage: (url) =>
       fetchJson({ url, headers, schema: Likes }).pipe(
         Effect.map(({ feed, cursor }) => ({ items: feed, next: withCursor(first)(cursor) })),
       ),
-  }).pipe(
-    Effect.map(
-      Arr.map(({ post }): Observation => ({
-        kind: "endorsed",
-        subject: postOf(post),
-        occurredAtMs: fetchedAt,
-      })),
-    ),
-  );
+    subjectOf: ({ post }) => postOf(post),
+  });
 };
 
-const pullFollows = ({
-  headers,
-  did,
-  pages,
-  fetchedAt,
-}: Signed): Effect.Effect<readonly Observation[], ProviderError> => {
+const pullFollows = ({ headers, did, pages, fetchedAt }: Signed): Observing => {
   const first = pageUrl("app.bsky.graph.getFollows", did);
-  return collectPages({
+  return collectObserved({
+    kind: "followed",
     first,
     pages,
+    fetchedAt,
     fetchPage: (url) =>
       fetchJson({ url, headers, schema: Follows }).pipe(
         Effect.map(({ follows, cursor }) => ({ items: follows, next: withCursor(first)(cursor) })),
       ),
-  }).pipe(
-    Effect.map(
-      Arr.map((profile): Observation => ({
-        kind: "followed",
-        subject: followedOf(profile),
-        occurredAtMs: fetchedAt,
-      })),
-    ),
-  );
+    subjectOf: followedOf,
+  });
 };
 
-export const pullBluesky = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* bluesky() {
-    const session = yield* signIn(credential);
-    const { backfilled } = pipe(
-      decodeCursor(cursor),
-      Option.getOrElse(() => ({ backfilled: false })),
-    );
-    const signed: Signed = {
-      headers: { Authorization: `Bearer ${session.accessJwt}` },
-      did: session.did,
-      pages: pagesFor(backfilled),
-      fetchedAt: yield* Clock.currentTimeMillis,
-    };
-    return {
-      observations: [...(yield* pullLikes(signed)), ...(yield* pullFollows(signed))],
-      cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
-    };
-  }).pipe(Effect.withSpan("bluesky.pull"));
+export const pullBluesky = pullOf({
+  provider: "bluesky",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* bluesky() {
+      const session = yield* signIn(credential);
+      const signed: Signed = {
+        headers: { Authorization: `Bearer ${session.accessJwt}` },
+        did: session.did,
+        pages,
+        fetchedAt,
+      };
+      return [...(yield* pullLikes(signed)), ...(yield* pullFollows(signed))];
+    }),
+});

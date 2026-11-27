@@ -1,47 +1,12 @@
-import { useMutation } from "@tanstack/react-query";
-import { useCallback } from "react";
 import type { ReactNode } from "react";
 
 import { signIn } from "#/pages/sign-in/api/sign-in";
-import { Button } from "#/shared/ui/button";
-import { Input } from "#/shared/ui/input";
 
-import { SignInFailure } from "./sign-in-failure";
+import { AccountForm } from "./account-form";
 
-const EMAIL = "メールアドレス";
-const PASSWORD_LABEL = "パスワード";
 const SUBMIT = "ログイン";
+const FAILED = "メールアドレスかパスワードが違います";
 
-export const SignInForm = (): ReactNode => {
-  const { mutate, status } = useMutation({ mutationFn: signIn });
-  const submit = useCallback(
-    (form: Readonly<FormData>) => {
-      mutate(form);
-    },
-    [mutate],
-  );
-  return (
-    <form className="flex max-w-sm flex-col gap-3" action={submit}>
-      <Input
-        type="email"
-        name="email"
-        autoComplete="username"
-        aria-label={EMAIL}
-        placeholder={EMAIL}
-        required
-      />
-      <Input
-        type="password"
-        name="password"
-        autoComplete="current-password"
-        aria-label={PASSWORD_LABEL}
-        placeholder={PASSWORD_LABEL}
-        required
-      />
-      <Button type="submit" disabled={status === "pending" || status === "success"}>
-        {SUBMIT}
-      </Button>
-      <SignInFailure status={status} />
-    </form>
-  );
-};
+export const SignInForm = (): ReactNode => (
+  <AccountForm mutationFn={signIn} submitLabel={SUBMIT} failure={FAILED} />
+);

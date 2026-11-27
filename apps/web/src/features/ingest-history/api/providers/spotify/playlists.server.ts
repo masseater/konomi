@@ -1,16 +1,13 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { epochOr, observeAt } from "#/features/ingest-history/api/providers/observe";
-import type { Fetching } from "#/features/ingest-history/api/providers/observe";
-import { pagesFor } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
+import { collectedListsOf, pageOf } from "#/features/ingest-history/api/providers/observe";
+import type { Fetched, Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
+import { pagesFor, collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
 
 import { API, LIMIT } from "./api";
-import { collectOffsetPages } from "./page";
 import { Me, PlaylistItems, Playlists } from "./schemas";
-import type { SpotifyPlaylistEntry } from "./schemas";
+import type { SpotifyPlaylist, SpotifyPlaylistEntry } from "./schemas";
 import { trackOf } from "./subjects";
 
 const entryTrackOf = (entry: SpotifyPlaylistEntry): ReturnType<typeof trackOf> =>
@@ -20,46 +17,35 @@ const entryTrackOf = (entry: SpotifyPlaylistEntry): ReturnType<typeof trackOf> =
     Option.flatMap(trackOf),
   );
 
-const pullPlaylist = (
-  { headers, fetchedAt }: Fetching,
-  { id, name }: Readonly<{ id: string; name: string }>,
-): Effect.Effect<readonly Observation[], ProviderError> =>
-  Effect.gen(function* playlist() {
-    const entries = yield* collectOffsetPages({
-      first: `${API}/playlists/${id}/items?limit=${LIMIT}`,
+const ownedOf = ({ headers }: Fetching): Fetched<readonly SpotifyPlaylist[]> =>
+  Effect.gen(function* owned() {
+    const me = yield* fetchJson({ url: `${API}/me`, headers, schema: Me });
+    const playlists = yield* collectJsonPages({
+      first: `${API}/me/playlists?limit=${LIMIT}`,
       headers,
       pages: pagesFor(false),
-      schema: PlaylistItems,
-    });
-    const collected = observeAt({
-      kind: "collected",
-      context: Option.some(name),
-      at: epochOr(fetchedAt),
+      schema: Playlists,
+      pageOf,
     });
     return pipe(
-      entries,
-      Arr.map((entry) => collected({ subject: entryTrackOf(entry), occurredAt: entry.added_at })),
-      Arr.getSomes,
+      playlists,
+      Arr.filter(({ owner }) => owner.id === me.id),
     );
   });
 
-export const pullPlaylists = (
-  fetching: Fetching,
-): Effect.Effect<readonly Observation[], ProviderError> =>
-  Effect.gen(function* playlists() {
-    const me = yield* fetchJson({ url: `${API}/me`, headers: fetching.headers, schema: Me });
-    const owned = yield* collectOffsetPages({
-      first: `${API}/me/playlists?limit=${LIMIT}`,
-      headers: fetching.headers,
-      pages: pagesFor(false),
-      schema: Playlists,
-    });
-    const mine = pipe(
-      owned,
-      Arr.filter(({ owner }) => owner.id === me.id),
-    );
-    const lists = yield* Effect.forEach(mine, (found) => pullPlaylist(fetching, found), {
-      concurrency: 1,
-    });
-    return Arr.flatten(lists);
+export const pullPlaylists = (fetching: Fetching): Observing =>
+  collectedListsOf({
+    fetching,
+    listsOf: () => ownedOf(fetching),
+    nameOf: ({ name }) => name,
+    entriesOf: ({ id }) =>
+      collectJsonPages({
+        first: `${API}/playlists/${id}/items?limit=${LIMIT}`,
+        headers: fetching.headers,
+        pages: pagesFor(false),
+        schema: PlaylistItems,
+        pageOf,
+      }),
+    subjectOf: entryTrackOf,
+    occurredAtOf: ({ added_at: addedAt }) => addedAt,
   });

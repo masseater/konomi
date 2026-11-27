@@ -1,6 +1,7 @@
 import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
+import { personInputOf } from "#/features/ingest-history/api/providers/observe";
 import {
   durationFromMs,
   publishedOf,
@@ -18,13 +19,13 @@ export type Song = Readonly<{ song: AppleSong; storefront: string }>;
 const artistOf = ({
   name,
   storefront,
-}: Readonly<{ name: string; storefront: string }>): CreatorInput => ({
-  provider: "apple-music",
-  externalId: `artist:${name}`,
-  type: "person",
-  title: name,
-  url: `${WEB_ORIGIN}/${storefront}/search?term=${encodeURIComponent(name)}`,
-});
+}: Readonly<{ name: string; storefront: string }>): CreatorInput =>
+  personInputOf({
+    provider: "apple-music",
+    externalId: `artist:${name}`,
+    title: name,
+    url: `${WEB_ORIGIN}/${storefront}/search?term=${encodeURIComponent(name)}`,
+  });
 
 const typeOf = (type: string): SubjectType =>
   Match.value(type).pipe(

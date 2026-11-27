@@ -1,7 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { withRelations } from "#/features/ingest-history/api/providers/observe";
+import { withoutRelations } from "#/features/ingest-history/api/providers/observe";
 import {
   durationFromMs,
   publishedOf,
@@ -81,4 +81,4 @@ export const playlistOf = (playlist: SoundcloudPlaylist): SubjectInput => ({
 });
 
 export const followedUserOf = (user: SoundcloudUser): SubjectInput =>
-  withRelations({ credits: [], tags: [] })(userOf(user));
+  withoutRelations(userOf(user));

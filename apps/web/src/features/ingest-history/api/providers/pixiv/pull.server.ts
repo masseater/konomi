@@ -3,6 +3,7 @@ import { Array as Arr, Clock, Effect, pipe } from "effect";
 
 import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { flatMapEach } from "#/features/ingest-history/api/providers/observe";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
 
@@ -12,12 +13,6 @@ import { followObservationsOf, illustObservationsOf, novelObservationsOf } from 
 
 const RESTRICTS = [BookmarkRestrict.PUBLIC, BookmarkRestrict.PRIVATE] as const;
 const FOLLOW_RESTRICTS = [FollowRestrict.PUBLIC, FollowRestrict.PRIVATE] as const;
-
-const each = <Restrict extends string, Item>(
-  restricts: readonly Restrict[],
-  listing: (restrict: Restrict) => Effect.Effect<readonly Item[], ProviderError>,
-): Effect.Effect<readonly Item[], ProviderError> =>
-  Effect.forEach(restricts, listing, { concurrency: 1 }).pipe(Effect.map(Arr.flatten));
 
 const clientOf = (refreshToken: string): Effect.Effect<PixivClient, CredentialRejected> =>
   Effect.tryPromise({
@@ -36,21 +31,21 @@ export const pullPixiv = ({
     const fetchedAt = yield* Clock.currentTimeMillis;
     const collect = collectListing(pagesOf(cursor));
     const { userId, users: lists } = client;
-    const illusts = yield* each(RESTRICTS, (restrict) =>
+    const illusts = yield* flatMapEach(RESTRICTS, (restrict) =>
       collect({
         name: `illust-bookmarks-${restrict}`,
         list: (page) => lists.bookmarks.illusts({ ...page, userId, restrict }),
         itemsOf: ({ illusts: items }) => items,
       }),
     );
-    const novels = yield* each(RESTRICTS, (restrict) =>
+    const novels = yield* flatMapEach(RESTRICTS, (restrict) =>
       collect({
         name: `novel-bookmarks-${restrict}`,
         list: (page) => lists.bookmarks.novels({ ...page, userId, restrict }),
         itemsOf: ({ novels: items }) => items,
       }),
     );
-    const users = yield* each(FOLLOW_RESTRICTS, (restrict) =>
+    const users = yield* flatMapEach(FOLLOW_RESTRICTS, (restrict) =>
       collect({
         name: `following-${restrict}`,
         list: (page) => lists.following({ ...page, userId, restrict }),

@@ -58,8 +58,6 @@ export const Followings = Schema.Struct({ collection: Schema.Array(User), next_h
 
 export const Me = Schema.Struct({ id: Schema.Int });
 
-export const Cursor = Schema.Struct({ backfilled: Schema.Boolean });
-
 export type SoundcloudUser = typeof User.Type;
 export type SoundcloudTrack = typeof Track.Type;
 export type SoundcloudPlaylist = typeof Playlist.Type;

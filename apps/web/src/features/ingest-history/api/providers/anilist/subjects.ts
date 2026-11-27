@@ -1,6 +1,7 @@
 import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
+import { listEntryObservationsOf } from "#/features/ingest-history/api/providers/observe";
 
 import type { AniListEntry, AniListMedia } from "./schemas";
 
@@ -52,26 +53,12 @@ export const entryObservationsOf =
       Option.map((seconds) => seconds * MS_PER_SECOND),
       Option.getOrElse(() => fetchedAt),
     );
-    const collected: Observation = {
-      kind: "collected",
+    return listEntryObservationsOf({
       subject,
       occurredAtMs,
-      ...pipe(
-        Option.fromUndefinedOr(STATUS_LABEL[entry.status]),
-        Option.map((context) => ({ context })),
-        Option.getOrElse(() => ({})),
-      ),
-    };
-    const liked = pipe(
-      Option.fromNullishOr(entry.score),
-      Option.filter((score) => score >= LIKED_SCORE),
-      Option.map((): Observation => ({ kind: "endorsed", subject, occurredAtMs })),
-      Option.toArray,
-    );
-    const completed = pipe(
-      Option.liftPredicate(entry.status, (status: string) => status === "COMPLETED"),
-      Option.map((): Observation => ({ kind: "consumed", subject, occurredAtMs })),
-      Option.toArray,
-    );
-    return [collected, ...liked, ...completed];
+      context: Option.fromUndefinedOr(STATUS_LABEL[entry.status]),
+      score: Option.fromNullishOr(entry.score),
+      likedFrom: LIKED_SCORE,
+      completed: entry.status === "COMPLETED",
+    });
   };

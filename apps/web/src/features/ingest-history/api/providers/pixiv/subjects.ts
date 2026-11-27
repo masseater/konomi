@@ -1,7 +1,12 @@
 import type { PixivUser } from "@book000/pixivts";
 import { Array as Arr, pipe } from "effect";
 
-import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import type { Observation, SubjectInput } from "#/entities/signal";
+import {
+  observationsOf,
+  personMapper,
+  followedCreatorsAt,
+} from "#/features/ingest-history/api/providers/observe";
 
 import { WEB } from "./api";
 
@@ -14,13 +19,7 @@ export type Work = Readonly<{
   createDate: string;
 }>;
 
-const creatorOf = ({ id, name }: User): CreatorInput => ({
-  provider: "pixiv",
-  externalId: `user:${id}`,
-  type: "person",
-  title: name,
-  url: `${WEB}/users/${id}`,
-});
+const creatorOf = personMapper({ provider: "pixiv", idPrefix: "user:", urlBase: `${WEB}/users/` });
 
 const workOf =
   ({ kind, url }: Readonly<{ kind: "artwork" | "book"; url: (id: number) => string }>) =>
@@ -42,27 +41,12 @@ const illustOf = workOf({ kind: "artwork", url: (id) => `${WEB}/artworks/${id}` 
 const novelOf = workOf({ kind: "book", url: (id) => `${WEB}/novel/show.php?id=${id}` });
 
 const collectedAt =
-  (fetchedAt: number) =>
-  (subject: SubjectInput): Observation => ({ kind: "collected", subject, occurredAtMs: fetchedAt });
+  (subjectOf: (work: Work) => SubjectInput) =>
+  (fetchedAt: number): ((works: readonly Work[]) => readonly Observation[]) =>
+    observationsOf("collected")({ subjectOf, occurredAtOf: () => fetchedAt });
 
-export const illustObservationsOf =
-  (fetchedAt: number) =>
-  (illusts: readonly Work[]): readonly Observation[] =>
-    pipe(illusts, Arr.map(illustOf), Arr.map(collectedAt(fetchedAt)));
+export const illustObservationsOf = collectedAt(illustOf);
 
-export const novelObservationsOf =
-  (fetchedAt: number) =>
-  (novels: readonly Work[]): readonly Observation[] =>
-    pipe(novels, Arr.map(novelOf), Arr.map(collectedAt(fetchedAt)));
+export const novelObservationsOf = collectedAt(novelOf);
 
-export const followObservationsOf =
-  (fetchedAt: number) =>
-  (users: readonly User[]): readonly Observation[] =>
-    pipe(
-      users,
-      Arr.map((user) => ({
-        kind: "followed" as const,
-        subject: { ...creatorOf(user), credits: [], tags: [] },
-        occurredAtMs: fetchedAt,
-      })),
-    );
+export const followObservationsOf = followedCreatorsAt(creatorOf);

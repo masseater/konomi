@@ -1,86 +1,69 @@
-import { Array as Arr, Effect, Option, pipe } from "effect";
+import { Array as Arr, Effect, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { epochOr, observeAt, pageOf } from "#/features/ingest-history/api/providers/observe";
-import type { Fetching } from "#/features/ingest-history/api/providers/observe";
-import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
+import { pageOf, datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
+import { collectObserved } from "#/features/ingest-history/api/providers/observed-pages.server";
+import { collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
 
 import { API, LIMIT } from "./api";
-import { collectOffsetPages } from "./page";
 import { FollowedArtists, RecentlyPlayed, SavedTracks } from "./schemas";
 import { followedArtistOf, trackOf } from "./subjects";
 
-export const pullRecent = ({
-  headers,
-  fetchedAt,
-}: Fetching): Effect.Effect<readonly Observation[], ProviderError> =>
+export const pullRecent = ({ headers, fetchedAt }: Fetching): Observing =>
   Effect.gen(function* recent() {
     const { items } = yield* fetchJson({
       url: `${API}/me/player/recently-played?limit=${LIMIT}`,
       headers,
       schema: RecentlyPlayed,
     });
-    const consumed = observeAt({
+    return datedObservationsOf({
       kind: "consumed",
-      context: Option.none(),
-      at: epochOr(fetchedAt),
+      fetchedAt,
+      entries: items,
+      subjectOf: ({ track }) => trackOf(track),
+      occurredAtOf: ({ played_at: playedAt }) => playedAt,
     });
-    return pipe(
-      items,
-      Arr.map(({ track, played_at: playedAt }) =>
-        consumed({ subject: trackOf(track), occurredAt: playedAt }),
-      ),
-      Arr.getSomes,
-    );
   });
 
 export const pullSaved = ({
   headers,
   fetchedAt,
   pages,
-}: Fetching & Readonly<{ pages: number }>): Effect.Effect<readonly Observation[], ProviderError> =>
+}: Fetching & Readonly<{ pages: number }>): Observing =>
   Effect.gen(function* saved() {
-    const items = yield* collectOffsetPages({
+    const items = yield* collectJsonPages({
       first: `${API}/me/tracks?limit=${LIMIT}`,
       headers,
       pages,
       schema: SavedTracks,
+      pageOf,
     });
-    const endorsed = observeAt({
+    return datedObservationsOf({
       kind: "endorsed",
-      context: Option.none(),
-      at: epochOr(fetchedAt),
+      fetchedAt,
+      entries: items,
+      subjectOf: ({ track }) => trackOf(track),
+      occurredAtOf: ({ added_at: addedAt }) => addedAt,
     });
-    return pipe(
-      items,
-      Arr.map(({ track, added_at: addedAt }) =>
-        endorsed({ subject: trackOf(track), occurredAt: addedAt }),
-      ),
-      Arr.getSomes,
-    );
   });
 
 export const pullFollowed = ({
   headers,
   fetchedAt,
   pages,
-}: Fetching & Readonly<{ pages: number }>): Effect.Effect<readonly Observation[], ProviderError> =>
-  collectPages({
+}: Fetching & Readonly<{ pages: number }>): Observing =>
+  collectObserved({
+    kind: "followed",
     first: `${API}/me/following?type=artist&limit=${LIMIT}`,
     pages,
+    fetchedAt,
     fetchPage: (url) =>
       fetchJson({ url, headers, schema: FollowedArtists }).pipe(
-        Effect.map(({ artists }) => pageOf(artists)),
+        Effect.map(({ artists }) => {
+          const { items, next } = pageOf(artists);
+          return { items: pipe(items, Arr.map(followedArtistOf), Arr.getSomes), next };
+        }),
       ),
-  }).pipe(
-    Effect.map((artists) =>
-      pipe(
-        artists,
-        Arr.map(followedArtistOf),
-        Arr.getSomes,
-        Arr.map((subject): Observation => ({ kind: "followed", subject, occurredAtMs: fetchedAt })),
-      ),
-    ),
-  );
+    subjectOf: (subject) => subject,
+  });

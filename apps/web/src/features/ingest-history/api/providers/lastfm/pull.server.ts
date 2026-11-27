@@ -1,9 +1,10 @@
 import { Array as Arr, Clock, Effect, Match, Option, Record as Rec, Schema, pipe } from "effect";
 
-import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
-import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
+import { observationsOf } from "#/features/ingest-history/api/providers/observe";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
@@ -21,14 +22,8 @@ const NEXT_PAGE = 1;
 
 type Account = Readonly<{ user: string; apiKey: string }>;
 
-const accountOf = (credential: Credential): Effect.Effect<Account, ProviderError> =>
-  Effect.all(
-    {
-      user: requireField(credential, FIELD.user),
-      apiKey: requireField(credential, FIELD.apiKey),
-    },
-    { concurrency: 1 },
-  );
+const accountOf = (credential: PullInput["credential"]): Effect.Effect<Account, ProviderError> =>
+  requireFields(credential, { user: FIELD.user, apiKey: FIELD.apiKey });
 
 const methodUrl = ({
   account,
@@ -101,10 +96,7 @@ const pullLoved = ({
   account,
   pages,
   fetchedAt,
-}: Readonly<{ account: Account; pages: number; fetchedAt: number }>): Effect.Effect<
-  readonly Observation[],
-  ProviderError
-> =>
+}: Readonly<{ account: Account; pages: number; fetchedAt: number }>): Observing =>
   collectPages({
     first: methodUrl({ account, method: "user.getlovedtracks", params: {} }),
     pages,
@@ -114,11 +106,10 @@ const pullLoved = ({
       ),
   }).pipe(
     Effect.map(
-      Arr.map((track): Observation => ({
-        kind: "endorsed",
-        subject: trackOf(track),
-        occurredAtMs: Option.getOrElse(scrobbledAt(track), () => fetchedAt),
-      })),
+      observationsOf("endorsed")({
+        subjectOf: trackOf,
+        occurredAtOf: (track) => Option.getOrElse(scrobbledAt(track), () => fetchedAt),
+      }),
     ),
   );
 

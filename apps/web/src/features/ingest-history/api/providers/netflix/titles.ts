@@ -1,7 +1,7 @@
-import { Array as Arr, Option, String as Str, pipe } from "effect";
+import { Option, String as Str, pipe } from "effect";
 
 import type { SubjectInput } from "#/entities/signal";
-import { titleSubjectOf as sharedTitleSubjectOf } from "#/features/ingest-history/api/providers/title-subject";
+import { splitTitleSubjectOf } from "#/features/ingest-history/api/providers/title-subject";
 
 import { WEB } from "./api";
 
@@ -10,18 +10,14 @@ const EPISODE_PARTS = 3;
 
 const searchUrlOf = (query: string): string => `${WEB}/search?q=${encodeURIComponent(query)}`;
 
-export const netflixSubjectOf = (title: string): SubjectInput => {
-  const parts = Str.split(title, SEPARATOR);
-  return sharedTitleSubjectOf({
+export const netflixSubjectOf = (title: string): SubjectInput =>
+  splitTitleSubjectOf({
     provider: "netflix",
     title,
-    series: pipe(
-      Arr.head(parts),
-      Option.filter(() => parts.length >= EPISODE_PARTS),
-    ),
+    separator: SEPARATOR,
+    isSeries: (parts) => parts.length >= EPISODE_PARTS,
     searchUrlOf,
   });
-};
 
 const NOTHING = "";
 

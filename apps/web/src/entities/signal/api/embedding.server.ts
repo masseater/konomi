@@ -1,10 +1,10 @@
 import { env } from "cloudflare:workers";
 import { eq, isNull } from "drizzle-orm";
 import { Array as Arr, Effect, Option, Schedule, Schema, String as Str, pipe } from "effect";
-import { Hex } from "effect/encoding";
 
 import { subject } from "#/entities/signal/model/signal.table";
 import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "#/shared/config";
+import { digestHex } from "#/shared/crypto/index.server";
 import { db } from "#/shared/db/index.server";
 
 import { creditsOf, tagsOf } from "./query.server";
@@ -24,14 +24,10 @@ export class EmbeddingFailed extends taggedError<
   { readonly brand: unique symbol }
 >()("EmbeddingFailed", { message: Schema.String }) {}
 
-const textEncoder = new TextEncoder();
-
 const clip = Str.slice(TEXT_START, MAX_CHARS);
 
 export const vectorIdOf = (key: string): Effect.Effect<string> =>
-  Effect.promise(() => crypto.subtle.digest("SHA-256", textEncoder.encode(key))).pipe(
-    Effect.map((digest) => Hex.encode(new Uint8Array(digest))),
-  );
+  digestHex({ algorithm: "SHA-256", text: key });
 
 const isComplete =
   (texts: readonly string[]) =>

@@ -1,10 +1,11 @@
-import { Array as Arr, Clock, Effect, Option, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
+import { flatMapEach } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, FIELD, LIMIT, MEDIA_TYPES } from "./api";
 import { MediaListPage, Query } from "./schemas";
@@ -49,18 +50,15 @@ const pullList =
         ),
     });
 
-export const pullAniList = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* anilist() {
-    const user = yield* requireField(credential, FIELD.user);
-    const fetchedAt = yield* Clock.currentTimeMillis;
-    const pull = pullList({ user, pages: pagesOf(cursor) });
-    const lists = yield* pipe(MEDIA_TYPES, Arr.map(pull), Effect.all);
-    const observe = entryObservationsOf(fetchedAt);
-    return {
-      observations: pipe(lists, Arr.flatten, Arr.flatMap(observe)),
-      cursor: yield* BACKFILLED,
-    };
-  }).pipe(Effect.withSpan("anilist.pull"));
+export const pullAniList = pullOf({
+  provider: "anilist",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* anilist() {
+      const user = yield* requireField(credential, FIELD.user);
+      const pull = pullList({ user, pages });
+      const entries = yield* flatMapEach(MEDIA_TYPES, pull);
+      const observe = entryObservationsOf(fetchedAt);
+      return pipe(entries, Arr.flatMap(observe));
+    }),
+});

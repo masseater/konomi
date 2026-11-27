@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { withRelations } from "#/features/ingest-history/api/providers/observe";
+import { withoutRelations } from "#/features/ingest-history/api/providers/observe";
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
 import type { YoutubePlaylistItem, YoutubeSubscription, YoutubeVideo } from "./schemas";
@@ -133,5 +133,5 @@ export const subscribedChannelOf = ({
   pipe(
     channelOf({ id: snippet.resourceId.channelId, title: snippet.title }),
     Option.map(channelCreatorOf),
-    Option.map(withRelations({ credits: [], tags: [] })),
+    Option.map(withoutRelations),
   );

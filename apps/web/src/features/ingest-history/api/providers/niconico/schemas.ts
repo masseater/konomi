@@ -37,6 +37,4 @@ const FollowedUsers = Schema.Array(Schema.Struct({ id: Schema.Int, nickname: Sch
 
 export const FollowingPage = Schema.Struct({ data: Schema.Struct({ items: FollowedUsers }) });
 
-export const Cursor = Schema.Struct({ backfilled: Schema.Boolean });
-
 export type VideoEntry = typeof VideoItem.Type;

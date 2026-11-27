@@ -1,6 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
+import { personMapper } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 
 import { WEB } from "./api";
@@ -8,13 +9,9 @@ import type { RedditThing } from "./schemas";
 
 const MS_PER_SECOND = 1000;
 
-const authorOf = (author: string): CreatorInput => ({
-  provider: "reddit",
-  externalId: `u/${author}`,
-  type: "person",
-  title: author,
-  url: `${WEB}/user/${author}`,
-});
+const personOf = personMapper({ provider: "reddit", idPrefix: "u/", urlBase: `${WEB}/user/` });
+
+const authorOf = (author: string): CreatorInput => personOf({ id: author, name: author });
 
 export const thingOf = ({ data }: RedditThing): SubjectInput => {
   const url = pipe(

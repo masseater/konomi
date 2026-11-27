@@ -11,9 +11,10 @@ import {
 import { Base64, Hex } from "effect/encoding";
 
 import type { Credential } from "#/entities/connection";
+import type { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { Authorization, ProviderError } from "#/features/ingest-history/model/provider";
 
-import { fieldOf, requireField } from "./credential-field";
+import { fieldOf, requireField, requireFields } from "./credential-field";
 import { postForm } from "./http.server";
 
 export const OAUTH_FIELD = {
@@ -38,27 +39,52 @@ const TokenResponse = Schema.Struct({
   refresh_token: Schema.optional(Schema.String),
 });
 
-const basicAuthOf = (credential: Credential): Effect.Effect<string, ProviderError> =>
-  Effect.all(
-    [
-      requireField(credential, OAUTH_FIELD.clientId),
-      requireField(credential, OAUTH_FIELD.clientSecret),
-    ],
-    { concurrency: 1 },
-  ).pipe(Effect.map(([id, secret]) => `Basic ${Base64.encode(`${id}:${secret}`)}`));
+const clientOf = (
+  credential: Credential,
+): Effect.Effect<Record<"client_id" | "client_secret", string>, CredentialRejected> =>
+  requireFields(credential, {
+    client_id: OAUTH_FIELD.clientId,
+    client_secret: OAUTH_FIELD.clientSecret,
+  });
 
-const withTokens = (credential: Credential, tokens: typeof TokenResponse.Type): Credential => ({
-  method: credential.method,
-  fields: {
-    ...Rec.remove(credential.fields, OAUTH_FIELD.state),
-    [OAUTH_FIELD.accessToken]: tokens.access_token,
-    ...pipe(
-      Option.fromUndefinedOr(tokens.refresh_token),
-      Option.map((refreshToken) => ({ [OAUTH_FIELD.refreshToken]: refreshToken })),
-      Option.getOrElse(() => ({})),
+const basicAuthOf = (credential: Credential): Effect.Effect<string, ProviderError> =>
+  clientOf(credential).pipe(
+    Effect.map(
+      ({ client_id, client_secret }) => `Basic ${Base64.encode(`${client_id}:${client_secret}`)}`,
     ),
-  },
-});
+  );
+
+const THREE = 3;
+
+export const withTokens: {
+  (
+    tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
+    transient: readonly string[],
+  ): (credential: Credential) => Credential;
+  (
+    credential: Credential,
+    tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
+    transient: readonly string[],
+  ): Credential;
+} = Fn.dual(
+  THREE,
+  (
+    credential: Credential,
+    tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
+    transient: readonly string[],
+  ): Credential => ({
+    method: credential.method,
+    fields: {
+      ...Arr.reduce(transient, credential.fields, (fields, key) => Rec.remove(fields, key)),
+      [OAUTH_FIELD.accessToken]: tokens.access_token,
+      ...pipe(
+        Option.fromUndefinedOr(tokens.refresh_token),
+        Option.map((refreshToken) => ({ [OAUTH_FIELD.refreshToken]: refreshToken })),
+        Option.getOrElse(() => ({})),
+      ),
+    },
+  }),
+);
 
 type TokenRequest = Readonly<{
   headers: Readonly<Record<string, string>>;
@@ -71,13 +97,7 @@ const clientAuthOf = (
 ): Effect.Effect<TokenRequest, ProviderError> =>
   Match.value(authorization.clientAuthentication).pipe(
     Match.when("body", () =>
-      Effect.all(
-        {
-          client_id: requireField(credential, OAUTH_FIELD.clientId),
-          client_secret: requireField(credential, OAUTH_FIELD.clientSecret),
-        },
-        { concurrency: 1 },
-      ).pipe(Effect.map((fields): TokenRequest => ({ headers: {}, fields }))),
+      clientOf(credential).pipe(Effect.map((fields): TokenRequest => ({ headers: {}, fields }))),
     ),
     Match.orElse(() =>
       basicAuthOf(credential).pipe(
@@ -100,7 +120,7 @@ const requestTokens = (
         schema: TokenResponse,
       }),
     ),
-    Effect.map((tokens) => withTokens(credential, tokens)),
+    Effect.map((tokens) => withTokens(credential, tokens, [OAUTH_FIELD.state])),
   );
 
 export const refreshAccess =

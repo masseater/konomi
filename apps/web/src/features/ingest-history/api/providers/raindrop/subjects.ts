@@ -1,7 +1,7 @@
-import { Array as Arr, Option, pipe } from "effect";
+import { Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
-import { epochOr } from "#/features/ingest-history/api/providers/observe";
+import { epochOr, observationsOf } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 
 import type { RaindropItem } from "./schemas";
@@ -26,12 +26,8 @@ export const raindropObservationsOf =
   (fetchedAt: number) =>
   (items: readonly RaindropItem[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
-    return pipe(
-      items,
-      Arr.map((item): Observation => ({
-        kind: "collected",
-        subject: pageOf(item),
-        occurredAtMs: at(item.created),
-      })),
-    );
+    return observationsOf("collected")({
+      subjectOf: pageOf,
+      occurredAtOf: (item) => at(item.created),
+    })(items);
   };

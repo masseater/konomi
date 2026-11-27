@@ -1,22 +1,22 @@
-import { Array as Arr, Clock, Effect, Option, Schema, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
+import type { Schema } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
-import { epochOr, observeAt } from "#/features/ingest-history/api/providers/observe";
-import { pagesFor } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import {
+  datedObservationsOf,
+  observationsOf,
+} from "#/features/ingest-history/api/providers/observe";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { collectFrom, fetchFrom, firstUrlOf, sessionOf } from "./fetching.server";
 import type { Session } from "./fetching.server";
-import { Cursor, Followings, Me, PlayHistory, PlaylistLikes, TrackLikes } from "./schemas";
+import { Followings, Me, PlayHistory, PlaylistLikes, TrackLikes } from "./schemas";
 import { followedUserOf, playlistOf, trackOf } from "./subjects";
-
-const CursorJson = Schema.fromJsonString(Cursor);
-const decodeCursor = Schema.decodeUnknownOption(CursorJson);
-const encodeCursor = Schema.encodeEffect(CursorJson);
 
 type Pulling = Session & Readonly<{ userId: number; pages: number }>;
 
-const pullPlayed = (session: Pulling): Effect.Effect<readonly Observation[], ProviderError> =>
+const pullPlayed = (session: Pulling): Observing =>
   collectFrom({
     session,
     path: "/me/play-history/tracks",
@@ -41,54 +41,32 @@ const pullPlayed = (session: Pulling): Effect.Effect<readonly Observation[], Pro
     ),
   );
 
-const likedOf =
-  (session: Pulling) =>
-  (
-    likes: readonly Readonly<{
-      subject: Option.Option<SubjectInput>;
-      occurredAt: string | null | undefined;
-    }>[],
-  ): readonly Observation[] => {
-    const at = epochOr(session.fetchedAt);
-    const endorsed = observeAt({ kind: "endorsed", context: Option.none(), at });
-    return pipe(likes, Arr.map(endorsed), Arr.getSomes);
-  };
-
-const pullLikedTracks = (session: Pulling): Effect.Effect<readonly Observation[], ProviderError> =>
-  collectFrom({
-    session,
-    path: `/users/${session.userId}/track_likes`,
-    pages: session.pages,
-    schema: TrackLikes,
-  }).pipe(
-    Effect.map(
-      Arr.map(({ track, created_at: createdAt }) => ({
-        subject: Option.map(Option.fromNullishOr(track), trackOf),
-        occurredAt: createdAt,
-      })),
+const pullLiked = <Entry extends Readonly<{ created_at?: string | null | undefined }>>({
+  session,
+  path,
+  schema,
+  subjectOf,
+}: Readonly<{
+  session: Pulling;
+  path: string;
+  schema: Schema.Decoder<
+    Readonly<{ collection: readonly Entry[]; next_href?: string | null | undefined }>
+  >;
+  subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
+}>): Observing =>
+  collectFrom({ session, path, pages: session.pages, schema }).pipe(
+    Effect.map((entries) =>
+      datedObservationsOf({
+        kind: "endorsed",
+        fetchedAt: session.fetchedAt,
+        entries,
+        subjectOf,
+        occurredAtOf: ({ created_at: createdAt }) => createdAt,
+      }),
     ),
-    Effect.map(likedOf(session)),
   );
 
-const pullLikedPlaylists = (
-  session: Pulling,
-): Effect.Effect<readonly Observation[], ProviderError> =>
-  collectFrom({
-    session,
-    path: `/users/${session.userId}/playlist_likes`,
-    pages: session.pages,
-    schema: PlaylistLikes,
-  }).pipe(
-    Effect.map(
-      Arr.map(({ playlist, created_at: createdAt }) => ({
-        subject: Option.map(Option.fromNullishOr(playlist), playlistOf),
-        occurredAt: createdAt,
-      })),
-    ),
-    Effect.map(likedOf(session)),
-  );
-
-const pullFollowings = (session: Pulling): Effect.Effect<readonly Observation[], ProviderError> =>
+const pullFollowings = (session: Pulling): Observing =>
   collectFrom({
     session,
     path: `/users/${session.userId}/followings`,
@@ -96,34 +74,37 @@ const pullFollowings = (session: Pulling): Effect.Effect<readonly Observation[],
     schema: Followings,
   }).pipe(
     Effect.map(
-      Arr.map((user): Observation => ({
-        kind: "followed",
-        subject: followedUserOf(user),
-        occurredAtMs: session.fetchedAt,
-      })),
+      observationsOf("followed")({
+        subjectOf: followedUserOf,
+        occurredAtOf: () => session.fetchedAt,
+      }),
     ),
   );
 
-export const pullSoundcloud = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* soundcloud() {
-    const session = yield* sessionOf({ credential, fetchedAt: yield* Clock.currentTimeMillis });
-    const me = yield* fetchFrom({ session, schema: Me })(firstUrlOf("/me"));
-    const { backfilled } = pipe(
-      decodeCursor(cursor),
-      Option.getOrElse(() => ({ backfilled: false })),
-    );
-    const pulling: Pulling = { ...session, userId: me.id, pages: pagesFor(backfilled) };
-    const observations = [
-      ...(yield* pullPlayed(pulling)),
-      ...(yield* pullLikedTracks(pulling)),
-      ...(yield* pullLikedPlaylists(pulling)),
-      ...(yield* pullFollowings(pulling)),
-    ];
-    return {
-      observations,
-      cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
-    };
-  }).pipe(Effect.withSpan("soundcloud.pull"));
+export const pullSoundcloud = pullOf({
+  provider: "soundcloud",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* soundcloud() {
+      const session = yield* sessionOf({ credential, fetchedAt });
+      const me = yield* fetchFrom({ session, schema: Me })(firstUrlOf("/me"));
+      const pulling: Pulling = { ...session, userId: me.id, pages };
+      const observations = [
+        ...(yield* pullPlayed(pulling)),
+        ...(yield* pullLiked({
+          session: pulling,
+          path: `/users/${pulling.userId}/track_likes`,
+          schema: TrackLikes,
+          subjectOf: ({ track }) => Option.map(Option.fromNullishOr(track), trackOf),
+        })),
+        ...(yield* pullLiked({
+          session: pulling,
+          path: `/users/${pulling.userId}/playlist_likes`,
+          schema: PlaylistLikes,
+          subjectOf: ({ playlist }) => Option.map(Option.fromNullishOr(playlist), playlistOf),
+        })),
+        ...(yield* pullFollowings(pulling)),
+      ];
+      return observations;
+    }),
+});

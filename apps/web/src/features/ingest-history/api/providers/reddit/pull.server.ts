@@ -1,12 +1,12 @@
-import { Array as Arr, Clock, Effect, Option, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { ListingKind, Observation } from "#/entities/signal";
-import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.server";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, LIMIT, USER_AGENT } from "./api";
 import { Listing, Me } from "./schemas";
@@ -17,7 +17,7 @@ type Reading = Readonly<{ headers: Headers; user: string; pages: number; fetched
 
 const listingOf =
   ({ headers, user, pages, fetchedAt }: Reading) =>
-  (path: string, kind: ListingKind): Effect.Effect<readonly Observation[], ProviderError> => {
+  (path: string, kind: ListingKind): Observing => {
     const first = `${API}/user/${user}/${path}?limit=${LIMIT}&raw_json=1`;
     const observe = (thing: RedditThing): Observation => ({
       kind,
@@ -40,24 +40,22 @@ const listingOf =
     }).pipe(Effect.map(Arr.map(observe)));
   };
 
-export const pullReddit = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* reddit() {
-    const headers = { ...(yield* bearerHeadersOf(credential)), "User-Agent": USER_AGENT };
-    const { name } = yield* fetchJson({ url: `${API}/api/v1/me`, headers, schema: Me });
-    const listing = listingOf({
-      headers,
-      user: encodeURIComponent(name),
-      pages: pagesOf(cursor),
-      fetchedAt: yield* Clock.currentTimeMillis,
-    });
-    return {
-      observations: [
+export const pullReddit = pullOf({
+  provider: "reddit",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* reddit() {
+      const headers = { ...(yield* bearerHeadersOf(credential)), "User-Agent": USER_AGENT };
+      const { name } = yield* fetchJson({ url: `${API}/api/v1/me`, headers, schema: Me });
+      const listing = listingOf({
+        headers,
+        user: encodeURIComponent(name),
+        pages,
+        fetchedAt,
+      });
+      return [
         ...(yield* listing("upvoted", "endorsed")),
         ...(yield* listing("saved", "collected")),
-      ],
-      cursor: yield* BACKFILLED,
-    };
-  }).pipe(Effect.withSpan("reddit.pull"));
+      ];
+    }),
+});

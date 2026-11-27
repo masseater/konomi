@@ -6,11 +6,12 @@ import { requireField } from "#/features/ingest-history/api/providers/credential
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import type { Fetched, Observing } from "#/features/ingest-history/api/providers/observe";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { FIELD, LIMIT } from "./api";
 import { Favorites, Following, Me, Reactions, Request } from "./schemas";
-import { followedOf, noteOf } from "./subjects";
+import { followedOf, notedAs } from "./subjects";
 
 type Reading = Readonly<{ origin: string; token: string; at: (text: string) => number }>;
 
@@ -20,7 +21,7 @@ const call =
     path: string,
     schema: Schema.Decoder<Item>,
     userId: Option.Option<string>,
-  ): Effect.Effect<Item, ProviderError> =>
+  ): Fetched<Item> =>
     postJson({
       url: `${origin}/api/${path}`,
       headers: { Authorization: `Bearer ${token}` },
@@ -36,34 +37,19 @@ const call =
       schema,
     });
 
-const notesOf = (reading: Reading): Effect.Effect<readonly Observation[], ProviderError> =>
+const notesOf = (reading: Reading): Observing =>
   Effect.gen(function* notes() {
     const api = call(reading);
-    const note = noteOf(reading.origin);
     const { id } = yield* api("i", Me, Option.none());
     const favorites = yield* api("i/favorites", Favorites, Option.none());
     const reactions = yield* api("users/reactions", Reactions, Option.some(id));
     return [
-      ...pipe(
-        favorites,
-        Arr.map((favorite): Observation => ({
-          kind: "collected",
-          subject: note(favorite.note),
-          occurredAtMs: reading.at(favorite.createdAt),
-        })),
-      ),
-      ...pipe(
-        reactions,
-        Arr.map((reaction): Observation => ({
-          kind: "endorsed",
-          subject: note(reaction.note),
-          occurredAtMs: reading.at(reaction.createdAt),
-        })),
-      ),
+      ...notedAs({ kind: "collected", origin: reading.origin, at: reading.at })(favorites),
+      ...notedAs({ kind: "endorsed", origin: reading.origin, at: reading.at })(reactions),
     ];
   });
 
-const followingOf = (reading: Reading): Effect.Effect<readonly Observation[], ProviderError> =>
+const followingOf = (reading: Reading): Observing =>
   Effect.gen(function* following() {
     const api = call(reading);
     const { id } = yield* api("i", Me, Option.none());
@@ -84,19 +70,17 @@ const followingOf = (reading: Reading): Effect.Effect<readonly Observation[], Pr
     );
   });
 
-export const pullMisskey = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* misskey() {
-    const now = yield* Clock.currentTimeMillis;
-    const reading: Reading = {
-      origin: yield* instanceOriginOf(FIELD.instance)(credential),
-      token: yield* requireField(credential, FIELD.accessToken),
-      at: epochOr(now),
-    };
-    return {
-      observations: [...(yield* notesOf(reading)), ...(yield* followingOf(reading))],
-      cursor,
-    };
-  }).pipe(Effect.withSpan("misskey.pull"));
+export const pullMisskey = pullOf({
+  provider: "misskey",
+  cursor: "kept",
+  observe: ({ credential }) =>
+    Effect.gen(function* misskey() {
+      const now = yield* Clock.currentTimeMillis;
+      const reading: Reading = {
+        origin: yield* instanceOriginOf(FIELD.instance)(credential),
+        token: yield* requireField(credential, FIELD.accessToken),
+        at: epochOr(now),
+      };
+      return [...(yield* notesOf(reading)), ...(yield* followingOf(reading))];
+    }),
+});

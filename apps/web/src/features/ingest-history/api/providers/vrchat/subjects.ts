@@ -1,6 +1,11 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
-import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import type { Observation, SubjectInput } from "#/entities/signal";
+import {
+  observationsOf,
+  personMapper,
+  followedCreatorsAt,
+} from "#/features/ingest-history/api/providers/observe";
 import type { SubjectType } from "#/shared/config";
 
 import { AUTHOR_TAG, WEB } from "./api";
@@ -10,13 +15,7 @@ export type WorkKind = "world" | "avatar";
 
 const TYPE_OF: Readonly<Record<WorkKind, SubjectType>> = { world: "world", avatar: "item" };
 
-const personOf = ({ id, name }: Readonly<{ id: string; name: string }>): CreatorInput => ({
-  provider: "vrchat",
-  externalId: `user:${id}`,
-  type: "person",
-  title: name,
-  url: `${WEB}/user/${id}`,
-});
+const personOf = personMapper({ provider: "vrchat", idPrefix: "user:", urlBase: `${WEB}/user/` });
 
 const authorTagsOf = (tags: readonly string[] | undefined): readonly string[] =>
   pipe(
@@ -45,23 +44,8 @@ const workOf =
 export const favoriteObservationsOf =
   ({ kind, fetchedAt }: Readonly<{ kind: WorkKind; fetchedAt: number }>) =>
   (works: readonly VrchatWork[]): readonly Observation[] =>
-    pipe(
-      works,
-      Arr.map((work) => ({
-        kind: "collected" as const,
-        subject: workOf(kind)(work),
-        occurredAtMs: fetchedAt,
-      })),
-    );
+    observationsOf("collected")({ subjectOf: workOf(kind), occurredAtOf: () => fetchedAt })(works);
 
-export const friendObservationsOf =
-  (fetchedAt: number) =>
-  (friends: readonly VrchatFriend[]): readonly Observation[] =>
-    pipe(
-      friends,
-      Arr.map(({ id, displayName }) => ({
-        kind: "followed" as const,
-        subject: { ...personOf({ id, name: displayName }), credits: [], tags: [] },
-        occurredAtMs: fetchedAt,
-      })),
-    );
+export const friendObservationsOf = followedCreatorsAt(({ id, displayName }: VrchatFriend) =>
+  personOf({ id, name: displayName }),
+);

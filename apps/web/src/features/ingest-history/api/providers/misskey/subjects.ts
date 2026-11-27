@@ -1,9 +1,15 @@
-import { Option, String as Str, pipe } from "effect";
+import { Option, pipe } from "effect";
 
-import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { withRelations } from "#/features/ingest-history/api/providers/observe";
+import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import {
+  personInputOf,
+  nonEmptyOr,
+  observationsOf,
+  withoutRelations,
+} from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
+import type { SignalKind } from "#/shared/config";
 
 import type { MisskeyNote, MisskeyUser } from "./schemas";
 
@@ -15,25 +21,20 @@ const accountOf =
       Option.map((host) => `${user.username}@${host}`),
       Option.getOrElse(() => user.username),
     );
-    return {
+    return personInputOf({
       provider: "misskey",
       externalId: `${origin}/users/${user.id}`,
-      type: "person",
-      title: pipe(
-        Option.fromNullishOr(user.name),
-        Option.filter(Str.isNonEmpty),
-        Option.getOrElse(() => acct),
-      ),
+      title: nonEmptyOr(acct)(user.name),
       url: `${origin}/@${acct}`,
-    };
+    });
   };
 
 export const followedOf =
   (origin: string) =>
   (user: MisskeyUser): SubjectInput =>
-    withRelations({ credits: [], tags: [] })(accountOf(origin)(user));
+    withoutRelations(accountOf(origin)(user));
 
-export const noteOf =
+const noteOf =
   (origin: string) =>
   (note: MisskeyNote): SubjectInput => {
     const url = `${origin}/notes/${note.id}`;
@@ -51,3 +52,19 @@ export const noteOf =
       ),
     };
   };
+
+export const notedAs = ({
+  kind,
+  origin,
+  at,
+}: Readonly<{
+  kind: SignalKind;
+  origin: string;
+  at: (text: string) => number;
+}>): ((
+  items: readonly Readonly<{ createdAt: string; note: MisskeyNote }>[],
+) => readonly Observation[]) =>
+  observationsOf(kind)<Readonly<{ createdAt: string; note: MisskeyNote }>>({
+    subjectOf: ({ note }) => noteOf(origin)(note),
+    occurredAtOf: ({ createdAt }) => at(createdAt),
+  });

@@ -1,11 +1,13 @@
-import { Array as Arr, Clock, Effect, pipe } from "effect";
+import { Array as Arr, Effect } from "effect";
 
 import type { ListingKind, Observation } from "#/entities/signal";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { observationsOf } from "#/features/ingest-history/api/providers/observe";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { FIELD, LIMIT } from "./api";
 import { Accounts, Statuses, Verified } from "./schemas";
@@ -16,7 +18,7 @@ type Reading = Readonly<{ origin: string; headers: Headers; fetchedAt: number }>
 
 const statusesAt =
   ({ origin, headers, fetchedAt }: Reading) =>
-  (path: string, kind: ListingKind): Effect.Effect<readonly Observation[], ProviderError> => {
+  (path: string, kind: ListingKind): Observing => {
     const observe = (status: MastodonStatus): Observation => ({
       kind,
       subject: statusOf(status),
@@ -29,11 +31,7 @@ const statusesAt =
     }).pipe(Effect.map(Arr.map(observe)));
   };
 
-const followingOf = ({
-  origin,
-  headers,
-  fetchedAt,
-}: Reading): Effect.Effect<readonly Observation[], ProviderError> =>
+const followingOf = ({ origin, headers, fetchedAt }: Reading): Observing =>
   Effect.gen(function* following() {
     const { id } = yield* fetchJson({
       url: `${origin}/api/v1/accounts/verify_credentials`,
@@ -45,33 +43,29 @@ const followingOf = ({
       headers,
       schema: Accounts,
     });
-    return pipe(
+    return observationsOf("followed")({ subjectOf: followedOf, occurredAtOf: () => fetchedAt })(
       accounts,
-      Arr.map((account): Observation => ({
-        kind: "followed",
-        subject: followedOf(account),
-        occurredAtMs: fetchedAt,
-      })),
     );
   });
 
-export const pullMastodon = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* mastodon() {
-    const reading: Reading = {
-      origin: yield* instanceOriginOf(FIELD.instance)(credential),
-      headers: yield* requireField(credential, FIELD.accessToken).pipe(
-        Effect.map((token) => ({ Authorization: `Bearer ${token}` })),
-      ),
-      fetchedAt: yield* Clock.currentTimeMillis,
-    };
-    const statuses = statusesAt(reading);
-    const observations = [
-      ...(yield* statuses("favourites", "endorsed")),
-      ...(yield* statuses("bookmarks", "collected")),
-      ...(yield* followingOf(reading)),
-    ];
-    return { observations, cursor };
-  }).pipe(Effect.withSpan("mastodon.pull"));
+export const pullMastodon = pullOf({
+  provider: "mastodon",
+  cursor: "kept",
+  observe: ({ credential, fetchedAt }) =>
+    Effect.gen(function* mastodon() {
+      const reading: Reading = {
+        origin: yield* instanceOriginOf(FIELD.instance)(credential),
+        headers: yield* requireField(credential, FIELD.accessToken).pipe(
+          Effect.map((token) => ({ Authorization: `Bearer ${token}` })),
+        ),
+        fetchedAt,
+      };
+      const statuses = statusesAt(reading);
+      const observations = [
+        ...(yield* statuses("favourites", "endorsed")),
+        ...(yield* statuses("bookmarks", "collected")),
+        ...(yield* followingOf(reading)),
+      ];
+      return observations;
+    }),
+});

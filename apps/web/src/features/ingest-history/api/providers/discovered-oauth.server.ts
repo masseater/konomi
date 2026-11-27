@@ -4,13 +4,12 @@ import {
   refreshAuthorization,
   startAuthorization,
 } from "@modelcontextprotocol/client";
-import type { OAuthTokens } from "@modelcontextprotocol/client";
-import { Array as Arr, Effect, Match, Option, Record as Rec, Schema, pipe } from "effect";
+import { Array as Arr, Effect, Match, Option, Schema, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import { fieldOf, requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
-import { OAUTH_FIELD } from "#/features/ingest-history/api/providers/oauth.server";
+import { OAUTH_FIELD, withTokens } from "#/features/ingest-history/api/providers/oauth.server";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type {
   Authorization,
@@ -48,6 +47,9 @@ const unavailable =
         ProviderUnavailable.make({ message: `${step} に失敗した: ${String(cause)}` }),
       ),
     );
+
+const sdkCall = <Out>(step: string, run: () => Promise<Out>): Effect.Effect<Out, ProviderError> =>
+  Effect.tryPromise({ try: run, catch: unavailable(step) });
 
 const clientIdOf = ({
   discovery,
@@ -98,17 +100,15 @@ export const startDiscovered = ({
   Effect.gen(function* start() {
     const scope = Arr.join(authorization.scopes, SCOPE_SEPARATOR);
     const clientId = yield* clientIdOf({ discovery, credential, redirectUri, scope });
-    const started = yield* Effect.tryPromise({
-      try: () =>
-        startAuthorization(discovery.issuer, {
-          clientInformation: { client_id: clientId },
-          redirectUrl: redirectUri,
-          scope,
-          state,
-          resource: discovery.resource,
-        }),
-      catch: unavailable("許可の画面の用意"),
-    });
+    const started = yield* sdkCall("許可の画面の用意", () =>
+      startAuthorization(discovery.issuer, {
+        clientInformation: { client_id: clientId },
+        redirectUrl: redirectUri,
+        scope,
+        state,
+        resource: discovery.resource,
+      }),
+    );
     return {
       url: started.authorizationUrl.toString(),
       credential: {
@@ -122,20 +122,6 @@ export const startDiscovered = ({
       },
     };
   }).pipe(Effect.withSpan("oauth.discovered.start"));
-
-const withTokens = (credential: Credential, tokens: OAuthTokens): Credential => ({
-  method: credential.method,
-  fields: {
-    ...pipe(credential.fields, Rec.remove(OAUTH_FIELD.state), Rec.remove(VERIFIER_FIELD)),
-    [OAUTH_FIELD.accessToken]: tokens.access_token,
-    ...pipe(
-      Option.fromUndefinedOr(tokens.refresh_token),
-      Option.orElse(() => fieldOf(credential, OAUTH_FIELD.refreshToken)),
-      Option.map((refreshToken) => ({ [OAUTH_FIELD.refreshToken]: refreshToken })),
-      Option.getOrElse(() => ({})),
-    ),
-  },
-});
 
 export const finishDiscovered = ({
   discovery,
@@ -151,18 +137,16 @@ export const finishDiscovered = ({
   Effect.gen(function* finish() {
     const clientId = yield* requireField(credential, OAUTH_FIELD.clientId);
     const codeVerifier = yield* requireField(credential, VERIFIER_FIELD);
-    const tokens = yield* Effect.tryPromise({
-      try: () =>
-        exchangeAuthorization(discovery.issuer, {
-          clientInformation: { client_id: clientId },
-          authorizationCode: code,
-          codeVerifier,
-          redirectUri,
-          resource: new URL(discovery.resource),
-        }),
-      catch: unavailable("トークンの受け取り"),
-    });
-    return withTokens(credential, tokens);
+    const tokens = yield* sdkCall("トークンの受け取り", () =>
+      exchangeAuthorization(discovery.issuer, {
+        clientInformation: { client_id: clientId },
+        authorizationCode: code,
+        codeVerifier,
+        redirectUri,
+        resource: new URL(discovery.resource),
+      }),
+    );
+    return withTokens(credential, tokens, [OAUTH_FIELD.state, VERIFIER_FIELD]);
   }).pipe(Effect.withSpan("oauth.discovered.finish"));
 
 export const refreshDiscovered =
@@ -171,14 +155,12 @@ export const refreshDiscovered =
     Effect.gen(function* refresh() {
       const clientId = yield* requireField(credential, OAUTH_FIELD.clientId);
       const refreshToken = yield* requireField(credential, OAUTH_FIELD.refreshToken);
-      const tokens = yield* Effect.tryPromise({
-        try: () =>
-          refreshAuthorization(discovery.issuer, {
-            clientInformation: { client_id: clientId },
-            refreshToken,
-            resource: new URL(discovery.resource),
-          }),
-        catch: unavailable("トークンの更新"),
-      });
-      return withTokens(credential, tokens);
+      const tokens = yield* sdkCall("トークンの更新", () =>
+        refreshAuthorization(discovery.issuer, {
+          clientInformation: { client_id: clientId },
+          refreshToken,
+          resource: new URL(discovery.resource),
+        }),
+      );
+      return withTokens(credential, tokens, [OAUTH_FIELD.state, VERIFIER_FIELD]);
     }).pipe(Effect.withSpan("oauth.discovered.refresh"));

@@ -1,8 +1,12 @@
-import { Array as Arr, Clock, Effect, Match, Option, Schema, pipe } from "effect";
+import { Array as Arr, Clock, Effect, Function as Fn, Match, Option, Schema, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
 import { freshOf } from "#/features/ingest-history/api/providers/fresh";
-import { epochOr, observeAt } from "#/features/ingest-history/api/providers/observe";
+import {
+  observationsOf,
+  datedObservationsOf,
+} from "#/features/ingest-history/api/providers/observe";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
 
@@ -44,47 +48,32 @@ const pullRecent = (
           Arr.take(fresh.length),
           Arr.map((song) => songOf({ song, storefront })),
           Arr.getSomes,
-          Arr.map((subject): Observation => ({
-            kind: "consumed",
-            subject,
-            occurredAtMs: fetchedAt,
-          })),
+          observationsOf("consumed")({ subjectOf: Fn.identity, occurredAtOf: () => fetchedAt }),
         ),
         recent,
       };
     }),
   );
 
-const pullLibrary = ({
-  fetch,
-  storefront,
-  fetchedAt,
-}: Listening): Effect.Effect<readonly Observation[], ProviderError> =>
+const pullLibrary = ({ fetch, storefront, fetchedAt }: Listening): Observing =>
   Effect.gen(function* library() {
     const songs = yield* collectPages({
       first: `${API}/me/library/songs?limit=${LIBRARY_LIMIT}`,
       pages: pagesFor(false),
       fetchPage: fetch,
     });
-    const collected = observeAt({
+    return datedObservationsOf({
       kind: "collected",
-      context: Option.none(),
-      at: epochOr(fetchedAt),
+      fetchedAt,
+      entries: songs,
+      subjectOf: (song) => songOf({ song, storefront }),
+      occurredAtOf: ({ attributes }) =>
+        pipe(
+          Option.fromNullishOr(attributes),
+          Option.flatMap(({ dateAdded }) => Option.fromNullishOr(dateAdded)),
+          Option.getOrUndefined,
+        ),
     });
-    return pipe(
-      songs,
-      Arr.map((song) =>
-        collected({
-          subject: songOf({ song, storefront }),
-          occurredAt: pipe(
-            Option.fromNullishOr(song.attributes),
-            Option.flatMap(({ dateAdded }) => Option.fromNullishOr(dateAdded)),
-            Option.getOrUndefined,
-          ),
-        }),
-      ),
-      Arr.getSomes,
-    );
   });
 
 export const pullAppleMusic = ({
