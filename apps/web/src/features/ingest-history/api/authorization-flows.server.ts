@@ -15,6 +15,21 @@ import { OAUTH_FIELD, authorizeUrlOf, exchangeCode, newState } from "./providers
 
 export type Authorizing = Readonly<{ authorization: Authorization; credential: Credential }>;
 
+type Started = Readonly<{ url: string; credential: Credential }>;
+
+const startedWith = ({
+  provider,
+  begin,
+}: Readonly<{
+  provider: ProviderId;
+  begin: (state: string) => Effect.Effect<Started, ProviderError>;
+}>): Effect.Effect<string, ProviderError> =>
+  Effect.gen(function* start() {
+    const started = yield* begin(newState());
+    yield* replaceCredential({ provider, credential: started.credential });
+    return started.url;
+  });
+
 export const startByEndpoints = ({
   provider,
   authorization,
@@ -24,22 +39,18 @@ export const startByEndpoints = ({
   string,
   ProviderError
 > =>
-  Effect.gen(function* start() {
-    const clientId = yield* requireField(credential, OAUTH_FIELD.clientId);
-    const state = newState();
-    yield* replaceCredential({
-      provider,
-      credential: {
-        method: credential.method,
-        fields: { ...credential.fields, [OAUTH_FIELD.state]: state },
-      },
-    });
-    return authorizeUrlOf({
-      authorization,
-      clientId,
-      redirectUri,
-      state,
-    });
+  startedWith({
+    provider,
+    begin: (state) =>
+      requireField(credential, OAUTH_FIELD.clientId).pipe(
+        Effect.map((clientId): Started => ({
+          url: authorizeUrlOf({ authorization, clientId, redirectUri, state }),
+          credential: {
+            method: credential.method,
+            fields: { ...credential.fields, [OAUTH_FIELD.state]: state },
+          },
+        })),
+      ),
   });
 
 export const startByDiscovery = ({
@@ -53,16 +64,9 @@ export const startByDiscovery = ({
   string,
   ProviderError
 > =>
-  Effect.gen(function* start() {
-    const started = yield* startDiscovered({
-      authorization,
-      discovery,
-      credential,
-      redirectUri,
-      state: newState(),
-    });
-    yield* replaceCredential({ provider, credential: started.credential });
-    return started.url;
+  startedWith({
+    provider,
+    begin: (state) => startDiscovered({ authorization, discovery, credential, redirectUri, state }),
   });
 
 export const exchangeFor = ({
