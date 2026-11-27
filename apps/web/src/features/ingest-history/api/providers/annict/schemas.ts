@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
 export const Query = Schema.Struct({
   query: Schema.String,
@@ -12,7 +12,7 @@ const PageInfo = Schema.Struct({ hasNextPage: Schema.Boolean, endCursor: Optiona
 const Work = Schema.Struct({
   annictId: Schema.Int,
   title: Schema.String,
-  seasonYear: Schema.optional(Schema.NullOr(Schema.Int)),
+  seasonYear: Schema.Int.pipe(Schema.NullOr, Schema.optional),
 });
 
 const Episode = Schema.Struct({
@@ -30,7 +30,7 @@ const Record = Schema.Struct({
 
 const Status = Schema.Struct({ state: Schema.String, createdAt: Schema.String });
 
-const Entry = Schema.Struct({ work: Work, status: Schema.optional(Schema.NullOr(Status)) });
+const Entry = Schema.Struct({ work: Work, status: Status.pipe(Schema.NullOr, Schema.optional) });
 
 const Records = Schema.Struct({ nodes: Schema.Array(Record), pageInfo: PageInfo });
 

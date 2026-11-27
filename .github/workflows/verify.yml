@@ -7,6 +7,9 @@ on:
 
 permissions: {}
 
+env:
+  TAKUMI_GUARD_TOKEN: ${{ secrets.TAKUMI_GUARD_TOKEN }}
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -72,40 +75,8 @@ jobs:
           path: tools/*/report/
           if-no-files-found: ignore
 
-  release:
-    needs: verify
-    if: github.repository == 'masseater/typescript-template'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      id-token: write
-    concurrency:
-      group: release
-    steps:
-      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
-        with:
-          config-file: .github/release-please/config.json
-          manifest-file: .github/release-please/manifest.json
-          skip-github-pull-request: true
-      - if: github.event_name == 'workflow_dispatch'
-        uses: masseater/typescript-template/.github/actions/credentials@85e63634a051e4813f379fd082e40f4e65bdcb27
-      - if: github.event_name == 'workflow_dispatch'
-        id: release-pr
-        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
-        with:
-          token: ${{ env.GITHUB_APP_TOKEN }}
-          config-file: .github/release-please/config.json
-          manifest-file: .github/release-please/manifest.json
-          skip-github-release: true
-      - if: steps.release-pr.outputs.pr
-        env:
-          GH_TOKEN: ${{ env.GITHUB_APP_TOKEN }}
-          PR: ${{ steps.release-pr.outputs.pr }}
-        run: gh pr merge "$(jq -r .number <<<"$PR")" --repo "$GITHUB_REPOSITORY" --squash --auto
-
   ci-telemetry:
-    needs: [verify, autofix, deploy, release]
+    needs: [verify, autofix, deploy]
     if: always()
     runs-on: ubuntu-latest
     permissions:

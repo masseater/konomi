@@ -12,7 +12,7 @@ const Entry = Schema.Struct({
   "letterboxd:memberLike": OptionalText,
 });
 
-const Channel = Schema.Struct({ item: Schema.optional(Schema.Array(Entry)) });
+const Channel = Schema.Struct({ item: Entry.pipe(Schema.Array, Schema.optional) });
 
 export const DiaryFeed = Schema.Struct({ rss: Schema.Struct({ channel: Channel }) });
 

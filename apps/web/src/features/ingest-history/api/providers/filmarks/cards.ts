@@ -8,7 +8,7 @@ export type Card = Readonly<{
   score: Option.Option<number>;
 }>;
 
-type Cards = Readonly<{ cards: readonly Card[]; next: Option.Option<string> }>;
+export type Cards = Readonly<{ cards: readonly Card[]; next: Option.Option<string> }>;
 
 type Selectors = Readonly<{ card: string; title: string }>;
 

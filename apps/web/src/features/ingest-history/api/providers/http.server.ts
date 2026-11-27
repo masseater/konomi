@@ -80,10 +80,10 @@ export type Browser = Readonly<{
 const withFetch = <Value, Failure, Requirement>(
   effect: Effect.Effect<Value, Failure, HttpClient.HttpClient | Requirement>,
 ): Effect.Effect<Value, Failure, Exclude<Requirement, HttpClient.HttpClient>> =>
-  Effect.scoped(
-    Layer.build(FetchHttpClient.layer).pipe(
-      Effect.flatMap((context) => effect.pipe(Effect.provideContext(context))),
-    ),
+  FetchHttpClient.layer.pipe(
+    Layer.build,
+    Effect.flatMap((context) => effect.pipe(Effect.provideContext(context))),
+    Effect.scoped,
   );
 
 const pageOf =
@@ -197,12 +197,11 @@ export const fetchText = ({
   url,
   headers,
 }: Readonly<{ url: string; headers: Headers }>): Effect.Effect<string, ProviderError> =>
-  withFetch(
-    okResponse(HttpClientRequest.get(url, { headers })).pipe(
-      Effect.flatMap((response) =>
-        response.text.pipe(
-          Effect.mapError(() => ProviderUnavailable.make({ message: `${url} was unreadable` })),
-        ),
+  okResponse(HttpClientRequest.get(url, { headers })).pipe(
+    Effect.flatMap((response) =>
+      response.text.pipe(
+        Effect.mapError(() => ProviderUnavailable.make({ message: `${url} was unreadable` })),
       ),
     ),
+    withFetch,
   );

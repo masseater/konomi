@@ -4,7 +4,7 @@ const Tag = Schema.Struct({ name: Schema.String });
 
 const Author = Schema.Struct({
   id: Schema.String,
-  name: Schema.optional(Schema.NullOr(Schema.String)),
+  name: Schema.String.pipe(Schema.NullOr, Schema.optional),
 });
 
 const Item = Schema.Struct({

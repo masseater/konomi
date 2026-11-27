@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
 const Owner = Schema.Struct({ ownerType: OptionalText, id: OptionalText, name: OptionalText });
 
@@ -8,8 +8,8 @@ const Video = Schema.Struct({
   id: Schema.String,
   title: Schema.String,
   registeredAt: OptionalText,
-  duration: Schema.optional(Schema.NullOr(Schema.Int)),
-  owner: Schema.optional(Schema.NullOr(Owner)),
+  duration: Schema.Int.pipe(Schema.NullOr, Schema.optional),
+  owner: Owner.pipe(Schema.NullOr, Schema.optional),
 });
 
 const VideoItem = Schema.Struct({

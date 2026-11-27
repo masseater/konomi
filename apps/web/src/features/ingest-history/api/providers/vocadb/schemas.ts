@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
 export const Users = Schema.Struct({
   items: Schema.Array(Schema.Struct({ id: Schema.Int, name: Schema.String })),
@@ -9,16 +9,16 @@ export const Users = Schema.Struct({
 const Artist = Schema.Struct({ id: Schema.Int, name: Schema.String });
 
 const Credit = Schema.Struct({
-  artist: Schema.optional(Schema.NullOr(Artist)),
+  artist: Artist.pipe(Schema.NullOr, Schema.optional),
   categories: OptionalText,
 });
 
-const Credits = Schema.optional(Schema.NullOr(Schema.Array(Credit)));
+const Credits = Credit.pipe(Schema.Array, Schema.NullOr, Schema.optional);
 
 const Song = Schema.Struct({
   id: Schema.Int,
   name: Schema.String,
-  lengthSeconds: Schema.optional(Schema.NullOr(Schema.Int)),
+  lengthSeconds: Schema.Int.pipe(Schema.NullOr, Schema.optional),
   publishDate: OptionalText,
   songType: OptionalText,
   artists: Credits,

@@ -2,9 +2,9 @@ import { Schema } from "effect";
 
 const Genre = Schema.Struct({ name: Schema.String });
 
-const Genres = Schema.optional(Schema.NullOr(Schema.Array(Genre)));
+const Genres = Genre.pipe(Schema.Array, Schema.NullOr, Schema.optional);
 
-const Season = Schema.optional(Schema.NullOr(Schema.Struct({ year: Schema.Int })));
+const Season = Schema.Struct({ year: Schema.Int }).pipe(Schema.NullOr, Schema.optional);
 
 const Node = Schema.Struct({
   id: Schema.Int,
@@ -14,16 +14,16 @@ const Node = Schema.Struct({
 });
 
 const ListStatus = Schema.Struct({
-  status: Schema.optional(Schema.NullOr(Schema.String)),
-  score: Schema.optional(Schema.NullOr(Schema.Int)),
-  updated_at: Schema.optional(Schema.NullOr(Schema.String)),
+  status: Schema.String.pipe(Schema.NullOr, Schema.optional),
+  score: Schema.Int.pipe(Schema.NullOr, Schema.optional),
+  updated_at: Schema.String.pipe(Schema.NullOr, Schema.optional),
 });
 
 const Entry = Schema.Struct({ node: Node, list_status: ListStatus });
 
-const Next = Schema.Struct({ next: Schema.optional(Schema.NullOr(Schema.String)) });
+const Next = Schema.Struct({ next: Schema.String.pipe(Schema.NullOr, Schema.optional) });
 
-const Paging = Schema.optional(Schema.NullOr(Next));
+const Paging = Next.pipe(Schema.NullOr, Schema.optional);
 
 export const UserList = Schema.Struct({ data: Schema.Array(Entry), paging: Paging });
 

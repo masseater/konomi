@@ -1,8 +1,8 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
-const OptionalSeconds = Schema.optional(Schema.NullOr(Schema.Finite));
+const OptionalSeconds = Schema.Finite.pipe(Schema.NullOr, Schema.optional);
 
 const Thing = Schema.Struct({
   kind: Schema.String,

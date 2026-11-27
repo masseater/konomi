@@ -2,6 +2,7 @@
   "name": "claude-harness",
   "version": "0.0.0",
   "private": true,
+  "description": "Claude Code hooks and gates that keep agent work in this repository within its rules.",
   "type": "module",
   "imports": {
     "#/*": "./src/*"

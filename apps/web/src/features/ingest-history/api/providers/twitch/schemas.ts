@@ -9,11 +9,11 @@ const Followed = Schema.Struct({
   followed_at: Schema.String,
 });
 
-const Pagination = Schema.Struct({ cursor: Schema.optional(Schema.NullOr(Schema.String)) });
+const Pagination = Schema.Struct({ cursor: Schema.String.pipe(Schema.NullOr, Schema.optional) });
 
 export const FollowedChannels = Schema.Struct({
   data: Schema.Array(Followed),
-  pagination: Schema.optional(Schema.NullOr(Pagination)),
+  pagination: Pagination.pipe(Schema.NullOr, Schema.optional),
 });
 
 export type TwitchFollowed = typeof Followed.Type;

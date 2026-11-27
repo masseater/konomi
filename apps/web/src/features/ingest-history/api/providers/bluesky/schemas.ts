@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
 export const Login = Schema.Struct({ identifier: Schema.String, password: Schema.String });
 

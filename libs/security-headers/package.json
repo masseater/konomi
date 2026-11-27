@@ -2,6 +2,7 @@
   "name": "security-headers",
   "version": "0.0.0",
   "private": true,
+  "description": "Security response headers shared by the konomi Workers.",
   "type": "module",
   "exports": {
     ".": "./src/app/index.ts"

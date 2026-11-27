@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-const Tags = Schema.optional(Schema.Array(Schema.String));
+const Tags = Schema.String.pipe(Schema.Array, Schema.optional);
 
 const Work = Schema.Struct({
   id: Schema.String,

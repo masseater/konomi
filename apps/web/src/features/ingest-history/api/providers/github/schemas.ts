@@ -1,12 +1,12 @@
 import { Schema } from "effect";
 
-const Topics = Schema.optional(Schema.NullOr(Schema.Array(Schema.String)));
+const Topics = Schema.String.pipe(Schema.Array, Schema.NullOr, Schema.optional);
 
 const Repository = Schema.Struct({
   id: Schema.Int,
   full_name: Schema.String,
   html_url: Schema.String,
-  language: Schema.optional(Schema.NullOr(Schema.String)),
+  language: Schema.String.pipe(Schema.NullOr, Schema.optional),
   topics: Topics,
   owner: Schema.Struct({ login: Schema.String, id: Schema.Int, html_url: Schema.String }),
 });

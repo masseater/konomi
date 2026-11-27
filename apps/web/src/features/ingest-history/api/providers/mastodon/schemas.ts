@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
 const Account = Schema.Struct({
   id: Schema.String,
@@ -11,7 +11,7 @@ const Account = Schema.Struct({
 
 const Tag = Schema.Struct({ name: Schema.String });
 
-const Tags = Schema.optional(Schema.NullOr(Schema.Array(Tag)));
+const Tags = Tag.pipe(Schema.Array, Schema.NullOr, Schema.optional);
 
 const Status = Schema.Struct({
   id: Schema.String,

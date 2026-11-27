@@ -2,17 +2,17 @@ import { Schema } from "effect";
 
 const Ids = Schema.Struct({
   trakt: Schema.Int,
-  slug: Schema.optional(Schema.NullOr(Schema.String)),
+  slug: Schema.String.pipe(Schema.NullOr, Schema.optional),
 });
 
-const Year = Schema.optional(Schema.NullOr(Schema.Int));
+const Year = Schema.Int.pipe(Schema.NullOr, Schema.optional);
 
 const Work = Schema.Struct({ title: Schema.String, year: Year, ids: Ids });
 
 const Episode = Schema.Struct({
   season: Schema.Int,
   number: Schema.Int,
-  title: Schema.optional(Schema.NullOr(Schema.String)),
+  title: Schema.String.pipe(Schema.NullOr, Schema.optional),
   ids: Ids,
 });
 

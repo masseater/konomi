@@ -8,7 +8,7 @@ import type { VideoParts } from "./subjects";
 
 const VIDEO_LOCKUP = "LOCKUP_CONTENT_TYPE_VIDEO";
 
-const OptionalText = Schema.optional(Schema.NullOr(Schema.String));
+const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 
 const BrowseEndpoint = Schema.Struct({ browseId: OptionalText });
 
@@ -17,7 +17,7 @@ const Endpoint = Schema.Struct({ browseEndpoint: Schema.optional(BrowseEndpoint)
 const Run = Schema.Struct({ text: Schema.String, navigationEndpoint: Schema.optional(Endpoint) });
 
 const Runs = Schema.Struct({
-  runs: Schema.optional(Schema.Array(Run)),
+  runs: Run.pipe(Schema.Array, Schema.optional),
   simpleText: OptionalText,
 });
 
