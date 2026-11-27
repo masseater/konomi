@@ -54,16 +54,25 @@ const basicAuthOf = (credential: Credential): Effect.Effect<string, ProviderErro
     ),
   );
 
-type Tokens = Readonly<{ access_token: string; refresh_token?: string | undefined }>;
-
 const THREE = 3;
 
 export const withTokens: {
-  (tokens: Tokens, transient: readonly string[]): (credential: Credential) => Credential;
-  (credential: Credential, tokens: Tokens, transient: readonly string[]): Credential;
+  (
+    tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
+    transient: readonly string[],
+  ): (credential: Credential) => Credential;
+  (
+    credential: Credential,
+    tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
+    transient: readonly string[],
+  ): Credential;
 } = Fn.dual(
   THREE,
-  (credential: Credential, tokens: Tokens, transient: readonly string[]): Credential => ({
+  (
+    credential: Credential,
+    tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
+    transient: readonly string[],
+  ): Credential => ({
     method: credential.method,
     fields: {
       ...Arr.reduce(transient, credential.fields, (fields, key) => Rec.remove(fields, key)),
