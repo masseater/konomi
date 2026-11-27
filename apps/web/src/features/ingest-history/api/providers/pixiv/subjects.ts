@@ -2,6 +2,7 @@ import type { PixivUser } from "@book000/pixivts";
 import { Array as Arr, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import { followedBy } from "#/features/ingest-history/api/providers/observe";
 
 import { WEB } from "./api";
 
@@ -55,14 +56,8 @@ export const novelObservationsOf =
   (novels: readonly Work[]): readonly Observation[] =>
     pipe(novels, Arr.map(novelOf), Arr.map(collectedAt(fetchedAt)));
 
-export const followObservationsOf =
-  (fetchedAt: number) =>
-  (users: readonly User[]): readonly Observation[] =>
-    pipe(
-      users,
-      Arr.map((user) => ({
-        kind: "followed" as const,
-        subject: { ...creatorOf(user), credits: [], tags: [] },
-        occurredAtMs: fetchedAt,
-      })),
-    );
+export const followObservationsOf = (fetchedAt: number) =>
+  followedBy({
+    subjectOf: (user: User) => ({ ...creatorOf(user), credits: [], tags: [] }),
+    occurredAtOf: () => fetchedAt,
+  });

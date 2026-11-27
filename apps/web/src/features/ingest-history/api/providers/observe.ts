@@ -1,4 +1,4 @@
-import { Option, pipe } from "effect";
+import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
@@ -67,3 +67,21 @@ export const pageOf = <Item>({
   items,
   next: Option.fromNullishOr(next),
 });
+
+export const followedBy =
+  <Item>({
+    subjectOf,
+    occurredAtOf,
+  }: Readonly<{
+    subjectOf: (item: Item) => SubjectInput;
+    occurredAtOf: (item: Item) => number;
+  }>) =>
+  (items: readonly Item[]): readonly Observation[] =>
+    pipe(
+      items,
+      Arr.map((item): Observation => ({
+        kind: "followed",
+        subject: subjectOf(item),
+        occurredAtMs: occurredAtOf(item),
+      })),
+    );

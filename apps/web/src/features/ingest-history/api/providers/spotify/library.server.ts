@@ -2,7 +2,12 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { epochOr, observeAt, pageOf } from "#/features/ingest-history/api/providers/observe";
+import {
+  epochOr,
+  observeAt,
+  pageOf,
+  followedBy,
+} from "#/features/ingest-history/api/providers/observe";
 import type { Fetching } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
@@ -80,7 +85,7 @@ export const pullFollowed = ({
         artists,
         Arr.map(followedArtistOf),
         Arr.getSomes,
-        Arr.map((subject): Observation => ({ kind: "followed", subject, occurredAtMs: fetchedAt })),
+        followedBy({ subjectOf: (subject) => subject, occurredAtOf: () => fetchedAt }),
       ),
     ),
   );

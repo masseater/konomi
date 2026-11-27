@@ -5,6 +5,7 @@ import type { Observation } from "#/entities/signal";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson, postJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
+import { followedBy } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
@@ -84,15 +85,7 @@ const pullFollows = ({
       fetchJson({ url, headers, schema: Follows }).pipe(
         Effect.map(({ follows, cursor }) => ({ items: follows, next: withCursor(first)(cursor) })),
       ),
-  }).pipe(
-    Effect.map(
-      Arr.map((profile): Observation => ({
-        kind: "followed",
-        subject: followedOf(profile),
-        occurredAtMs: fetchedAt,
-      })),
-    ),
-  );
+  }).pipe(Effect.map(followedBy({ subjectOf: followedOf, occurredAtOf: () => fetchedAt })));
 };
 
 export const pullBluesky = pullOf({

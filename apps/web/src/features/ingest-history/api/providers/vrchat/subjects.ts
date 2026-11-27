@@ -1,6 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import { followedBy } from "#/features/ingest-history/api/providers/observe";
 import type { SubjectType } from "#/shared/config";
 
 import { AUTHOR_TAG, WEB } from "./api";
@@ -54,14 +55,12 @@ export const favoriteObservationsOf =
       })),
     );
 
-export const friendObservationsOf =
-  (fetchedAt: number) =>
-  (friends: readonly VrchatFriend[]): readonly Observation[] =>
-    pipe(
-      friends,
-      Arr.map(({ id, displayName }) => ({
-        kind: "followed" as const,
-        subject: { ...personOf({ id, name: displayName }), credits: [], tags: [] },
-        occurredAtMs: fetchedAt,
-      })),
-    );
+export const friendObservationsOf = (fetchedAt: number) =>
+  followedBy({
+    subjectOf: ({ id, displayName }: VrchatFriend) => ({
+      ...personOf({ id, name: displayName }),
+      credits: [],
+      tags: [],
+    }),
+    occurredAtOf: () => fetchedAt,
+  });

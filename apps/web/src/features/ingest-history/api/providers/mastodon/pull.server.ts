@@ -1,10 +1,11 @@
-import { Array as Arr, Effect, pipe } from "effect";
+import { Array as Arr, Effect } from "effect";
 
 import type { ListingKind, Observation } from "#/entities/signal";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
+import { followedBy } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
@@ -46,14 +47,7 @@ const followingOf = ({
       headers,
       schema: Accounts,
     });
-    return pipe(
-      accounts,
-      Arr.map((account): Observation => ({
-        kind: "followed",
-        subject: followedOf(account),
-        occurredAtMs: fetchedAt,
-      })),
-    );
+    return followedBy({ subjectOf: followedOf, occurredAtOf: () => fetchedAt })(accounts);
   });
 
 export const pullMastodon = pullOf({

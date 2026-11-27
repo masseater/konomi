@@ -3,6 +3,7 @@ import { Array as Arr, Effect, Option, String as Str, pipe } from "effect";
 import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
+import { followedBy } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
@@ -115,14 +116,14 @@ const pullFollowing = ({
     schema: FollowingPage,
   }).pipe(
     Effect.map(({ data }) =>
-      pipe(
-        data.items,
-        Arr.map(({ id, nickname }): Observation => ({
-          kind: "followed",
-          subject: { ...personOf({ id: String(id), name: nickname }), credits: [], tags: [] },
-          occurredAtMs: fetchedAt,
-        })),
-      ),
+      followedBy({
+        subjectOf: ({ id, nickname }: (typeof data.items)[number]) => ({
+          ...personOf({ id: String(id), name: nickname }),
+          credits: [],
+          tags: [],
+        }),
+        occurredAtOf: () => fetchedAt,
+      })(data.items),
     ),
   );
 
