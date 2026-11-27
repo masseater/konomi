@@ -56,9 +56,9 @@ export const recordObservationsOf =
     return [{ kind: "consumed", subject, occurredAtMs }, ...liked];
   };
 
-export const entryObservationOf =
+export const entryObservationsOf =
   (fetchedAt: number) =>
-  (entry: AnnictEntry): Option.Option<Observation> =>
+  (entry: AnnictEntry): readonly Observation[] =>
     pipe(
       Option.fromNullishOr(entry.status),
       Option.flatMap((status) =>
@@ -72,4 +72,5 @@ export const entryObservationOf =
           })),
         ),
       ),
+      Option.toArray,
     );

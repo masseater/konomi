@@ -1,15 +1,15 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
-import { postJson } from "#/features/ingest-history/api/providers/http.server";
-import { flatMapEach } from "#/features/ingest-history/api/providers/observe";
-import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
+import {
+  graphListing,
+  pulledListings,
+} from "#/features/ingest-history/api/providers/listing.server";
+import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, FIELD, LIMIT, MEDIA_TYPES } from "./api";
 import { MediaListPage, Query } from "./schemas";
-import type { AniListEntry } from "./schemas";
 import { entryObservationsOf } from "./subjects";
 
 const FIRST = 1;
@@ -24,41 +24,39 @@ const MEDIA_LIST = `query ($user: String, $type: MediaType, $page: Int) {
   }
 }`;
 
-type Listing = Readonly<{ user: string; pages: number }>;
-
-const pullList =
-  ({ user, pages }: Listing) =>
-  (type: (typeof MEDIA_TYPES)[number]): Effect.Effect<readonly AniListEntry[], ProviderError> =>
-    collectPages({
-      first: String(FIRST),
-      pages,
-      fetchPage: (page) =>
-        postJson({
-          url: API,
-          headers: { Accept: "application/json" },
-          payload: Query,
-          body: { query: MEDIA_LIST, variables: { user, type, page: Number(page) } },
-          schema: MediaListPage,
-        }).pipe(
-          Effect.map(({ data }) => ({
-            items: data.Page.mediaList,
-            next: pipe(
-              Option.liftPredicate(data.Page.pageInfo, ({ hasNextPage }) => hasNextPage),
-              Option.map(({ currentPage }) => String(currentPage + FIRST)),
-            ),
-          })),
-        ),
-    });
+const mediaListOf = (user: string, type: (typeof MEDIA_TYPES)[number]): Listing =>
+  graphListing({
+    url: API,
+    first: String(FIRST),
+    payload: Query,
+    bodyAt: (page) => ({ query: MEDIA_LIST, variables: { user, type, page: Number(page) } }),
+    schema: MediaListPage,
+    pageFrom: ({ data }) => ({
+      items: data.Page.mediaList,
+      next: pipe(
+        Option.liftPredicate(data.Page.pageInfo, ({ hasNextPage }) => hasNextPage),
+        Option.map(({ currentPage }) => String(currentPage + FIRST)),
+      ),
+    }),
+    observe: (fetchedAt) => Arr.flatMap(entryObservationsOf(fetchedAt)),
+  });
 
 export const pullAniList = pullOf({
   provider: "anilist",
   cursor: "backfilled",
   observe: ({ credential, pages, fetchedAt }) =>
-    Effect.gen(function* anilist() {
-      const user = yield* requireField(credential, FIELD.user);
-      const pull = pullList({ user, pages });
-      const entries = yield* flatMapEach(MEDIA_TYPES, pull);
-      const observe = entryObservationsOf(fetchedAt);
-      return pipe(entries, Arr.flatMap(observe));
-    }),
+    requireField(credential, FIELD.user).pipe(
+      Effect.flatMap((user) =>
+        pulledListings(
+          pipe(
+            MEDIA_TYPES,
+            Arr.map((type) => mediaListOf(user, type)),
+          ),
+        )({
+          headers: { Accept: "application/json" },
+          pages,
+          fetchedAt,
+        }),
+      ),
+    ),
 });
