@@ -1,44 +1,35 @@
-import { Array as Arr, Effect, Option, pipe } from "effect";
+import { Effect, Option, pipe } from "effect";
 
-import type { ListingKind, Observation } from "#/entities/signal";
+import type { ListingKind } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import type { Headers } from "#/features/ingest-history/api/providers/http.server";
+import {
+  jsonListing,
+  pulledListings,
+} from "#/features/ingest-history/api/providers/listing.server";
+import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.server";
-import type { Observing } from "#/features/ingest-history/api/providers/observe";
-import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, LIMIT, USER_AGENT } from "./api";
-import { Listing, Me } from "./schemas";
-import type { RedditThing } from "./schemas";
+import { Listing as ListingBody, Me } from "./schemas";
 import { thingOf } from "./subjects";
 
-type Reading = Readonly<{ headers: Headers; user: string; pages: number; fetchedAt: number }>;
-
-const listingOf =
-  ({ headers, user, pages, fetchedAt }: Reading) =>
-  (path: string, kind: ListingKind): Observing => {
-    const first = `${API}/user/${user}/${path}?limit=${LIMIT}&raw_json=1`;
-    const observe = (thing: RedditThing): Observation => ({
-      kind,
-      subject: thingOf(thing),
-      occurredAtMs: fetchedAt,
-    });
-    return collectPages({
-      first,
-      pages,
-      fetchPage: (url) =>
-        fetchJson({ url, headers, schema: Listing }).pipe(
-          Effect.map(({ data }) => ({
-            items: data.children,
-            next: pipe(
-              Option.fromNullishOr(data.after),
-              Option.map((after) => `${first}&after=${after}`),
-            ),
-          })),
-        ),
-    }).pipe(Effect.map(Arr.map(observe)));
-  };
+const listingOf = (user: string, path: string, kind: ListingKind): Listing => {
+  const first = `${API}/user/${user}/${path}?limit=${LIMIT}&raw_json=1`;
+  return jsonListing({
+    kind,
+    first,
+    schema: ListingBody,
+    pageOf: ({ data }) => ({
+      items: data.children,
+      next: pipe(
+        Option.fromNullishOr(data.after),
+        Option.map((after) => `${first}&after=${after}`),
+      ),
+    }),
+    subjectOf: (thing) => Option.some(thingOf(thing)),
+  });
+};
 
 export const pullReddit = pullOf({
   provider: "reddit",
@@ -47,15 +38,10 @@ export const pullReddit = pullOf({
     Effect.gen(function* reddit() {
       const headers = { ...(yield* bearerHeadersOf(credential)), "User-Agent": USER_AGENT };
       const { name } = yield* fetchJson({ url: `${API}/api/v1/me`, headers, schema: Me });
-      const listing = listingOf({
-        headers,
-        user: encodeURIComponent(name),
-        pages,
-        fetchedAt,
-      });
-      return [
-        ...(yield* listing("upvoted", "endorsed")),
-        ...(yield* listing("saved", "collected")),
-      ];
+      const user = encodeURIComponent(name);
+      return yield* pulledListings([
+        listingOf(user, "upvoted", "endorsed"),
+        listingOf(user, "saved", "collected"),
+      ])({ headers, pages, fetchedAt });
     }),
 });
