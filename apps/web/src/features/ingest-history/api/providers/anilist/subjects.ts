@@ -57,10 +57,8 @@ export const entryObservationsOf =
       subject,
       occurredAtMs,
       context: Option.fromUndefinedOr(STATUS_LABEL[entry.status]),
-      liked: pipe(
-        Option.fromNullishOr(entry.score),
-        Option.exists((score) => score >= LIKED_SCORE),
-      ),
+      score: Option.fromNullishOr(entry.score),
+      likedFrom: LIKED_SCORE,
       completed: entry.status === "COMPLETED",
     });
   };

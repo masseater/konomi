@@ -65,19 +65,21 @@ export const listEntryObservationsOf = ({
   subject,
   occurredAtMs,
   context,
-  liked,
+  score,
+  likedFrom,
   completed,
 }: Readonly<{
   subject: SubjectInput;
   occurredAtMs: number;
   context: Option.Option<string>;
-  liked: boolean;
+  score: Option.Option<number>;
+  likedFrom: number;
   completed: boolean;
 }>): readonly Observation[] => [
   { kind: "collected", subject, occurredAtMs, ...contextOf(context) },
   ...pipe(
     [
-      { kind: "endorsed", applies: liked },
+      { kind: "endorsed", applies: Option.exists(score, (value) => value >= likedFrom) },
       { kind: "consumed", applies: completed },
     ] as const,
     Arr.filter(({ applies }) => applies),

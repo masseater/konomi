@@ -5,8 +5,10 @@ import type { Observation } from "#/entities/signal";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
+import { pageOf } from "#/features/ingest-history/api/providers/observe";
 import type { Fetched, Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
+import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, FIELD } from "./api";
@@ -38,19 +40,15 @@ type Paged<Item> = Readonly<{
   pageInfo: Readonly<{ hasNextPage: boolean; endCursor?: string | null | undefined }>;
 }>;
 
-const pageOf = <Item>({
-  nodes,
-  pageInfo,
-}: Paged<Item>): Readonly<{
-  items: readonly Item[];
-  next: Option.Option<string>;
-}> => ({
-  items: nodes,
-  next: pipe(
-    Option.fromNullishOr(pageInfo.endCursor),
-    Option.filter(() => pageInfo.hasNextPage),
-  ),
-});
+const graphPageOf = <Item>({ nodes, pageInfo }: Paged<Item>): Page<Item> =>
+  pageOf({
+    items: nodes,
+    next: pipe(
+      Option.liftPredicate(pageInfo, ({ hasNextPage }) => hasNextPage),
+      Option.flatMap(({ endCursor }) => Option.fromNullishOr(endCursor)),
+      Option.getOrUndefined,
+    ),
+  });
 
 const afterOf = (cursor: string): string | null =>
   Option.getOrNull(Option.liftPredicate(cursor, (value: string) => value !== START));
@@ -78,7 +76,7 @@ const pullGraph = <Response, Item>({
         payload: Query,
         body: { query, variables: { after: afterOf(after) } },
         schema,
-      }).pipe(Effect.map((response) => pageOf(pageFrom(response)))),
+      }).pipe(Effect.map((response) => graphPageOf(pageFrom(response)))),
   });
 
 const pullRecords = (querying: Querying): Observing => {
