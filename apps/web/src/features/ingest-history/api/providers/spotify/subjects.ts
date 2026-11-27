@@ -1,7 +1,7 @@
 import { Array as Arr, Match, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { withRelations } from "#/features/ingest-history/api/providers/creator-input";
+import { personIn, withRelations } from "#/features/ingest-history/api/providers/creator-input";
 import {
   durationFromMs,
   publishedOf,
@@ -22,13 +22,12 @@ const urlOf = (external: SpotifyUrls, path: string): string =>
 
 const creatorOf =
   (artist: SpotifyArtistRef) =>
-  (id: string): CreatorInput => ({
-    provider: "spotify",
-    externalId: id,
-    type: "person",
-    title: artist.name,
-    url: urlOf(artist.external_urls, `artist/${id}`),
-  });
+  (id: string): CreatorInput =>
+    personIn("spotify")({
+      externalId: id,
+      title: artist.name,
+      url: urlOf(artist.external_urls, `artist/${id}`),
+    });
 
 const artistOf = (artist: SpotifyArtistRef): Option.Option<CreatorInput> =>
   pipe(Option.fromNullishOr(artist.id), Option.map(creatorOf(artist)));

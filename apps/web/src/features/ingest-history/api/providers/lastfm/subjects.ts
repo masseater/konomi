@@ -1,17 +1,20 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
+import { personIn } from "#/features/ingest-history/api/providers/creator-input";
 
 import type { LastfmTrack } from "./schemas";
 
 const ORIGIN = "https://www.last.fm";
+
+const lastfm = personIn("lastfm");
 
 const artistOf = (artist: LastfmTrack["artist"]): CreatorInput => {
   const url = pipe(
     Option.fromNullishOr(artist.url),
     Option.getOrElse(() => `${ORIGIN}/music/${encodeURIComponent(artist.name)}`),
   );
-  return { provider: "lastfm", externalId: url, type: "person", title: artist.name, url };
+  return lastfm({ externalId: url, title: artist.name, url });
 };
 
 export const trackOf = (track: LastfmTrack): SubjectInput => ({

@@ -16,6 +16,11 @@ export const creatorInputOf =
 
 export const personInputOf = creatorInputOf("person");
 
+export const personIn =
+  (provider: CreatorInput["provider"]) =>
+  (person: Readonly<{ externalId: string; title: string; url: string }>): CreatorInput =>
+    personInputOf({ provider, ...person });
+
 export const creatorMapper =
   (type: CreatorInput["type"]) =>
   ({

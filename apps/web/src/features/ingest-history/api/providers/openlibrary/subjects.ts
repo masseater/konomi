@@ -1,6 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import { personIn } from "#/features/ingest-history/api/providers/creator-input";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
 import { orEmpty, subjectIn, textTagsOf } from "#/features/ingest-history/api/providers/subject-in";
 import type { SignalKind } from "#/shared/config";
@@ -11,13 +12,9 @@ import type { OpenLibraryEntry } from "./schemas";
 const authorsOf = (work: OpenLibraryEntry["work"]): readonly CreatorInput[] =>
   pipe(
     Arr.zip(orEmpty(work.author_keys), orEmpty(work.author_names)),
-    Arr.map(([key, title]): CreatorInput => ({
-      provider: "openlibrary",
-      externalId: key,
-      type: "person",
-      title,
-      url: `${WEB}${key}`,
-    })),
+    Arr.map(([key, title]) =>
+      personIn("openlibrary")({ externalId: key, title, url: `${WEB}${key}` }),
+    ),
   );
 
 const bookOf = (work: OpenLibraryEntry["work"]): SubjectInput =>

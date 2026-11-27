@@ -56,15 +56,17 @@ const withFetch = <Value, Failure, Requirement>(
     Effect.scoped,
   );
 
+const textOf =
+  (url: string) =>
+  (response: HttpClientResponse.HttpClientResponse): Effect.Effect<string, ProviderUnavailable> =>
+    response.text.pipe(
+      Effect.mapError(() => ProviderUnavailable.make({ message: `${url} was unreadable` })),
+    );
+
 const pageOf =
   (url: string) =>
   (response: HttpClientResponse.HttpClientResponse): ReturnType<Browser["open"]> =>
-    response.text.pipe(
-      Effect.mapBoth({
-        onSuccess: (text) => ({ url: response.request.url, text }),
-        onFailure: () => ProviderUnavailable.make({ message: `${url} was unreadable` }),
-      }),
-    );
+    textOf(url)(response).pipe(Effect.map((text) => ({ url: response.request.url, text })));
 
 type StoredCookie = (typeof Cookies.empty.cookies)[string];
 
@@ -179,11 +181,4 @@ export const fetchText = ({
   url,
   headers,
 }: Readonly<{ url: string; headers: Headers }>): Effect.Effect<string, ProviderError> =>
-  okResponse(HttpClientRequest.get(url, { headers })).pipe(
-    Effect.flatMap((response) =>
-      response.text.pipe(
-        Effect.mapError(() => ProviderUnavailable.make({ message: `${url} was unreadable` })),
-      ),
-    ),
-    withFetch,
-  );
+  okResponse(HttpClientRequest.get(url, { headers })).pipe(Effect.flatMap(textOf(url)), withFetch);
