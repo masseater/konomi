@@ -56,25 +56,25 @@ const pullRecent = (
   );
 
 const pullLibrary = ({ fetch, storefront, fetchedAt }: Listening): Observing =>
-  Effect.gen(function* library() {
-    const songs = yield* collectPages({
-      first: `${API}/me/library/songs?limit=${LIBRARY_LIMIT}`,
-      pages: pagesFor(false),
-      fetchPage: fetch,
-    });
-    return datedObservationsOf({
-      kind: "collected",
-      fetchedAt,
-      entries: songs,
-      subjectOf: (song) => songOf({ song, storefront }),
-      occurredAtOf: ({ attributes }) =>
-        pipe(
-          Option.fromNullishOr(attributes),
-          Option.flatMap(({ dateAdded }) => Option.fromNullishOr(dateAdded)),
-          Option.getOrUndefined,
-        ),
-    });
-  });
+  collectPages({
+    first: `${API}/me/library/songs?limit=${LIBRARY_LIMIT}`,
+    pages: pagesFor(false),
+    fetchPage: fetch,
+  }).pipe(
+    Effect.map(
+      datedObservationsOf({
+        kind: "collected",
+        fetchedAt,
+        subjectOf: (song) => songOf({ song, storefront }),
+        occurredAtOf: ({ attributes }) =>
+          pipe(
+            Option.fromNullishOr(attributes),
+            Option.flatMap(({ dateAdded }) => Option.fromNullishOr(dateAdded)),
+            Option.getOrUndefined,
+          ),
+      }),
+    ),
+  );
 
 export const pullAppleMusic = ({
   credential,

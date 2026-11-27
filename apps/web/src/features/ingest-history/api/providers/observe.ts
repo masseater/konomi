@@ -119,32 +119,32 @@ export const libraryObservationsOf =
       ),
     );
 
-export const datedObservationsOf = <Entry>({
-  kind,
-  listName,
-  fetchedAt,
-  entries,
-  subjectOf,
-  occurredAtOf,
-}: Readonly<{
-  kind: SignalKind;
-  listName?: string;
-  fetchedAt: number;
-  entries: readonly Entry[];
-  subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
-  occurredAtOf: (entry: Entry) => string | null | undefined;
-}>): readonly Observation[] => {
-  const observe = observeAt({
+export const datedObservationsOf =
+  <Entry>({
     kind,
-    context: Option.fromUndefinedOr(listName),
-    at: epochOr(fetchedAt),
-  });
-  return pipe(
-    entries,
-    Arr.map((entry) => observe({ subject: subjectOf(entry), occurredAt: occurredAtOf(entry) })),
-    Arr.getSomes,
-  );
-};
+    listName,
+    fetchedAt,
+    subjectOf,
+    occurredAtOf,
+  }: Readonly<{
+    kind: SignalKind;
+    listName?: string;
+    fetchedAt: number;
+    subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
+    occurredAtOf: (entry: Entry) => string | null | undefined;
+  }>) =>
+  (entries: readonly Entry[]): readonly Observation[] => {
+    const observe = observeAt({
+      kind,
+      context: Option.fromUndefinedOr(listName),
+      at: epochOr(fetchedAt),
+    });
+    return pipe(
+      entries,
+      Arr.map((entry) => observe({ subject: subjectOf(entry), occurredAt: occurredAtOf(entry) })),
+      Arr.getSomes,
+    );
+  };
 
 export const creatorInputOf =
   (type: CreatorInput["type"]) =>
@@ -262,22 +262,16 @@ export const collectedListsOf =
     subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
     occurredAtOf: (entry: Entry) => string | null | undefined;
   }>): ((fetching: Fetching) => Observing) =>
-  (fetching) =>
-    listsOf(fetching).pipe(
-      Effect.flatMap((found) =>
-        flatMapEach(found, (list) =>
-          entriesOf(fetching, list).pipe(
-            Effect.map((entries) =>
-              datedObservationsOf({
-                kind: "collected",
-                listName: nameOf(list),
-                fetchedAt: fetching.fetchedAt,
-                entries,
-                subjectOf,
-                occurredAtOf,
-              }),
-            ),
-          ),
-        ),
-      ),
-    );
+  (fetching) => {
+    const pullList = (list: List): Observing => {
+      const observe = datedObservationsOf({
+        kind: "collected",
+        listName: nameOf(list),
+        fetchedAt: fetching.fetchedAt,
+        subjectOf,
+        occurredAtOf,
+      });
+      return entriesOf(fetching, list).pipe(Effect.map(observe));
+    };
+    return listsOf(fetching).pipe(Effect.flatMap(flatMapEach(pullList)));
+  };
