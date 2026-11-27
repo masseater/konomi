@@ -1,8 +1,8 @@
 import type { PixivUser } from "@book000/pixivts";
 import { Array as Arr, pipe } from "effect";
 
-import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
-import { followedBy, personInputOf } from "#/features/ingest-history/api/providers/observe";
+import type { Observation, SubjectInput } from "#/entities/signal";
+import { observationsOf, personMapper } from "#/features/ingest-history/api/providers/observe";
 
 import { WEB } from "./api";
 
@@ -15,13 +15,7 @@ export type Work = Readonly<{
   createDate: string;
 }>;
 
-const creatorOf = ({ id, name }: User): CreatorInput =>
-  personInputOf({
-    provider: "pixiv",
-    externalId: `user:${id}`,
-    title: name,
-    url: `${WEB}/users/${id}`,
-  });
+const creatorOf = personMapper({ provider: "pixiv", idPrefix: "user:", urlBase: `${WEB}/users/` });
 
 const workOf =
   ({ kind, url }: Readonly<{ kind: "artwork" | "book"; url: (id: number) => string }>) =>
@@ -59,7 +53,7 @@ export const novelObservationsOf =
 export const followObservationsOf = (
   fetchedAt: number,
 ): ((items: readonly User[]) => readonly Observation[]) =>
-  followedBy({
+  observationsOf("followed")({
     subjectOf: (user: User) => ({ ...creatorOf(user), credits: [], tags: [] }),
     occurredAtOf: () => fetchedAt,
   });

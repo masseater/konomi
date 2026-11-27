@@ -1,9 +1,8 @@
-import { Array as Arr, Effect, Option, pipe } from "effect";
+import { Effect, Option, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
-import { followedBy } from "#/features/ingest-history/api/providers/observe";
+import { observationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
@@ -37,11 +36,10 @@ const pullLikes = ({ headers, did, pages, fetchedAt }: Signed): Observing => {
       ),
   }).pipe(
     Effect.map(
-      Arr.map(({ post }): Observation => ({
-        kind: "endorsed",
-        subject: postOf(post),
-        occurredAtMs: fetchedAt,
-      })),
+      observationsOf("endorsed")({
+        subjectOf: ({ post }) => postOf(post),
+        occurredAtOf: () => fetchedAt,
+      }),
     ),
   );
 };
@@ -55,7 +53,11 @@ const pullFollows = ({ headers, did, pages, fetchedAt }: Signed): Observing => {
       fetchJson({ url, headers, schema: Follows }).pipe(
         Effect.map(({ follows, cursor }) => ({ items: follows, next: withCursor(first)(cursor) })),
       ),
-  }).pipe(Effect.map(followedBy({ subjectOf: followedOf, occurredAtOf: () => fetchedAt })));
+  }).pipe(
+    Effect.map(
+      observationsOf("followed")({ subjectOf: followedOf, occurredAtOf: () => fetchedAt }),
+    ),
+  );
 };
 
 export const pullBluesky = pullOf({

@@ -1,12 +1,11 @@
-import { Array as Arr, Effect, Option, String as Str, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
+import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { followedBy } from "#/features/ingest-history/api/providers/observe";
+import { observationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
-import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { SignalKind } from "#/shared/config";
 
 import { FollowingPage, MylistIndex, MylistPage, VideoPage } from "./schemas";
@@ -35,15 +34,6 @@ const headersOf = (session: string): Readonly<Record<string, string>> => ({
   "X-Frontend-Version": "0",
   "X-Niconico-Language": "ja-jp",
 });
-
-const sessionOf = ({ fields }: Credential): Effect.Effect<string, CredentialRejected> =>
-  pipe(
-    Option.fromUndefinedOr(fields[SESSION_FIELD]),
-    Option.map(Str.trim),
-    Option.filter(Str.isNonEmpty),
-    Effect.fromOption,
-    Effect.mapError(() => CredentialRejected.make({ message: "niconico のログインがまだ無い" })),
-  );
 
 const pageUrl = (path: string, page: number): string =>
   `${API_ORIGIN}${path}?page=${page}&pageSize=${PAGE_SIZE}`;
@@ -110,7 +100,7 @@ const pullFollowing = ({ headers, fetchedAt }: Fetching): Observing =>
     schema: FollowingPage,
   }).pipe(
     Effect.map(({ data }) =>
-      followedBy({
+      observationsOf("followed")({
         subjectOf: ({ id, nickname }: (typeof data.items)[number]) => ({
           ...personOf({ id: String(id), name: nickname }),
           credits: [],
@@ -127,7 +117,7 @@ export const pullNiconico = pullOf({
   backfill: BACKFILL_PAGES,
   observe: ({ credential, pages, fetchedAt }) =>
     Effect.gen(function* niconico() {
-      const session = yield* sessionOf(credential);
+      const session = yield* requireField(credential, SESSION_FIELD);
       const fetching: Fetching = {
         headers: headersOf(session),
         fetchedAt,

@@ -3,6 +3,7 @@ import { Array as Arr, Clock, Effect, Match, Option, Record as Rec, Schema, pipe
 import type { Observation } from "#/entities/signal";
 import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
+import { observationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
@@ -105,11 +106,10 @@ const pullLoved = ({
       ),
   }).pipe(
     Effect.map(
-      Arr.map((track): Observation => ({
-        kind: "endorsed",
-        subject: trackOf(track),
-        occurredAtMs: Option.getOrElse(scrobbledAt(track), () => fetchedAt),
-      })),
+      observationsOf("endorsed")({
+        subjectOf: trackOf,
+        occurredAtOf: (track) => Option.getOrElse(scrobbledAt(track), () => fetchedAt),
+      }),
     ),
   );
 

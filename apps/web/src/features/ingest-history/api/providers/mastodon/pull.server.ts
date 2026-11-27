@@ -5,7 +5,7 @@ import { requireField } from "#/features/ingest-history/api/providers/credential
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
-import { followedBy } from "#/features/ingest-history/api/providers/observe";
+import { observationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
@@ -43,7 +43,9 @@ const followingOf = ({ origin, headers, fetchedAt }: Reading): Observing =>
       headers,
       schema: Accounts,
     });
-    return followedBy({ subjectOf: followedOf, occurredAtOf: () => fetchedAt })(accounts);
+    return observationsOf("followed")({ subjectOf: followedOf, occurredAtOf: () => fetchedAt })(
+      accounts,
+    );
   });
 
 export const pullMastodon = pullOf({

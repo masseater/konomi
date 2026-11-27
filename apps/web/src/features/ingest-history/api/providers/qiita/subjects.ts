@@ -1,6 +1,7 @@
-import { Array as Arr, Option, String as Str, pipe } from "effect";
+import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import { nonEmptyOr, observationsOf } from "#/features/ingest-history/api/providers/observe";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
 import type { QiitaItem } from "./schemas";
@@ -11,11 +12,7 @@ const authorOf = (author: QiitaItem["user"]): CreatorInput => ({
   provider: "qiita",
   externalId: `user:${author.id}`,
   type: "person",
-  title: pipe(
-    Option.fromNullishOr(author.name),
-    Option.filter(Str.isNonEmpty),
-    Option.getOrElse(() => author.id),
-  ),
+  title: nonEmptyOr(author.id)(author.name),
   url: `${WEB}/${author.id}`,
 });
 
@@ -36,11 +33,4 @@ const articleOf = (item: QiitaItem): SubjectInput => ({
 export const stockObservationsOf =
   (fetchedAt: number) =>
   (items: readonly QiitaItem[]): readonly Observation[] =>
-    pipe(
-      items,
-      Arr.map((item): Observation => ({
-        kind: "collected",
-        subject: articleOf(item),
-        occurredAtMs: fetchedAt,
-      })),
-    );
+    observationsOf("collected")({ subjectOf: articleOf, occurredAtOf: () => fetchedAt })(items);

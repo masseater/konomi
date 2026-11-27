@@ -11,7 +11,7 @@ import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { FIELD, LIMIT } from "./api";
 import { Favorites, Following, Me, Reactions, Request } from "./schemas";
-import { followedOf, noteOf } from "./subjects";
+import { followedOf, notedAs } from "./subjects";
 
 type Reading = Readonly<{ origin: string; token: string; at: (text: string) => number }>;
 
@@ -40,27 +40,12 @@ const call =
 const notesOf = (reading: Reading): Observing =>
   Effect.gen(function* notes() {
     const api = call(reading);
-    const note = noteOf(reading.origin);
     const { id } = yield* api("i", Me, Option.none());
     const favorites = yield* api("i/favorites", Favorites, Option.none());
     const reactions = yield* api("users/reactions", Reactions, Option.some(id));
     return [
-      ...pipe(
-        favorites,
-        Arr.map((favorite): Observation => ({
-          kind: "collected",
-          subject: note(favorite.note),
-          occurredAtMs: reading.at(favorite.createdAt),
-        })),
-      ),
-      ...pipe(
-        reactions,
-        Arr.map((reaction): Observation => ({
-          kind: "endorsed",
-          subject: note(reaction.note),
-          occurredAtMs: reading.at(reaction.createdAt),
-        })),
-      ),
+      ...notedAs({ kind: "collected", origin: reading.origin, at: reading.at })(favorites),
+      ...notedAs({ kind: "endorsed", origin: reading.origin, at: reading.at })(reactions),
     ];
   });
 

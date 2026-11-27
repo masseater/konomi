@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
-import { personInputOf } from "#/features/ingest-history/api/providers/observe";
+import { personInputOf, observationsOf } from "#/features/ingest-history/api/providers/observe";
 import { durationFromMs } from "#/features/ingest-history/api/providers/subject-fields";
 
 import { MUSICBRAINZ } from "./api";
@@ -92,14 +92,11 @@ const trackOf =
 export const listenObservationsOf = (
   listens: readonly ListenBrainzListen[],
 ): readonly Observation[] =>
-  pipe(
-    listens,
-    Arr.map((listen): Observation => ({
-      kind: "consumed",
-      subject: trackOf(listen.recording_msid)(listen.track_metadata),
-      occurredAtMs: listen.listened_at * MS_PER_SECOND,
-    })),
-  );
+  observationsOf("consumed")({
+    subjectOf: (listen: ListenBrainzListen) =>
+      trackOf(listen.recording_msid)(listen.track_metadata),
+    occurredAtOf: (listen: ListenBrainzListen) => listen.listened_at * MS_PER_SECOND,
+  })(listens);
 
 const lovedIdOf = (recording: ListenBrainzLoved): string =>
   pipe(

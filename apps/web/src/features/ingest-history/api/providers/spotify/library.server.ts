@@ -5,7 +5,7 @@ import {
   epochOr,
   observeAt,
   pageOf,
-  followedBy,
+  observationsOf,
 } from "#/features/ingest-history/api/providers/observe";
 import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 import {
@@ -83,7 +83,10 @@ export const pullFollowed = ({
         artists,
         Arr.map(followedArtistOf),
         Arr.getSomes,
-        followedBy({ subjectOf: (subject) => subject, occurredAtOf: () => fetchedAt }),
+        observationsOf("followed")({
+          subjectOf: (subject) => subject,
+          occurredAtOf: () => fetchedAt,
+        }),
       ),
     ),
   );

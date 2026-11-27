@@ -1,7 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { withRelations } from "#/features/ingest-history/api/providers/observe";
+import { withRelations, nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
@@ -14,11 +14,7 @@ const personOf = (profile: BlueskyProfile): CreatorInput => ({
   provider: "bluesky",
   externalId: profile.did,
   type: "person",
-  title: pipe(
-    Option.fromNullishOr(profile.displayName),
-    Option.filter(Str.isNonEmpty),
-    Option.getOrElse(() => profile.handle),
-  ),
+  title: nonEmptyOr(profile.handle)(profile.displayName),
   url: `${WEB}/profile/${profile.handle}`,
 });
 

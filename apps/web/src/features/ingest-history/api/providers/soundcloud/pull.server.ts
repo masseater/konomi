@@ -1,7 +1,11 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
-import { epochOr, observeAt, followedBy } from "#/features/ingest-history/api/providers/observe";
+import {
+  epochOr,
+  observeAt,
+  observationsOf,
+} from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
@@ -89,7 +93,12 @@ const pullFollowings = (session: Pulling): Observing =>
     pages: session.pages,
     schema: Followings,
   }).pipe(
-    Effect.map(followedBy({ subjectOf: followedUserOf, occurredAtOf: () => session.fetchedAt })),
+    Effect.map(
+      observationsOf("followed")({
+        subjectOf: followedUserOf,
+        occurredAtOf: () => session.fetchedAt,
+      }),
+    ),
   );
 
 export const pullSoundcloud = pullOf({

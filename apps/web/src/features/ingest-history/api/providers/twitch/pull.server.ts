@@ -3,7 +3,7 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
-import { epochOr, followedBy } from "#/features/ingest-history/api/providers/observe";
+import { epochOr, observationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
@@ -37,7 +37,7 @@ const pullFollowed = ({
       ),
   }).pipe(
     Effect.map(
-      followedBy({
+      observationsOf("followed")({
         subjectOf: channelOf,
         occurredAtOf: (followed) => at(followed.followed_at),
       }),

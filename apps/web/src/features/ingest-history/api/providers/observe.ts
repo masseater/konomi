@@ -1,4 +1,4 @@
-import { Array as Arr, Effect, Function as Fn, Option, pipe } from "effect";
+import { Array as Arr, Effect, Function as Fn, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
@@ -73,6 +73,29 @@ export const personInputOf = ({
   url: string;
 }>): CreatorInput => ({ provider, externalId, type: "person", title, url });
 
+export const nonEmptyOr =
+  (fallback: string) =>
+  (value: string | null | undefined): string =>
+    pipe(
+      Option.fromNullishOr(value),
+      Option.filter(Str.isNonEmpty),
+      Option.getOrElse(() => fallback),
+    );
+
+export const personMapper =
+  ({
+    provider,
+    idPrefix,
+    urlBase,
+  }: Readonly<{ provider: CreatorInput["provider"]; idPrefix: string; urlBase: string }>) =>
+  ({ id, name }: Readonly<{ id: string | number; name: string }>): CreatorInput =>
+    personInputOf({
+      provider,
+      externalId: `${idPrefix}${id}`,
+      title: name,
+      url: `${urlBase}${id}`,
+    });
+
 export const withRelations =
   (relations: Pick<SubjectInput, "credits" | "tags">) =>
   (creator: CreatorInput): SubjectInput => ({ ...creator, ...relations });
@@ -85,7 +108,8 @@ export const pageOf = <Item>({
   next: Option.fromNullishOr(next),
 });
 
-export const followedBy =
+export const observationsOf =
+  (kind: SignalKind) =>
   <Item>({
     subjectOf,
     occurredAtOf,
@@ -97,7 +121,7 @@ export const followedBy =
     pipe(
       items,
       Arr.map((item): Observation => ({
-        kind: "followed",
+        kind,
         subject: subjectOf(item),
         occurredAtMs: occurredAtOf(item),
       })),

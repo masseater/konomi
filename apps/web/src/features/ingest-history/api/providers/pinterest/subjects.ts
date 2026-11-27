@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
-import { epochOr } from "#/features/ingest-history/api/providers/observe";
+import { epochOr, observationsOf } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 
 import { WEB } from "./api";
@@ -34,12 +34,8 @@ export const pinObservationsOf =
   (fetchedAt: number) =>
   (pins: readonly PinterestPin[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
-    return pipe(
-      pins,
-      Arr.map((pin): Observation => ({
-        kind: "collected",
-        subject: pinOf(pin),
-        occurredAtMs: at(pin.created_at),
-      })),
-    );
+    return observationsOf("collected")({
+      subjectOf: pinOf,
+      occurredAtOf: (pin) => at(pin.created_at),
+    })(pins);
   };

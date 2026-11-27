@@ -1,7 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
-import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
-import { followedBy, personInputOf } from "#/features/ingest-history/api/providers/observe";
+import type { Observation, SubjectInput } from "#/entities/signal";
+import { observationsOf, personMapper } from "#/features/ingest-history/api/providers/observe";
 import type { SubjectType } from "#/shared/config";
 
 import { AUTHOR_TAG, WEB } from "./api";
@@ -11,13 +11,7 @@ export type WorkKind = "world" | "avatar";
 
 const TYPE_OF: Readonly<Record<WorkKind, SubjectType>> = { world: "world", avatar: "item" };
 
-const personOf = ({ id, name }: Readonly<{ id: string; name: string }>): CreatorInput =>
-  personInputOf({
-    provider: "vrchat",
-    externalId: `user:${id}`,
-    title: name,
-    url: `${WEB}/user/${id}`,
-  });
+const personOf = personMapper({ provider: "vrchat", idPrefix: "user:", urlBase: `${WEB}/user/` });
 
 const authorTagsOf = (tags: readonly string[] | undefined): readonly string[] =>
   pipe(
@@ -58,7 +52,7 @@ export const favoriteObservationsOf =
 export const friendObservationsOf = (
   fetchedAt: number,
 ): ((items: readonly VrchatFriend[]) => readonly Observation[]) =>
-  followedBy({
+  observationsOf("followed")({
     subjectOf: ({ id, displayName }: VrchatFriend) => ({
       ...personOf({ id, name: displayName }),
       credits: [],

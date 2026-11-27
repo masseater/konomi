@@ -1,7 +1,11 @@
-import { Array as Arr, Option, String as Str, pipe } from "effect";
+import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { withRelations, personInputOf } from "#/features/ingest-history/api/providers/observe";
+import {
+  withRelations,
+  personInputOf,
+  nonEmptyOr,
+} from "#/features/ingest-history/api/providers/observe";
 import { plainTextOf, postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
@@ -11,11 +15,7 @@ const accountOf = (account: MastodonAccount): CreatorInput =>
   personInputOf({
     provider: "mastodon",
     externalId: account.url,
-    title: pipe(
-      Option.fromNullishOr(account.display_name),
-      Option.filter(Str.isNonEmpty),
-      Option.getOrElse(() => account.acct),
-    ),
+    title: nonEmptyOr(account.acct)(account.display_name),
     url: account.url,
   });
 

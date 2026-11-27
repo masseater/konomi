@@ -1,7 +1,7 @@
-import { Array as Arr, Option, pipe } from "effect";
+import { Option, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
-import { epochOr, followedBy } from "#/features/ingest-history/api/providers/observe";
+import { epochOr, observationsOf } from "#/features/ingest-history/api/providers/observe";
 
 import type { GitHubAccount, GitHubStar } from "./schemas";
 
@@ -33,20 +33,16 @@ export const starObservationsOf =
   (fetchedAt: number) =>
   (stars: readonly GitHubStar[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
-    return pipe(
-      stars,
-      Arr.map((star): Observation => ({
-        kind: "endorsed",
-        subject: repositoryOf(star),
-        occurredAtMs: at(star.starred_at),
-      })),
-    );
+    return observationsOf("endorsed")({
+      subjectOf: repositoryOf,
+      occurredAtOf: (star) => at(star.starred_at),
+    })(stars);
   };
 
 export const followObservationsOf = (
   fetchedAt: number,
 ): ((items: readonly GitHubAccount[]) => readonly Observation[]) =>
-  followedBy({
+  observationsOf("followed")({
     subjectOf: (account: GitHubAccount) => ({ ...accountOf(account), credits: [], tags: [] }),
     occurredAtOf: () => fetchedAt,
   });

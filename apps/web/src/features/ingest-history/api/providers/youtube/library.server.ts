@@ -1,7 +1,10 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
-import { epochOr, observeAt } from "#/features/ingest-history/api/providers/observe";
+import {
+  epochOr,
+  observeAt,
+  observationsOf,
+} from "#/features/ingest-history/api/providers/observe";
 import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 
 import { API, LIMIT } from "./api";
@@ -21,11 +24,7 @@ export const pullLiked = ({
     schema: Videos,
   }).pipe(
     Effect.map(
-      Arr.map((video): Observation => ({
-        kind: "endorsed",
-        subject: likedVideoOf(video),
-        occurredAtMs: fetchedAt,
-      })),
+      observationsOf("endorsed")({ subjectOf: likedVideoOf, occurredAtOf: () => fetchedAt }),
     ),
   );
 
