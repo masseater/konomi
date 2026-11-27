@@ -1,6 +1,7 @@
 import { Effect, Match, Option, Schema, pipe } from "effect";
 
-type StateSchema = Schema.Top & Readonly<{ DecodingServices: never; EncodingServices: never }>;
+export type StateSchema = Schema.Top &
+  Readonly<{ DecodingServices: never; EncodingServices: never }>;
 
 const NEVER = 0;
 
