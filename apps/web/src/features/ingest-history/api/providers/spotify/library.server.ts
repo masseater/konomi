@@ -1,11 +1,10 @@
-import { Array as Arr, Effect, Option, pipe } from "effect";
+import { Array as Arr, Effect, pipe } from "effect";
 
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import {
-  epochOr,
-  observeAt,
   pageOf,
   observationsOf,
+  datedObservationsOf,
 } from "#/features/ingest-history/api/providers/observe";
 import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 import {
@@ -24,18 +23,13 @@ export const pullRecent = ({ headers, fetchedAt }: Fetching): Observing =>
       headers,
       schema: RecentlyPlayed,
     });
-    const consumed = observeAt({
+    return datedObservationsOf({
       kind: "consumed",
-      context: Option.none(),
-      at: epochOr(fetchedAt),
+      fetchedAt,
+      entries: items,
+      subjectOf: ({ track }) => trackOf(track),
+      occurredAtOf: ({ played_at: playedAt }) => playedAt,
     });
-    return pipe(
-      items,
-      Arr.map(({ track, played_at: playedAt }) =>
-        consumed({ subject: trackOf(track), occurredAt: playedAt }),
-      ),
-      Arr.getSomes,
-    );
   });
 
 export const pullSaved = ({
@@ -51,18 +45,13 @@ export const pullSaved = ({
       schema: SavedTracks,
       pageOf,
     });
-    const endorsed = observeAt({
+    return datedObservationsOf({
       kind: "endorsed",
-      context: Option.none(),
-      at: epochOr(fetchedAt),
+      fetchedAt,
+      entries: items,
+      subjectOf: ({ track }) => trackOf(track),
+      occurredAtOf: ({ added_at: addedAt }) => addedAt,
     });
-    return pipe(
-      items,
-      Arr.map(({ track, added_at: addedAt }) =>
-        endorsed({ subject: trackOf(track), occurredAt: addedAt }),
-      ),
-      Arr.getSomes,
-    );
   });
 
 export const pullFollowed = ({

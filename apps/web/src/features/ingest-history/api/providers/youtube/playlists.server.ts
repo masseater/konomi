@@ -1,6 +1,6 @@
-import { Array as Arr, Effect, Option, pipe } from "effect";
+import { Effect } from "effect";
 
-import { epochOr, flatMapEach, observeAt } from "#/features/ingest-history/api/providers/observe";
+import { flatMapEach, datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 import { pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 
@@ -20,18 +20,14 @@ const pullPlaylist = (
       pages: pagesFor(false),
       schema: PlaylistItems,
     });
-    const collected = observeAt({
+    return datedObservationsOf({
       kind: "collected",
-      context: Option.some(title),
-      at: epochOr(fetchedAt),
+      listName: title,
+      fetchedAt,
+      entries: items,
+      subjectOf: playlistVideoOf,
+      occurredAtOf: (item) => item.snippet.publishedAt,
     });
-    return pipe(
-      items,
-      Arr.map((item) =>
-        collected({ subject: playlistVideoOf(item), occurredAt: item.snippet.publishedAt }),
-      ),
-      Arr.getSomes,
-    );
   });
 
 export const pullPlaylists = (fetching: Fetching): Observing =>

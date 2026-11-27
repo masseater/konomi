@@ -3,9 +3,8 @@ import { Array as Arr, Clock, Effect, Function as Fn, Match, Option, Schema, pip
 import type { Observation } from "#/entities/signal";
 import { freshOf } from "#/features/ingest-history/api/providers/fresh";
 import {
-  epochOr,
   observationsOf,
-  observeAt,
+  datedObservationsOf,
 } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
@@ -63,25 +62,18 @@ const pullLibrary = ({ fetch, storefront, fetchedAt }: Listening): Observing =>
       pages: pagesFor(false),
       fetchPage: fetch,
     });
-    const collected = observeAt({
+    return datedObservationsOf({
       kind: "collected",
-      context: Option.none(),
-      at: epochOr(fetchedAt),
+      fetchedAt,
+      entries: songs,
+      subjectOf: (song) => songOf({ song, storefront }),
+      occurredAtOf: ({ attributes }) =>
+        pipe(
+          Option.fromNullishOr(attributes),
+          Option.flatMap(({ dateAdded }) => Option.fromNullishOr(dateAdded)),
+          Option.getOrUndefined,
+        ),
     });
-    return pipe(
-      songs,
-      Arr.map((song) =>
-        collected({
-          subject: songOf({ song, storefront }),
-          occurredAt: pipe(
-            Option.fromNullishOr(song.attributes),
-            Option.flatMap(({ dateAdded }) => Option.fromNullishOr(dateAdded)),
-            Option.getOrUndefined,
-          ),
-        }),
-      ),
-      Arr.getSomes,
-    );
   });
 
 export const pullAppleMusic = ({

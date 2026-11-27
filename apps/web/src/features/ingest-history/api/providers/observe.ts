@@ -61,6 +61,33 @@ export const observeAt =
       Option.map((found) => observed({ kind, context })([found, at(occurredAt)])),
     );
 
+export const datedObservationsOf = <Entry>({
+  kind,
+  listName,
+  fetchedAt,
+  entries,
+  subjectOf,
+  occurredAtOf,
+}: Readonly<{
+  kind: SignalKind;
+  listName?: string;
+  fetchedAt: number;
+  entries: readonly Entry[];
+  subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
+  occurredAtOf: (entry: Entry) => string | null | undefined;
+}>): readonly Observation[] => {
+  const observe = observeAt({
+    kind,
+    context: Option.fromUndefinedOr(listName),
+    at: epochOr(fetchedAt),
+  });
+  return pipe(
+    entries,
+    Arr.map((entry) => observe({ subject: subjectOf(entry), occurredAt: occurredAtOf(entry) })),
+    Arr.getSomes,
+  );
+};
+
 export const personInputOf = ({
   provider,
   externalId,

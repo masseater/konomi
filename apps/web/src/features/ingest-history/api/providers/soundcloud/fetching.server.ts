@@ -1,11 +1,11 @@
-import { Effect, Option } from "effect";
+import { Effect } from "effect";
 import type { Schema } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
+import { pageOf } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
-import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, FIELD, LIMIT } from "./api";
@@ -52,17 +52,6 @@ export const fetchFrom = <Body extends Schema.Top>({
   return (url) => fetchJson({ url: sign(url), headers, schema });
 };
 
-const collectionPageOf = <Item>({
-  collection,
-  next_href: nextHref,
-}: Readonly<{
-  collection: readonly Item[];
-  next_href?: string | null | undefined;
-}>): Page<Item> => ({
-  items: collection,
-  next: Option.fromNullishOr(nextHref),
-});
-
 export const collectFrom = <Item>({
   session,
   path,
@@ -79,5 +68,8 @@ export const collectFrom = <Item>({
   collectPages({
     first: firstUrlOf(path),
     pages,
-    fetchPage: (url) => fetchFrom({ session, schema })(url).pipe(Effect.map(collectionPageOf)),
+    fetchPage: (url) =>
+      fetchFrom({ session, schema })(url).pipe(
+        Effect.map(({ collection, next_href: next }) => pageOf({ items: collection, next })),
+      ),
   });

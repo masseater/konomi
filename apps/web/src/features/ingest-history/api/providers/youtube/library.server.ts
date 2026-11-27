@@ -1,9 +1,8 @@
-import { Array as Arr, Effect, Option, pipe } from "effect";
+import { Effect } from "effect";
 
 import {
-  epochOr,
-  observeAt,
   observationsOf,
+  datedObservationsOf,
 } from "#/features/ingest-history/api/providers/observe";
 import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 
@@ -40,16 +39,11 @@ export const pullSubscriptions = ({
       pages,
       schema: Subscriptions,
     });
-    const followed = observeAt({
+    return datedObservationsOf({
       kind: "followed",
-      context: Option.none(),
-      at: epochOr(fetchedAt),
+      fetchedAt,
+      entries: items,
+      subjectOf: subscribedChannelOf,
+      occurredAtOf: (item) => item.snippet.publishedAt,
     });
-    return pipe(
-      items,
-      Arr.map((item) =>
-        followed({ subject: subscribedChannelOf(item), occurredAt: item.snippet.publishedAt }),
-      ),
-      Arr.getSomes,
-    );
   });
