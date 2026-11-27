@@ -1,4 +1,12 @@
-import { Effect, Function as Fn, Option, Record as Rec, String as Str, pipe } from "effect";
+import {
+  Array as Arr,
+  Effect,
+  Function as Fn,
+  Option,
+  Record as Rec,
+  String as Str,
+  pipe,
+} from "effect";
 
 import type { Credential } from "#/entities/connection";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
@@ -71,3 +79,21 @@ export const userClientOf: {
       Effect.map(({ user, clientId }) => ({ user: encodeURIComponent(user), clientId })),
     ),
 );
+
+export type Fields = Readonly<Record<string, string>>;
+
+export const withFields: {
+  (fields: Fields): (credential: Credential) => Credential;
+  (credential: Credential, fields: Fields): Credential;
+} = Fn.dual(BINARY, (credential: Credential, fields: Fields): Credential => ({
+  method: credential.method,
+  fields: { ...credential.fields, ...fields },
+}));
+
+export const withoutFields: {
+  (names: readonly string[]): (credential: Credential) => Credential;
+  (credential: Credential, names: readonly string[]): Credential;
+} = Fn.dual(BINARY, (credential: Credential, names: readonly string[]): Credential => ({
+  method: credential.method,
+  fields: Arr.reduce(names, credential.fields, (fields, name) => Rec.remove(fields, name)),
+}));

@@ -7,15 +7,20 @@ import {
 import { Array as Arr, Effect, Option, Schema, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
-import { fieldOf, requireField } from "#/features/ingest-history/api/providers/credential-field";
+import {
+  fieldOf,
+  requireField,
+  withFields,
+} from "#/features/ingest-history/api/providers/credential-field";
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import { OAUTH_FIELD, withTokens } from "#/features/ingest-history/api/providers/oauth.server";
-import { failureWhen } from "#/features/ingest-history/api/providers/provider-failure";
 import type {
-  Authorization,
-  Discovery,
-  ProviderError,
-} from "#/features/ingest-history/model/provider";
+  Authorizing,
+  Exchanging,
+  Redirecting,
+} from "#/features/ingest-history/api/providers/oauth.server";
+import { failureWhen } from "#/features/ingest-history/api/providers/provider-failure";
+import type { Discovery, ProviderError } from "#/features/ingest-history/model/provider";
 
 const VERIFIER_FIELD = "codeVerifier";
 const CLIENT_NAME = "konomi";
@@ -97,13 +102,10 @@ export const startDiscovered = ({
   credential,
   redirectUri,
   state,
-}: Readonly<{
-  authorization: Authorization;
-  discovery: Discovery;
-  credential: Credential;
-  redirectUri: string;
-  state: string;
-}>): Effect.Effect<Readonly<{ url: string; credential: Credential }>, ProviderError> =>
+}: Authorizing & Redirecting & Readonly<{ discovery: Discovery; state: string }>): Effect.Effect<
+  Readonly<{ url: string; credential: Credential }>,
+  ProviderError
+> =>
   Effect.gen(function* start() {
     const scope = Arr.join(authorization.scopes, SCOPE_SEPARATOR);
     const clientId = yield* clientIdOf({ discovery, credential, redirectUri, scope });
@@ -118,15 +120,11 @@ export const startDiscovered = ({
     );
     return {
       url: started.authorizationUrl.toString(),
-      credential: {
-        method: credential.method,
-        fields: {
-          ...credential.fields,
-          [OAUTH_FIELD.clientId]: clientId,
-          [OAUTH_FIELD.state]: state,
-          [VERIFIER_FIELD]: started.codeVerifier,
-        },
-      },
+      credential: withFields(credential, {
+        [OAUTH_FIELD.clientId]: clientId,
+        [OAUTH_FIELD.state]: state,
+        [VERIFIER_FIELD]: started.codeVerifier,
+      }),
     };
   }).pipe(Effect.withSpan("oauth.discovered.start"));
 
@@ -159,12 +157,7 @@ export const finishDiscovered = ({
   credential,
   code,
   redirectUri,
-}: Readonly<{
-  discovery: Discovery;
-  credential: Credential;
-  code: string;
-  redirectUri: string;
-}>): Effect.Effect<Credential, ProviderError> =>
+}: Exchanging & Readonly<{ discovery: Discovery }>): Effect.Effect<Credential, ProviderError> =>
   grantedBy({
     credential,
     secretField: VERIFIER_FIELD,

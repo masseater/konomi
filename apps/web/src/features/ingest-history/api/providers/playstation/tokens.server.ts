@@ -7,7 +7,11 @@ import {
 import type { AuthTokensResponse } from "psn-api";
 
 import type { Credential } from "#/entities/connection";
-import { fieldOf, requireField } from "#/features/ingest-history/api/providers/credential-field";
+import {
+  fieldOf,
+  requireField,
+  withFields,
+} from "#/features/ingest-history/api/providers/credential-field";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
@@ -61,15 +65,13 @@ const withTokens =
   (credential: Credential) =>
   (tokens: Tokens): Effect.Effect<Credential> =>
     Clock.currentTimeMillis.pipe(
-      Effect.map((now) => ({
-        method: credential.method,
-        fields: {
-          ...credential.fields,
+      Effect.map((now) =>
+        withFields(credential, {
           [FIELD.accessToken]: tokens.accessToken,
           [FIELD.refreshToken]: tokens.refreshToken,
           [FIELD.expiresAtMs]: String(now + tokens.expiresIn * MS_PER_SECOND),
-        },
-      })),
+        }),
+      ),
     );
 
 export const renewPlaystation = (

@@ -2,7 +2,7 @@ import { BookmarkRestrict, FollowRestrict, PixivClient } from "@book000/pixivts"
 import { Array as Arr, Clock, Effect, pipe } from "effect";
 
 import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
-import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { requireField, withFields } from "#/features/ingest-history/api/providers/credential-field";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
 
@@ -59,9 +59,6 @@ export const pullPixiv = ({
         ...followObservationsOf(fetchedAt)(users),
       ],
       cursor: yield* BACKFILLED,
-      credential: {
-        method: credential.method,
-        fields: { ...credential.fields, [FIELD.refreshToken]: client.getRefreshToken() },
-      },
+      credential: withFields(credential, { [FIELD.refreshToken]: client.getRefreshToken() }),
     };
   }).pipe(Effect.withSpan("pixiv.pull"));

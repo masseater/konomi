@@ -6,6 +6,7 @@ import type { ProviderError } from "#/features/ingest-history/model/provider";
 import { connectionOf } from "./connect.server";
 import { FIELD } from "./providers/apple-music/api";
 import { signDeveloperToken } from "./providers/apple-music/developer-token.server";
+import { withFields } from "./providers/credential-field";
 
 const PROVIDER = "apple-music";
 
@@ -19,10 +20,7 @@ export const saveAppleUserToken = (token: string): Effect.Effect<void, ProviderE
     Effect.flatMap((credential) =>
       replaceCredential({
         provider: PROVIDER,
-        credential: {
-          method: credential.method,
-          fields: { ...credential.fields, [FIELD.userToken]: token },
-        },
+        credential: withFields(credential, { [FIELD.userToken]: token }),
       }),
     ),
     Effect.withSpan("apple-music.save-user-token"),
