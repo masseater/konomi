@@ -8,10 +8,5 @@ const SUBMIT = "ログイン";
 const FAILED = "メールアドレスかパスワードが違います";
 
 export const SignInForm = (): ReactNode => (
-  <AccountForm
-    mutationFn={signIn}
-    passwordAutoComplete="current-password"
-    submitLabel={SUBMIT}
-    failure={FAILED}
-  />
+  <AccountForm mutationFn={signIn} submitLabel={SUBMIT} failure={FAILED} />
 );

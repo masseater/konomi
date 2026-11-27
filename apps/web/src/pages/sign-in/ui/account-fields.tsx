@@ -1,4 +1,5 @@
-import type { HTMLInputAutoCompleteAttribute, ReactNode } from "react";
+import { Match } from "effect";
+import type { ReactNode } from "react";
 
 import { Input } from "#/shared/ui/input";
 
@@ -6,15 +7,9 @@ const NAME = "名前";
 const EMAIL = "メールアドレス";
 const PASSWORD_LABEL = "パスワード";
 
-export const AccountFields = ({
-  passwordAutoComplete,
-  withName,
-}: Readonly<{
-  passwordAutoComplete: HTMLInputAutoCompleteAttribute;
-  withName: boolean;
-}>): ReactNode => (
+export const AccountFields = ({ creating }: Readonly<{ creating: boolean }>): ReactNode => (
   <>
-    {withName && (
+    {creating && (
       <Input name="name" autoComplete="name" aria-label={NAME} placeholder={NAME} required />
     )}
     <Input
@@ -28,7 +23,10 @@ export const AccountFields = ({
     <Input
       type="password"
       name="password"
-      autoComplete={passwordAutoComplete}
+      autoComplete={Match.value(creating).pipe(
+        Match.when(true, () => "new-password"),
+        Match.orElse(() => "current-password"),
+      )}
       aria-label={PASSWORD_LABEL}
       placeholder={PASSWORD_LABEL}
       required

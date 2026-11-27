@@ -12,11 +12,9 @@ const FAILED = "作れなかった。持ち主のアカウントがもうある"
 export const SignUpForm = (): ReactNode => (
   <AccountForm
     mutationFn={signUp}
-    passwordAutoComplete="new-password"
     submitLabel={SUBMIT}
     failure={FAILED}
-    variant="outline"
-    withName
+    creating
     heading={
       <>
         <h2 className="text-lg font-bold">{TITLE}</h2>
