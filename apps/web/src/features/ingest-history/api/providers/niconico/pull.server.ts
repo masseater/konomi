@@ -1,14 +1,14 @@
-import { Array as Arr, Clock, Effect, Option, Schema, String as Str, pipe } from "effect";
+import { Array as Arr, Effect, Option, String as Str, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { pagesUpTo } from "#/features/ingest-history/api/providers/paging.server";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 import type { SignalKind } from "#/shared/config";
 
-import { Cursor, FollowingPage, MylistIndex, MylistPage, VideoPage } from "./schemas";
+import { FollowingPage, MylistIndex, MylistPage, VideoPage } from "./schemas";
 import type { VideoEntry } from "./schemas";
 import { personOf, stampOf, videoSubjectOf } from "./subjects";
 
@@ -27,10 +27,6 @@ const VIDEO_LISTINGS: readonly VideoListing[] = [
   { path: "/v1/users/me/watch/history", kind: "consumed" },
   { path: "/v1/users/me/likes", kind: "endorsed" },
 ];
-
-const CursorJson = Schema.fromJsonString(Cursor);
-const decodeCursor = Schema.decodeUnknownOption(CursorJson);
-const encodeCursor = Schema.encodeEffect(CursorJson);
 
 const headersOf = (session: string): Readonly<Record<string, string>> => ({
   Cookie: `${SESSION_COOKIE}=${session}`,
@@ -130,29 +126,22 @@ const pullFollowing = ({
     ),
   );
 
-const pagesFor = pagesUpTo(BACKFILL_PAGES);
-
-export const pullNiconico = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* niconico() {
-    const session = yield* sessionOf(credential);
-    const fetching: Fetching = {
-      headers: headersOf(session),
-      fetchedAt: yield* Clock.currentTimeMillis,
-    };
-    const { backfilled } = pipe(
-      decodeCursor(cursor),
-      Option.getOrElse(() => ({ backfilled: false })),
-    );
-    const observations: Observation[] = [];
-    for (const listing of VIDEO_LISTINGS) {
-      observations.push(...(yield* pullVideoListing(fetching, pagesFor(backfilled), listing)));
-    }
-    observations.push(...(yield* pullMylists(fetching)), ...(yield* pullFollowing(fetching)));
-    return {
-      observations,
-      cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
-    };
-  }).pipe(Effect.withSpan("niconico.pull"));
+export const pullNiconico = pullOf({
+  provider: "niconico",
+  cursor: "backfilled",
+  backfill: BACKFILL_PAGES,
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* niconico() {
+      const session = yield* sessionOf(credential);
+      const fetching: Fetching = {
+        headers: headersOf(session),
+        fetchedAt,
+      };
+      const observations: Observation[] = [];
+      for (const listing of VIDEO_LISTINGS) {
+        observations.push(...(yield* pullVideoListing(fetching, pages, listing)));
+      }
+      observations.push(...(yield* pullMylists(fetching)), ...(yield* pullFollowing(fetching)));
+      return observations;
+    }),
+});

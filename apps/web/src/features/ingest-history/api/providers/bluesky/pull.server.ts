@@ -1,20 +1,17 @@
-import { Array as Arr, Clock, Effect, Option, Schema, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson, postJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
-import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { FIELD, LIMIT, SERVICE } from "./api";
 import { Follows, Likes, Login, Session } from "./schemas";
 import { followedOf, postOf } from "./subjects";
-
-const CursorJson = Schema.fromJsonString(Schema.Struct({ backfilled: Schema.Boolean }));
-const decodeCursor = Schema.decodeUnknownOption(CursorJson);
-const encodeCursor = Schema.encodeEffect(CursorJson);
 
 type Signed = Readonly<{ headers: Headers; did: string; pages: number; fetchedAt: number }>;
 
@@ -98,24 +95,18 @@ const pullFollows = ({
   );
 };
 
-export const pullBluesky = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* bluesky() {
-    const session = yield* signIn(credential);
-    const { backfilled } = pipe(
-      decodeCursor(cursor),
-      Option.getOrElse(() => ({ backfilled: false })),
-    );
-    const signed: Signed = {
-      headers: { Authorization: `Bearer ${session.accessJwt}` },
-      did: session.did,
-      pages: pagesFor(backfilled),
-      fetchedAt: yield* Clock.currentTimeMillis,
-    };
-    return {
-      observations: [...(yield* pullLikes(signed)), ...(yield* pullFollows(signed))],
-      cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
-    };
-  }).pipe(Effect.withSpan("bluesky.pull"));
+export const pullBluesky = pullOf({
+  provider: "bluesky",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* bluesky() {
+      const session = yield* signIn(credential);
+      const signed: Signed = {
+        headers: { Authorization: `Bearer ${session.accessJwt}` },
+        did: session.did,
+        pages: pages,
+        fetchedAt,
+      };
+      return [...(yield* pullLikes(signed)), ...(yield* pullFollows(signed))];
+    }),
+});

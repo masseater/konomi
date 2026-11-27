@@ -1,10 +1,10 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, HEADERS, FIELD, LIMIT, LOVED } from "./api";
 import { Feedback, Listens } from "./schemas";
@@ -71,18 +71,15 @@ const pullListens = ({
       ),
   });
 
-export const pullListenbrainz = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* listenbrainz() {
-    const name = yield* requireField(credential, FIELD.user);
-    const user = encodeURIComponent(name);
-    const pages = pagesOf(cursor);
-    const listens = yield* pullListens({ user, pages });
-    const loved = yield* pullLoved({ user, pages });
-    return {
-      observations: [...listenObservationsOf(listens), ...lovedObservationsOf(loved)],
-      cursor: yield* BACKFILLED,
-    };
-  }).pipe(Effect.withSpan("listenbrainz.pull"));
+export const pullListenbrainz = pullOf({
+  provider: "listenbrainz",
+  cursor: "backfilled",
+  observe: ({ credential, pages }) =>
+    Effect.gen(function* listenbrainz() {
+      const name = yield* requireField(credential, FIELD.user);
+      const user = encodeURIComponent(name);
+      const listens = yield* pullListens({ user, pages });
+      const loved = yield* pullLoved({ user, pages });
+      return [...listenObservationsOf(listens), ...lovedObservationsOf(loved)];
+    }),
+});

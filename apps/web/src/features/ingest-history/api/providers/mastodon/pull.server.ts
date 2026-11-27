@@ -1,11 +1,12 @@
-import { Array as Arr, Clock, Effect, pipe } from "effect";
+import { Array as Arr, Effect, pipe } from "effect";
 
 import type { ListingKind, Observation } from "#/entities/signal";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { FIELD, LIMIT } from "./api";
 import { Accounts, Statuses, Verified } from "./schemas";
@@ -55,23 +56,24 @@ const followingOf = ({
     );
   });
 
-export const pullMastodon = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* mastodon() {
-    const reading: Reading = {
-      origin: yield* instanceOriginOf(FIELD.instance)(credential),
-      headers: yield* requireField(credential, FIELD.accessToken).pipe(
-        Effect.map((token) => ({ Authorization: `Bearer ${token}` })),
-      ),
-      fetchedAt: yield* Clock.currentTimeMillis,
-    };
-    const statuses = statusesAt(reading);
-    const observations = [
-      ...(yield* statuses("favourites", "endorsed")),
-      ...(yield* statuses("bookmarks", "collected")),
-      ...(yield* followingOf(reading)),
-    ];
-    return { observations, cursor };
-  }).pipe(Effect.withSpan("mastodon.pull"));
+export const pullMastodon = pullOf({
+  provider: "mastodon",
+  cursor: "kept",
+  observe: ({ credential, fetchedAt }) =>
+    Effect.gen(function* mastodon() {
+      const reading: Reading = {
+        origin: yield* instanceOriginOf(FIELD.instance)(credential),
+        headers: yield* requireField(credential, FIELD.accessToken).pipe(
+          Effect.map((token) => ({ Authorization: `Bearer ${token}` })),
+        ),
+        fetchedAt,
+      };
+      const statuses = statusesAt(reading);
+      const observations = [
+        ...(yield* statuses("favourites", "endorsed")),
+        ...(yield* statuses("bookmarks", "collected")),
+        ...(yield* followingOf(reading)),
+      ];
+      return observations;
+    }),
+});

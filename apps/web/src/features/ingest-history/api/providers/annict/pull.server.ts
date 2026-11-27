@@ -1,20 +1,18 @@
-import { Array as Arr, Clock, Effect, Option, Schema, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
-import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, FIELD } from "./api";
 import { EntriesResponse, Query, RecordsResponse } from "./schemas";
 import type { AnnictEntry } from "./schemas";
 import { entryObservationOf, recordObservationsOf } from "./subjects";
 
-const CursorJson = Schema.fromJsonString(Schema.Struct({ backfilled: Schema.Boolean }));
-const decodeCursor = Schema.decodeUnknownOption(CursorJson);
-const encodeCursor = Schema.encodeEffect(CursorJson);
 const START = "";
 
 const RECORDS = `query ($after: String) {
@@ -101,24 +99,18 @@ const pullEntries = ({
   }).pipe(Effect.map(observeAll));
 };
 
-export const pullAnnict = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* annict() {
-    const { backfilled } = pipe(
-      decodeCursor(cursor),
-      Option.getOrElse(() => ({ backfilled: false })),
-    );
-    const querying: Querying = {
-      headers: yield* requireField(credential, FIELD.token).pipe(
-        Effect.map((token) => ({ Authorization: `Bearer ${token}` })),
-      ),
-      pages: pagesFor(backfilled),
-      fetchedAt: yield* Clock.currentTimeMillis,
-    };
-    return {
-      observations: [...(yield* pullRecords(querying)), ...(yield* pullEntries(querying))],
-      cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
-    };
-  }).pipe(Effect.withSpan("annict.pull"));
+export const pullAnnict = pullOf({
+  provider: "annict",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* annict() {
+      const querying: Querying = {
+        headers: yield* requireField(credential, FIELD.token).pipe(
+          Effect.map((token) => ({ Authorization: `Bearer ${token}` })),
+        ),
+        pages: pages,
+        fetchedAt,
+      };
+      return [...(yield* pullRecords(querying)), ...(yield* pullEntries(querying))];
+    }),
+});

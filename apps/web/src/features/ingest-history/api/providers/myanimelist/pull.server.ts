@@ -1,12 +1,12 @@
-import { Array as Arr, Clock, Effect, Option, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
-import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
 import { userClientOf } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, FIELD, LIMIT, LISTS } from "./api";
 import { UserList } from "./schemas";
@@ -37,20 +37,21 @@ const pullList =
     }).pipe(Effect.map(Arr.flatMap(observe)));
   };
 
-export const pullMyAnimeList = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* myanimelist() {
-    const account = yield* userClientOf(credential, FIELD);
-    const pull = pullList({
-      user: account.user,
-      headers: { "X-MAL-CLIENT-ID": account.clientId },
-      pages: pagesOf(cursor),
-      fetchedAt: yield* Clock.currentTimeMillis,
-    });
-    const lists = yield* pipe(LISTS, Arr.map(pull), (pulls) =>
-      Effect.all(pulls, { concurrency: 1 }),
-    );
-    return { observations: Arr.flatten(lists), cursor: yield* BACKFILLED };
-  }).pipe(Effect.withSpan("myanimelist.pull"));
+export const pullMyAnimeList = pullOf({
+  provider: "myanimelist",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* myanimelist() {
+      const account = yield* userClientOf(credential, FIELD);
+      const pull = pullList({
+        user: account.user,
+        headers: { "X-MAL-CLIENT-ID": account.clientId },
+        pages: pages,
+        fetchedAt,
+      });
+      const lists = yield* pipe(LISTS, Arr.map(pull), (pulls) =>
+        Effect.all(pulls, { concurrency: 1 }),
+      );
+      return Arr.flatten(lists);
+    }),
+});

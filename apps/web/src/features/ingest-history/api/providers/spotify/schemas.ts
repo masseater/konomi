@@ -65,8 +65,6 @@ const PlaylistEntry = Schema.Struct({
 
 export const PlaylistItems = Schema.Struct({ items: Schema.Array(PlaylistEntry), next: Next });
 
-export const Cursor = Schema.Struct({ backfilled: Schema.Boolean });
-
 export type SpotifyTrack = typeof Track.Type;
 export type SpotifyArtistRef = typeof ArtistRef.Type;
 export type SpotifyArtist = typeof Artist.Type;

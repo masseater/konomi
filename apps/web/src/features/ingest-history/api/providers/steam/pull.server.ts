@@ -1,8 +1,8 @@
-import { Array as Arr, Clock, Effect, Option, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, FIELD } from "./api";
 import { OwnedGames } from "./schemas";
@@ -21,27 +21,27 @@ const ownedGamesUrl = ({
   return url.toString();
 };
 
-export const pullSteam = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* steam() {
-    const account = yield* Effect.all(
-      {
-        apiKey: requireField(credential, FIELD.apiKey),
-        steamId: requireField(credential, FIELD.steamId),
-      },
-      { concurrency: 1 },
-    );
-    const fetchedAt = yield* Clock.currentTimeMillis;
-    const { response } = yield* fetchJson({
-      url: ownedGamesUrl(account),
-      headers: {},
-      schema: OwnedGames,
-    });
-    const games = pipe(
-      Option.fromNullishOr(response.games),
-      Option.getOrElse(() => Arr.empty()),
-    );
-    return { observations: gamesObservedAt(fetchedAt)(games), cursor };
-  }).pipe(Effect.withSpan("steam.pull"));
+export const pullSteam = pullOf({
+  provider: "steam",
+  cursor: "kept",
+  observe: ({ credential, fetchedAt }) =>
+    Effect.gen(function* steam() {
+      const account = yield* Effect.all(
+        {
+          apiKey: requireField(credential, FIELD.apiKey),
+          steamId: requireField(credential, FIELD.steamId),
+        },
+        { concurrency: 1 },
+      );
+      const { response } = yield* fetchJson({
+        url: ownedGamesUrl(account),
+        headers: {},
+        schema: OwnedGames,
+      });
+      const games = pipe(
+        Option.fromNullishOr(response.games),
+        Option.getOrElse(() => Arr.empty()),
+      );
+      return gamesObservedAt(fetchedAt)(games);
+    }),
+});

@@ -1,10 +1,10 @@
-import { Clock, Effect, Option, pipe } from "effect";
+import { Effect, Option, pipe } from "effect";
 import { getUserPlayedGames } from "psn-api";
 
-import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 import { ProviderUnavailable } from "#/features/ingest-history/model/provider-unavailable";
 
 import { LIMIT, ME } from "./api";
@@ -34,17 +34,17 @@ const playedPage =
 
 const FIRST_OFFSET = "0";
 
-export const pullPlaystation = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* playstation() {
-    const accessToken = yield* accessTokenOf(credential);
-    const fetchedAt = yield* Clock.currentTimeMillis;
-    const games = yield* collectPages({
-      first: FIRST_OFFSET,
-      pages: pagesOf(cursor),
-      fetchPage: playedPage(accessToken),
-    });
-    return { observations: playedObservationsOf(fetchedAt)(games), cursor: yield* BACKFILLED };
-  }).pipe(Effect.withSpan("playstation.pull"));
+export const pullPlaystation = pullOf({
+  provider: "playstation",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* playstation() {
+      const accessToken = yield* accessTokenOf(credential);
+      const games = yield* collectPages({
+        first: FIRST_OFFSET,
+        pages: pages,
+        fetchPage: playedPage(accessToken),
+      });
+      return playedObservationsOf(fetchedAt)(games);
+    }),
+});

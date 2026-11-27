@@ -1,18 +1,14 @@
-import { Array as Arr, Clock, Effect, Option, Schema, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { epochOr, observeAt } from "#/features/ingest-history/api/providers/observe";
-import { pagesFor } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { collectFrom, fetchFrom, firstUrlOf, sessionOf } from "./fetching.server";
 import type { Session } from "./fetching.server";
-import { Cursor, Followings, Me, PlayHistory, PlaylistLikes, TrackLikes } from "./schemas";
+import { Followings, Me, PlayHistory, PlaylistLikes, TrackLikes } from "./schemas";
 import { followedUserOf, playlistOf, trackOf } from "./subjects";
-
-const CursorJson = Schema.fromJsonString(Cursor);
-const decodeCursor = Schema.decodeUnknownOption(CursorJson);
-const encodeCursor = Schema.encodeEffect(CursorJson);
 
 type Pulling = Session & Readonly<{ userId: number; pages: number }>;
 
@@ -104,26 +100,20 @@ const pullFollowings = (session: Pulling): Effect.Effect<readonly Observation[],
     ),
   );
 
-export const pullSoundcloud = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* soundcloud() {
-    const session = yield* sessionOf({ credential, fetchedAt: yield* Clock.currentTimeMillis });
-    const me = yield* fetchFrom({ session, schema: Me })(firstUrlOf("/me"));
-    const { backfilled } = pipe(
-      decodeCursor(cursor),
-      Option.getOrElse(() => ({ backfilled: false })),
-    );
-    const pulling: Pulling = { ...session, userId: me.id, pages: pagesFor(backfilled) };
-    const observations = [
-      ...(yield* pullPlayed(pulling)),
-      ...(yield* pullLikedTracks(pulling)),
-      ...(yield* pullLikedPlaylists(pulling)),
-      ...(yield* pullFollowings(pulling)),
-    ];
-    return {
-      observations,
-      cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
-    };
-  }).pipe(Effect.withSpan("soundcloud.pull"));
+export const pullSoundcloud = pullOf({
+  provider: "soundcloud",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* soundcloud() {
+      const session = yield* sessionOf({ credential, fetchedAt });
+      const me = yield* fetchFrom({ session, schema: Me })(firstUrlOf("/me"));
+      const pulling: Pulling = { ...session, userId: me.id, pages: pages };
+      const observations = [
+        ...(yield* pullPlayed(pulling)),
+        ...(yield* pullLikedTracks(pulling)),
+        ...(yield* pullLikedPlaylists(pulling)),
+        ...(yield* pullFollowings(pulling)),
+      ];
+      return observations;
+    }),
+});

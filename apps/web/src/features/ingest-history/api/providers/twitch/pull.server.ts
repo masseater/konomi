@@ -1,20 +1,17 @@
-import { Array as Arr, Clock, Effect, Option, Schema, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
-import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, LIMIT } from "./api";
 import { headersOf } from "./headers.server";
 import { FollowedChannels, Users } from "./schemas";
 import { channelOf } from "./subjects";
-
-const CursorJson = Schema.fromJsonString(Schema.Struct({ backfilled: Schema.Boolean }));
-const decodeCursor = Schema.decodeUnknownOption(CursorJson);
-const encodeCursor = Schema.encodeEffect(CursorJson);
 
 const pullFollowed = ({
   headers,
@@ -52,33 +49,26 @@ const pullFollowed = ({
   );
 };
 
-export const pullTwitch = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* twitch() {
-    const headers = yield* headersOf(credential);
-    const { data } = yield* fetchJson({ url: `${API}/users`, headers, schema: Users });
-    const { backfilled } = pipe(
-      decodeCursor(cursor),
-      Option.getOrElse(() => ({ backfilled: false })),
-    );
-    const fetchedAt = yield* Clock.currentTimeMillis;
-    const observations = yield* pipe(
-      Arr.head(data),
-      Option.match({
-        onNone: () => Effect.succeed(Arr.empty<Observation>()),
-        onSome: ({ id }) =>
-          pullFollowed({
-            headers,
-            userId: id,
-            pages: pagesFor(backfilled),
-            fetchedAt,
-          }),
-      }),
-    );
-    return {
-      observations,
-      cursor: yield* encodeCursor({ backfilled: true }).pipe(Effect.orDie),
-    };
-  }).pipe(Effect.withSpan("twitch.pull"));
+export const pullTwitch = pullOf({
+  provider: "twitch",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* twitch() {
+      const headers = yield* headersOf(credential);
+      const { data } = yield* fetchJson({ url: `${API}/users`, headers, schema: Users });
+      const observations = yield* pipe(
+        Arr.head(data),
+        Option.match({
+          onNone: () => Effect.succeed(Arr.empty<Observation>()),
+          onSome: ({ id }) =>
+            pullFollowed({
+              headers,
+              userId: id,
+              pages: pages,
+              fetchedAt,
+            }),
+        }),
+      );
+      return observations;
+    }),
+});

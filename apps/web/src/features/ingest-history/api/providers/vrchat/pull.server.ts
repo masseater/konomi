@@ -1,10 +1,10 @@
-import { Array as Arr, Clock, Effect } from "effect";
+import { Array as Arr, Effect } from "effect";
 
-import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { collectNumberedPages } from "#/features/ingest-history/api/providers/numbered-pages.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, FIELD, HEADERS, LIMIT } from "./api";
 import { Friends, Works } from "./schemas";
@@ -39,27 +39,27 @@ const friendsOf =
       itemsOf: (friends) => friends,
     }).pipe(Effect.withSpan("vrchat.friends", { attributes: { offline } }));
 
-export const pullVrchat = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* vrchat() {
-    const auth = yield* requireField(credential, FIELD.auth);
-    const fetchedAt = yield* Clock.currentTimeMillis;
-    const listing = { headers: { ...HEADERS, Cookie: `auth=${auth}` }, pages: pagesOf(cursor) };
-    const works = worksAt(listing);
-    const friends = friendsOf(listing);
-    const worlds = favoriteObservationsOf({ kind: "world", fetchedAt });
-    const avatars = favoriteObservationsOf({ kind: "avatar", fetchedAt });
-    const people = friendObservationsOf(fetchedAt);
-    const groups = yield* Effect.all(
-      [
-        works("/worlds/favorites").pipe(Effect.map(worlds)),
-        works("/avatars/favorites").pipe(Effect.map(avatars)),
-        friends(false).pipe(Effect.map(people)),
-        friends(true).pipe(Effect.map(people)),
-      ],
-      { concurrency: 1 },
-    );
-    return { observations: Arr.flatten(groups), cursor: yield* BACKFILLED };
-  }).pipe(Effect.withSpan("vrchat.pull"));
+export const pullVrchat = pullOf({
+  provider: "vrchat",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* vrchat() {
+      const auth = yield* requireField(credential, FIELD.auth);
+      const listing = { headers: { ...HEADERS, Cookie: `auth=${auth}` }, pages: pages };
+      const works = worksAt(listing);
+      const friends = friendsOf(listing);
+      const worlds = favoriteObservationsOf({ kind: "world", fetchedAt });
+      const avatars = favoriteObservationsOf({ kind: "avatar", fetchedAt });
+      const people = friendObservationsOf(fetchedAt);
+      const groups = yield* Effect.all(
+        [
+          works("/worlds/favorites").pipe(Effect.map(worlds)),
+          works("/avatars/favorites").pipe(Effect.map(avatars)),
+          friends(false).pipe(Effect.map(people)),
+          friends(true).pipe(Effect.map(people)),
+        ],
+        { concurrency: 1 },
+      );
+      return Arr.flatten(groups);
+    }),
+});

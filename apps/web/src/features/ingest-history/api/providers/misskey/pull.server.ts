@@ -6,7 +6,8 @@ import { requireField } from "#/features/ingest-history/api/providers/credential
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { FIELD, LIMIT } from "./api";
 import { Favorites, Following, Me, Reactions, Request } from "./schemas";
@@ -84,19 +85,17 @@ const followingOf = (reading: Reading): Effect.Effect<readonly Observation[], Pr
     );
   });
 
-export const pullMisskey = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* misskey() {
-    const now = yield* Clock.currentTimeMillis;
-    const reading: Reading = {
-      origin: yield* instanceOriginOf(FIELD.instance)(credential),
-      token: yield* requireField(credential, FIELD.accessToken),
-      at: epochOr(now),
-    };
-    return {
-      observations: [...(yield* notesOf(reading)), ...(yield* followingOf(reading))],
-      cursor,
-    };
-  }).pipe(Effect.withSpan("misskey.pull"));
+export const pullMisskey = pullOf({
+  provider: "misskey",
+  cursor: "kept",
+  observe: ({ credential }) =>
+    Effect.gen(function* misskey() {
+      const now = yield* Clock.currentTimeMillis;
+      const reading: Reading = {
+        origin: yield* instanceOriginOf(FIELD.instance)(credential),
+        token: yield* requireField(credential, FIELD.accessToken),
+        at: epochOr(now),
+      };
+      return [...(yield* notesOf(reading)), ...(yield* followingOf(reading))];
+    }),
+});

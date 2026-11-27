@@ -1,11 +1,11 @@
-import { Array as Arr, Clock, Effect, Option, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, FIELD, LIMIT } from "./api";
 import { RatedSongs, Users } from "./schemas";
@@ -33,26 +33,26 @@ const userIdOf = (name: string): Effect.Effect<number, ProviderError> =>
 const ratedUrl = (userId: number, start: string): string =>
   `${API}/users/${userId}/ratedSongs?fields=Artists&sort=RatingDate&maxResults=${LIMIT}&start=${start}`;
 
-export const pullVocaDb = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* vocadb() {
-    const userId = yield* requireField(credential, FIELD.user).pipe(Effect.flatMap(userIdOf));
-    const fetchedAt = yield* Clock.currentTimeMillis;
-    const rated = yield* collectPages({
-      first: String(FIRST),
-      pages: pagesOf(cursor),
-      fetchPage: (start) =>
-        fetchJson({ url: ratedUrl(userId, start), headers: HEADERS, schema: RatedSongs }).pipe(
-          Effect.map(({ items }) => ({
-            items,
-            next: pipe(
-              Option.liftPredicate(items.length, (count: number) => count >= LIMIT),
-              Option.map(() => String(Number(start) + LIMIT)),
-            ),
-          })),
-        ),
-    });
-    return { observations: ratedObservationsOf(fetchedAt)(rated), cursor: yield* BACKFILLED };
-  }).pipe(Effect.withSpan("vocadb.pull"));
+export const pullVocaDb = pullOf({
+  provider: "vocadb",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* vocadb() {
+      const userId = yield* requireField(credential, FIELD.user).pipe(Effect.flatMap(userIdOf));
+      const rated = yield* collectPages({
+        first: String(FIRST),
+        pages: pages,
+        fetchPage: (start) =>
+          fetchJson({ url: ratedUrl(userId, start), headers: HEADERS, schema: RatedSongs }).pipe(
+            Effect.map(({ items }) => ({
+              items,
+              next: pipe(
+                Option.liftPredicate(items.length, (count: number) => count >= LIMIT),
+                Option.map(() => String(Number(start) + LIMIT)),
+              ),
+            })),
+          ),
+      });
+      return ratedObservationsOf(fetchedAt)(rated);
+    }),
+});

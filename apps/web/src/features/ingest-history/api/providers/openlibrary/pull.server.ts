@@ -1,10 +1,10 @@
-import { Array as Arr, Clock, Effect, Option, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { FIELD, HEADERS, SHELVES, WEB } from "./api";
 import { ReadingLog } from "./schemas";
@@ -42,21 +42,21 @@ const shelfOf =
         ),
     });
 
-export const pullOpenlibrary = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* openlibrary() {
-    const name = yield* requireField(credential, FIELD.user);
-    const user = encodeURIComponent(name);
-    const fetchedAt = yield* Clock.currentTimeMillis;
-    const read = shelfOf({ user, pages: pagesOf(cursor) });
-    const observed = yield* pipe(
-      SHELVES,
-      Arr.map(({ shelf, kind, context }) =>
-        read(shelf).pipe(Effect.map(shelfObservationsOf({ kind, context, fetchedAt }))),
-      ),
-      Effect.all,
-    );
-    return { observations: Arr.flatten(observed), cursor: yield* BACKFILLED };
-  }).pipe(Effect.withSpan("openlibrary.pull"));
+export const pullOpenlibrary = pullOf({
+  provider: "openlibrary",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* openlibrary() {
+      const name = yield* requireField(credential, FIELD.user);
+      const user = encodeURIComponent(name);
+      const read = shelfOf({ user, pages: pages });
+      const observed = yield* pipe(
+        SHELVES,
+        Arr.map(({ shelf, kind, context }) =>
+          read(shelf).pipe(Effect.map(shelfObservationsOf({ kind, context, fetchedAt }))),
+        ),
+        Effect.all,
+      );
+      return Arr.flatten(observed);
+    }),
+});

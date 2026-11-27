@@ -1,10 +1,10 @@
-import { Array as Arr, Clock, Effect, Option, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchText } from "#/features/ingest-history/api/providers/http.server";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { FIELD, HEADERS, WEB } from "./api";
 import { clipCardsOf, markCardsOf } from "./cards";
@@ -32,24 +32,20 @@ const collectCards =
         ),
     });
 
-export const pullFilmarks = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* filmarks() {
-    const name = yield* requireField(credential, FIELD.user);
-    const user = encodeURIComponent(name);
-    const fetchedAt = yield* Clock.currentTimeMillis;
-    const pages = pagesOf(cursor);
-    const marks = collectCards({ pages, read: markCardsOf });
-    const movies = yield* marks(`/users/${user}`);
-    const dramas = yield* marks(`/users/${user}/marks/dramas`);
-    const clips = yield* collectCards({ pages, read: clipCardsOf })(`/users/${user}/clips`);
-    return {
-      observations: [
+export const pullFilmarks = pullOf({
+  provider: "filmarks",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* filmarks() {
+      const name = yield* requireField(credential, FIELD.user);
+      const user = encodeURIComponent(name);
+      const marks = collectCards({ pages, read: markCardsOf });
+      const movies = yield* marks(`/users/${user}`);
+      const dramas = yield* marks(`/users/${user}/marks/dramas`);
+      const clips = yield* collectCards({ pages, read: clipCardsOf })(`/users/${user}/clips`);
+      return [
         ...pipe([...movies, ...dramas], Arr.flatMap(markObservationsOf(fetchedAt))),
         ...pipe(clips, Arr.map(clipObservationOf(fetchedAt))),
-      ],
-      cursor: yield* BACKFILLED,
-    };
-  }).pipe(Effect.withSpan("filmarks.pull"));
+      ];
+    }),
+});

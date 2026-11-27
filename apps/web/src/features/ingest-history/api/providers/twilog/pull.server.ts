@@ -1,10 +1,10 @@
-import { Clock, Effect } from "effect";
+import { Effect } from "effect";
 
-import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { OAUTH_FIELD } from "#/features/ingest-history/api/providers/oauth.server";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { TIMELINES } from "./api";
 import { postsPage } from "./posts.server";
@@ -23,21 +23,21 @@ const timelineOf =
       fetchPage: (page) => postsPage({ accessToken, timeline, page: Number(page) }),
     });
 
-export const pullTwilog = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* twilog() {
-    const timeline = timelineOf({
-      accessToken: yield* requireField(credential, OAUTH_FIELD.accessToken),
-      pages: pagesOf(cursor),
-    });
-    const fetchedAt = yield* Clock.currentTimeMillis;
-    const likes = yield* timeline(TIMELINES.likes);
-    const bookmarks = yield* timeline(TIMELINES.bookmarks);
-    const observations = [
-      ...logObservationsOf({ kind: "endorsed", fetchedAt })(likes),
-      ...logObservationsOf({ kind: "collected", fetchedAt })(bookmarks),
-    ];
-    return { observations, cursor: yield* BACKFILLED };
-  }).pipe(Effect.withSpan("twilog.pull"));
+export const pullTwilog = pullOf({
+  provider: "twilog",
+  cursor: "backfilled",
+  observe: ({ credential, pages, fetchedAt }) =>
+    Effect.gen(function* twilog() {
+      const timeline = timelineOf({
+        accessToken: yield* requireField(credential, OAUTH_FIELD.accessToken),
+        pages: pages,
+      });
+      const likes = yield* timeline(TIMELINES.likes);
+      const bookmarks = yield* timeline(TIMELINES.bookmarks);
+      const observations = [
+        ...logObservationsOf({ kind: "endorsed", fetchedAt })(likes),
+        ...logObservationsOf({ kind: "collected", fetchedAt })(bookmarks),
+      ];
+      return observations;
+    }),
+});
