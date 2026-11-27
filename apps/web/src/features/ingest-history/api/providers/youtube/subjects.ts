@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { withoutRelations } from "#/features/ingest-history/api/providers/observe";
+import { creatorInputOf, withoutRelations } from "#/features/ingest-history/api/providers/observe";
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
 import type { YoutubePlaylistItem, YoutubeSubscription, YoutubeVideo } from "./schemas";
@@ -55,13 +55,13 @@ const isoSecondsOf = secondsOf((value) => ISO_DURATION.exec(value));
 
 export const clockSecondsOf = secondsOf((value) => CLOCK_DURATION.exec(value));
 
-const channelCreatorOf = ({ id, title }: Channel): CreatorInput => ({
-  provider: "youtube",
-  externalId: id,
-  type: "channel",
-  title,
-  url: `${ORIGIN}/channel/${id}`,
-});
+const channelCreatorOf = ({ id, title }: Channel): CreatorInput =>
+  creatorInputOf("channel")({
+    provider: "youtube",
+    externalId: id,
+    title,
+    url: `${ORIGIN}/channel/${id}`,
+  });
 
 export const channelOf = ({
   id,

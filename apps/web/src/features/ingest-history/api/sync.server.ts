@@ -1,4 +1,4 @@
-import { Array as Arr, Clock, Effect, Match, Option, pipe } from "effect";
+import { Clock, Effect, Match, Option, pipe } from "effect";
 
 import type { Connection, Credential } from "#/entities/connection";
 import {
@@ -9,14 +9,16 @@ import {
 } from "#/entities/connection/index.server";
 import type { SyncOutcome } from "#/entities/connection/index.server";
 import { recordObservations } from "#/entities/signal/index.server";
+import { methodOf } from "#/features/ingest-history/model/provider";
 import type { Provider, ProviderError, Pulled } from "#/features/ingest-history/model/provider";
 
 import { PROVIDERS } from "./providers/index.server";
 
 const renews = (provider: Provider, credential: Credential): boolean =>
   pipe(
-    provider.methods,
-    Arr.some(({ id, renews: renewable }) => renewable && id === credential.method),
+    provider,
+    methodOf(credential.method),
+    Option.exists(({ renews: renewable }) => renewable),
   );
 
 const renewAndPull = ({

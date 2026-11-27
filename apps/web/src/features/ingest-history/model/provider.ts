@@ -1,4 +1,5 @@
-import type { Effect } from "effect";
+import { Array as Arr } from "effect";
+import type { Effect, Option } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
@@ -66,5 +67,10 @@ export type Provider = Readonly<{
   renew: (credential: Credential) => Effect.Effect<Credential, ProviderError>;
   imports?: readonly ImportFormat[];
 }>;
+
+export const methodOf =
+  (id: string) =>
+  (provider: Provider): Option.Option<CredentialMethod> =>
+    Arr.findFirst(provider.methods, (method) => method.id === id);
 
 export type { ProviderError } from "./provider-error";
