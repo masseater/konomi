@@ -2,7 +2,7 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { collectedListsOf, pageOf } from "#/features/ingest-history/api/providers/observe";
-import type { Fetched, Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
+import type { Fetched, Fetching } from "#/features/ingest-history/api/providers/observe";
 import { pagesFor, collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
 
 import { API, LIMIT } from "./api";
@@ -33,19 +33,17 @@ const ownedOf = ({ headers }: Fetching): Fetched<readonly SpotifyPlaylist[]> =>
     );
   });
 
-export const pullPlaylists = (fetching: Fetching): Observing =>
-  collectedListsOf({
-    fetching,
-    listsOf: () => ownedOf(fetching),
-    nameOf: ({ name }) => name,
-    entriesOf: ({ id }) =>
-      collectJsonPages({
-        first: `${API}/playlists/${id}/items?limit=${LIMIT}`,
-        headers: fetching.headers,
-        pages: pagesFor(false),
-        schema: PlaylistItems,
-        pageOf,
-      }),
-    subjectOf: entryTrackOf,
-    occurredAtOf: ({ added_at: addedAt }) => addedAt,
-  });
+export const pullPlaylists = collectedListsOf({
+  listsOf: ownedOf,
+  nameOf: ({ name }) => name,
+  entriesOf: ({ headers }, { id }) =>
+    collectJsonPages({
+      first: `${API}/playlists/${id}/items?limit=${LIMIT}`,
+      headers,
+      pages: pagesFor(false),
+      schema: PlaylistItems,
+      pageOf,
+    }),
+  subjectOf: entryTrackOf,
+  occurredAtOf: ({ added_at: addedAt }) => addedAt,
+});

@@ -242,36 +242,36 @@ export const flatMapEach: {
     Effect.forEach(items, pull, { concurrency: 1 }).pipe(Effect.map(Arr.flatten)),
 );
 
-export const collectedListsOf = <List, Entry>({
-  fetching,
-  listsOf,
-  nameOf,
-  entriesOf,
-  subjectOf,
-  occurredAtOf,
-}: Readonly<{
-  fetching: Fetching;
-  listsOf: () => Fetched<readonly List[]>;
-  nameOf: (list: List) => string;
-  entriesOf: (list: List) => Fetched<readonly Entry[]>;
-  subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
-  occurredAtOf: (entry: Entry) => string | null | undefined;
-}>): Observing =>
-  listsOf().pipe(
-    Effect.flatMap((found) =>
-      flatMapEach(found, (list) =>
-        entriesOf(list).pipe(
-          Effect.map((entries) =>
-            datedObservationsOf({
-              kind: "collected",
-              listName: nameOf(list),
-              fetchedAt: fetching.fetchedAt,
-              entries,
-              subjectOf,
-              occurredAtOf,
-            }),
+export const collectedListsOf =
+  <List, Entry>({
+    listsOf,
+    nameOf,
+    entriesOf,
+    subjectOf,
+    occurredAtOf,
+  }: Readonly<{
+    listsOf: (fetching: Fetching) => Fetched<readonly List[]>;
+    nameOf: (list: List) => string;
+    entriesOf: (fetching: Fetching, list: List) => Fetched<readonly Entry[]>;
+    subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
+    occurredAtOf: (entry: Entry) => string | null | undefined;
+  }>): ((fetching: Fetching) => Observing) =>
+  (fetching) =>
+    listsOf(fetching).pipe(
+      Effect.flatMap((found) =>
+        flatMapEach(found, (list) =>
+          entriesOf(fetching, list).pipe(
+            Effect.map((entries) =>
+              datedObservationsOf({
+                kind: "collected",
+                listName: nameOf(list),
+                fetchedAt: fetching.fetchedAt,
+                entries,
+                subjectOf,
+                occurredAtOf,
+              }),
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
