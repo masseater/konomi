@@ -22,10 +22,20 @@ export type SyncOutcome =
 const sealCredential = (credential: Credential): Effect.Effect<string> =>
   encodeCredential(credential).pipe(Effect.orDie, Effect.flatMap(sealSecret));
 
-export const saveCredential = ({
+type Sealing = Readonly<{ provider: ProviderId; credential: Credential }>;
+
+const writeSealed = ({
   provider,
   credential,
-}: Readonly<{ provider: ProviderId; credential: Credential }>): Effect.Effect<void> =>
+  span,
+  write,
+}: Sealing &
+  Readonly<{
+    span: string;
+    write: (
+      sealed: Readonly<{ sealedCredential: string; updatedAtMs: number }>,
+    ) => Promise<unknown>;
+  }>): Effect.Effect<void> =>
   Effect.all(
     {
       sealedCredential: sealCredential(credential),
@@ -33,40 +43,40 @@ export const saveCredential = ({
     },
     { concurrency: 1 },
   ).pipe(
-    Effect.flatMap(({ sealedCredential, updatedAtMs }) =>
-      Effect.promise(() =>
-        db
-          .insert(connection)
-          .values({ provider, method: credential.method, sealedCredential, updatedAtMs })
-          .onConflictDoUpdate({
-            target: connection.provider,
-            set: {
-              method: credential.method,
-              sealedCredential,
-              status: "waiting",
-              failure: NO_FAILURE,
-              updatedAtMs,
-            },
-          }),
-      ),
-    ),
+    Effect.flatMap((sealed) => Effect.promise(() => write(sealed))),
     Effect.asVoid,
-    Effect.withSpan("connection.save", { attributes: { provider } }),
+    Effect.withSpan(span, { attributes: { provider } }),
   );
 
-export const replaceCredential = ({
-  provider,
-  credential,
-}: Readonly<{ provider: ProviderId; credential: Credential }>): Effect.Effect<void> =>
-  sealCredential(credential).pipe(
-    Effect.flatMap((sealedCredential) =>
-      Effect.promise(() =>
-        db.update(connection).set({ sealedCredential }).where(eq(connection.provider, provider)),
-      ),
-    ),
-    Effect.asVoid,
-    Effect.withSpan("connection.replace-credential", { attributes: { provider } }),
-  );
+export const saveCredential = ({ provider, credential }: Sealing): Effect.Effect<void> =>
+  writeSealed({
+    provider,
+    credential,
+    span: "connection.save",
+    write: ({ sealedCredential, updatedAtMs }) =>
+      db
+        .insert(connection)
+        .values({ provider, method: credential.method, sealedCredential, updatedAtMs })
+        .onConflictDoUpdate({
+          target: connection.provider,
+          set: {
+            method: credential.method,
+            sealedCredential,
+            status: "waiting",
+            failure: NO_FAILURE,
+            updatedAtMs,
+          },
+        }),
+  });
+
+export const replaceCredential = ({ provider, credential }: Sealing): Effect.Effect<void> =>
+  writeSealed({
+    provider,
+    credential,
+    span: "connection.replace-credential",
+    write: ({ sealedCredential }) =>
+      db.update(connection).set({ sealedCredential }).where(eq(connection.provider, provider)),
+  });
 
 export const forgetConnection = (provider: ProviderId): Effect.Effect<void> =>
   Effect.promise(() => db.delete(connection).where(eq(connection.provider, provider))).pipe(

@@ -41,12 +41,11 @@ const pullPlayed = (session: Pulling): Observing =>
     ),
   );
 
-const pullLiked = <Entry>({
+const pullLiked = <Entry extends Readonly<{ created_at?: string | null | undefined }>>({
   session,
   path,
   schema,
   subjectOf,
-  occurredAtOf,
 }: Readonly<{
   session: Pulling;
   path: string;
@@ -54,7 +53,6 @@ const pullLiked = <Entry>({
     Readonly<{ collection: readonly Entry[]; next_href?: string | null | undefined }>
   >;
   subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
-  occurredAtOf: (entry: Entry) => string | null | undefined;
 }>): Observing =>
   collectFrom({ session, path, pages: session.pages, schema }).pipe(
     Effect.map((entries) =>
@@ -63,28 +61,10 @@ const pullLiked = <Entry>({
         fetchedAt: session.fetchedAt,
         entries,
         subjectOf,
-        occurredAtOf,
+        occurredAtOf: ({ created_at: createdAt }) => createdAt,
       }),
     ),
   );
-
-const pullLikedTracks = (session: Pulling): Observing =>
-  pullLiked({
-    session,
-    path: `/users/${session.userId}/track_likes`,
-    schema: TrackLikes,
-    subjectOf: ({ track }) => Option.map(Option.fromNullishOr(track), trackOf),
-    occurredAtOf: ({ created_at: createdAt }) => createdAt,
-  });
-
-const pullLikedPlaylists = (session: Pulling): Observing =>
-  pullLiked({
-    session,
-    path: `/users/${session.userId}/playlist_likes`,
-    schema: PlaylistLikes,
-    subjectOf: ({ playlist }) => Option.map(Option.fromNullishOr(playlist), playlistOf),
-    occurredAtOf: ({ created_at: createdAt }) => createdAt,
-  });
 
 const pullFollowings = (session: Pulling): Observing =>
   collectFrom({
@@ -111,8 +91,18 @@ export const pullSoundcloud = pullOf({
       const pulling: Pulling = { ...session, userId: me.id, pages };
       const observations = [
         ...(yield* pullPlayed(pulling)),
-        ...(yield* pullLikedTracks(pulling)),
-        ...(yield* pullLikedPlaylists(pulling)),
+        ...(yield* pullLiked({
+          session: pulling,
+          path: `/users/${pulling.userId}/track_likes`,
+          schema: TrackLikes,
+          subjectOf: ({ track }) => Option.map(Option.fromNullishOr(track), trackOf),
+        })),
+        ...(yield* pullLiked({
+          session: pulling,
+          path: `/users/${pulling.userId}/playlist_likes`,
+          schema: PlaylistLikes,
+          subjectOf: ({ playlist }) => Option.map(Option.fromNullishOr(playlist), playlistOf),
+        })),
         ...(yield* pullFollowings(pulling)),
       ];
       return observations;

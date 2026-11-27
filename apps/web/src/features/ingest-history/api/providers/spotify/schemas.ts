@@ -70,3 +70,5 @@ export type SpotifyArtistRef = typeof ArtistRef.Type;
 export type SpotifyArtist = typeof Artist.Type;
 export type SpotifyUrls = typeof ExternalUrls.Type;
 export type SpotifyPlaylistEntry = typeof PlaylistEntry.Type;
+
+export type SpotifyPlaylist = typeof Playlist.Type;

@@ -1,8 +1,8 @@
 import { Array as Arr, Clock, Effect, Option, Schema, String as Str, pipe } from "effect";
-import { Hex } from "effect/encoding";
 
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
+import { digestHex } from "#/shared/crypto/index.server";
 
 import { historyVideosOf } from "./history-videos";
 import type { VideoParts } from "./subjects";
@@ -33,8 +33,6 @@ const BrowseRequest = Schema.Struct({
   browseId: Schema.String,
 });
 
-const textEncoder = new TextEncoder();
-
 const cookieOf =
   (cookie: string) =>
   (name: string): Option.Option<string> =>
@@ -44,11 +42,6 @@ const cookieOf =
       Arr.findFirst(Str.startsWith(`${name}${PAIR_SEPARATOR}`)),
       Option.map(Str.slice(name.length + PAIR_SEPARATOR.length)),
     );
-
-const sha1Of = (text: string): Effect.Effect<string> =>
-  Effect.promise(() => crypto.subtle.digest("SHA-1", textEncoder.encode(text))).pipe(
-    Effect.map((digest) => Hex.encode(new Uint8Array(digest))),
-  );
 
 const authorizationOf = (cookie: string): Effect.Effect<string, ProviderError> =>
   Effect.gen(function* authorization() {
@@ -67,7 +60,7 @@ const authorizationOf = (cookie: string): Effect.Effect<string, ProviderError> =
     const parts = yield* Effect.forEach(
       present,
       ({ scheme, sid }) =>
-        sha1Of(`${seconds} ${sid} ${ORIGIN}`).pipe(
+        digestHex({ algorithm: "SHA-1", text: `${seconds} ${sid} ${ORIGIN}` }).pipe(
           Effect.map((hash) => `${scheme} ${seconds}_${hash}`),
         ),
       { concurrency: 1 },

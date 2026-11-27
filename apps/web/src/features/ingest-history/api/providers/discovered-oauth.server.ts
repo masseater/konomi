@@ -48,6 +48,9 @@ const unavailable =
       ),
     );
 
+const sdkCall = <Out>(step: string, run: () => Promise<Out>): Effect.Effect<Out, ProviderError> =>
+  Effect.tryPromise({ try: run, catch: unavailable(step) });
+
 const clientIdOf = ({
   discovery,
   credential,
@@ -97,17 +100,15 @@ export const startDiscovered = ({
   Effect.gen(function* start() {
     const scope = Arr.join(authorization.scopes, SCOPE_SEPARATOR);
     const clientId = yield* clientIdOf({ discovery, credential, redirectUri, scope });
-    const started = yield* Effect.tryPromise({
-      try: () =>
-        startAuthorization(discovery.issuer, {
-          clientInformation: { client_id: clientId },
-          redirectUrl: redirectUri,
-          scope,
-          state,
-          resource: discovery.resource,
-        }),
-      catch: unavailable("許可の画面の用意"),
-    });
+    const started = yield* sdkCall("許可の画面の用意", () =>
+      startAuthorization(discovery.issuer, {
+        clientInformation: { client_id: clientId },
+        redirectUrl: redirectUri,
+        scope,
+        state,
+        resource: discovery.resource,
+      }),
+    );
     return {
       url: started.authorizationUrl.toString(),
       credential: {
@@ -136,17 +137,15 @@ export const finishDiscovered = ({
   Effect.gen(function* finish() {
     const clientId = yield* requireField(credential, OAUTH_FIELD.clientId);
     const codeVerifier = yield* requireField(credential, VERIFIER_FIELD);
-    const tokens = yield* Effect.tryPromise({
-      try: () =>
-        exchangeAuthorization(discovery.issuer, {
-          clientInformation: { client_id: clientId },
-          authorizationCode: code,
-          codeVerifier,
-          redirectUri,
-          resource: new URL(discovery.resource),
-        }),
-      catch: unavailable("トークンの受け取り"),
-    });
+    const tokens = yield* sdkCall("トークンの受け取り", () =>
+      exchangeAuthorization(discovery.issuer, {
+        clientInformation: { client_id: clientId },
+        authorizationCode: code,
+        codeVerifier,
+        redirectUri,
+        resource: new URL(discovery.resource),
+      }),
+    );
     return withTokens(credential, tokens, [OAUTH_FIELD.state, VERIFIER_FIELD]);
   }).pipe(Effect.withSpan("oauth.discovered.finish"));
 
@@ -156,14 +155,12 @@ export const refreshDiscovered =
     Effect.gen(function* refresh() {
       const clientId = yield* requireField(credential, OAUTH_FIELD.clientId);
       const refreshToken = yield* requireField(credential, OAUTH_FIELD.refreshToken);
-      const tokens = yield* Effect.tryPromise({
-        try: () =>
-          refreshAuthorization(discovery.issuer, {
-            clientInformation: { client_id: clientId },
-            refreshToken,
-            resource: new URL(discovery.resource),
-          }),
-        catch: unavailable("トークンの更新"),
-      });
+      const tokens = yield* sdkCall("トークンの更新", () =>
+        refreshAuthorization(discovery.issuer, {
+          clientInformation: { client_id: clientId },
+          refreshToken,
+          resource: new URL(discovery.resource),
+        }),
+      );
       return withTokens(credential, tokens, [OAUTH_FIELD.state, VERIFIER_FIELD]);
     }).pipe(Effect.withSpan("oauth.discovered.refresh"));

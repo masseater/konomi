@@ -1,16 +1,10 @@
 import { Array as Arr, Effect, pipe } from "effect";
 
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import {
-  pageOf,
-  observationsOf,
-  datedObservationsOf,
-} from "#/features/ingest-history/api/providers/observe";
+import { pageOf, datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
-import {
-  collectPages,
-  collectJsonPages,
-} from "#/features/ingest-history/api/providers/paging.server";
+import { collectObserved } from "#/features/ingest-history/api/providers/observed-pages.server";
+import { collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
 
 import { API, LIMIT } from "./api";
 import { FollowedArtists, RecentlyPlayed, SavedTracks } from "./schemas";
@@ -59,23 +53,17 @@ export const pullFollowed = ({
   fetchedAt,
   pages,
 }: Fetching & Readonly<{ pages: number }>): Observing =>
-  collectPages({
+  collectObserved({
+    kind: "followed",
     first: `${API}/me/following?type=artist&limit=${LIMIT}`,
     pages,
+    fetchedAt,
     fetchPage: (url) =>
       fetchJson({ url, headers, schema: FollowedArtists }).pipe(
-        Effect.map(({ artists }) => pageOf(artists)),
-      ),
-  }).pipe(
-    Effect.map((artists) =>
-      pipe(
-        artists,
-        Arr.map(followedArtistOf),
-        Arr.getSomes,
-        observationsOf("followed")({
-          subjectOf: (subject) => subject,
-          occurredAtOf: () => fetchedAt,
+        Effect.map(({ artists }) => {
+          const { items, next } = pageOf(artists);
+          return { items: pipe(items, Arr.map(followedArtistOf), Arr.getSomes), next };
         }),
       ),
-    ),
-  );
+    subjectOf: (subject) => subject,
+  });

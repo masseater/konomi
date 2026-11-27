@@ -155,45 +155,63 @@ export const fetchJson = <Body extends Schema.Top>({
   Body["DecodingServices"]
 > => HttpClientRequest.get(url, { headers }).pipe(Effect.succeed, sendJson(schema));
 
+type Posting = Readonly<{ url: string; headers: Headers }>;
+
+const posted =
+  <Body extends Schema.Top>(schema: Body) =>
+  <Requirement>({
+    url,
+    headers,
+    attach,
+  }: Posting &
+    Readonly<{
+      attach: (
+        request: HttpClientRequest.HttpClientRequest,
+      ) => Effect.Effect<HttpClientRequest.HttpClientRequest, ProviderError, Requirement>;
+    }>): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"] | Requirement> =>
+    attach(HttpClientRequest.post(url, { headers })).pipe(sendJson(schema));
+
 export const postJson = <Payload extends Schema.Top, Body extends Schema.Top>({
   url,
   headers,
   payload,
   body,
   schema,
-}: Readonly<{
-  url: string;
-  headers: Headers;
-  payload: Payload;
-  body: Payload["Type"];
-  schema: Body;
-}>): Effect.Effect<
+}: Posting &
+  Readonly<{
+    payload: Payload;
+    body: Payload["Type"];
+    schema: Body;
+  }>): Effect.Effect<
   Body["Type"],
   ProviderError,
   Body["DecodingServices"] | Payload["EncodingServices"]
 > =>
-  HttpClientRequest.post(url, { headers }).pipe(
-    HttpClientRequest.schemaBodyJson(payload)(body),
-    Effect.mapError(() => ProviderUnavailable.make({ message: `${url} body was not JSON` })),
-    sendJson(schema),
-  );
+  posted(schema)({
+    url,
+    headers,
+    attach: (request) =>
+      request.pipe(
+        HttpClientRequest.schemaBodyJson(payload)(body),
+        Effect.mapError(() => ProviderUnavailable.make({ message: `${url} body was not JSON` })),
+      ),
+  });
 
 export const postForm = <Body extends Schema.Top>({
   url,
   headers,
   fields,
   schema,
-}: Readonly<{
-  url: string;
-  headers: Headers;
-  fields: Readonly<Record<string, string>>;
-  schema: Body;
-}>): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"]> =>
-  HttpClientRequest.post(url, { headers }).pipe(
-    HttpClientRequest.bodyUrlParams(fields),
-    Effect.succeed,
-    sendJson(schema),
-  );
+}: Posting &
+  Readonly<{
+    fields: Readonly<Record<string, string>>;
+    schema: Body;
+  }>): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"]> =>
+  posted(schema)({
+    url,
+    headers,
+    attach: (request) => request.pipe(HttpClientRequest.bodyUrlParams(fields), Effect.succeed),
+  });
 
 export const fetchText = ({
   url,

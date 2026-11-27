@@ -40,14 +40,13 @@ const workOf =
 const illustOf = workOf({ kind: "artwork", url: (id) => `${WEB}/artworks/${id}` });
 const novelOf = workOf({ kind: "book", url: (id) => `${WEB}/novel/show.php?id=${id}` });
 
-export const illustObservationsOf =
-  (fetchedAt: number) =>
-  (illusts: readonly Work[]): readonly Observation[] =>
-    observationsOf("collected")({ subjectOf: illustOf, occurredAtOf: () => fetchedAt })(illusts);
+const collectedAt =
+  (subjectOf: (work: Work) => SubjectInput) =>
+  (fetchedAt: number): ((works: readonly Work[]) => readonly Observation[]) =>
+    observationsOf("collected")({ subjectOf, occurredAtOf: () => fetchedAt });
 
-export const novelObservationsOf =
-  (fetchedAt: number) =>
-  (novels: readonly Work[]): readonly Observation[] =>
-    observationsOf("collected")({ subjectOf: novelOf, occurredAtOf: () => fetchedAt })(novels);
+export const illustObservationsOf = collectedAt(illustOf);
+
+export const novelObservationsOf = collectedAt(novelOf);
 
 export const followObservationsOf = followedCreatorsAt(creatorOf);

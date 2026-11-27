@@ -1,16 +1,16 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
+import type { Schema } from "effect";
 
 import type { Observation } from "#/entities/signal";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
-import type { Observing } from "#/features/ingest-history/api/providers/observe";
+import type { Fetched, Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, FIELD } from "./api";
 import { EntriesResponse, Query, RecordsResponse } from "./schemas";
-import type { AnnictEntry } from "./schemas";
 import { entryObservationOf, recordObservationsOf } from "./subjects";
 
 const START = "";
@@ -57,39 +57,51 @@ const afterOf = (cursor: string): string | null =>
 
 type Querying = Readonly<{ headers: Headers; pages: number; fetchedAt: number }>;
 
-const pullRecords = ({ headers, pages, fetchedAt }: Querying): Observing => {
-  const observe = recordObservationsOf(fetchedAt);
-  return collectPages({
+const pullGraph = <Response, Item>({
+  querying,
+  query,
+  schema,
+  pageFrom,
+}: Readonly<{
+  querying: Querying;
+  query: string;
+  schema: Schema.Decoder<Response>;
+  pageFrom: (response: Response) => Paged<Item>;
+}>): Fetched<readonly Item[]> =>
+  collectPages({
     first: START,
-    pages,
+    pages: querying.pages,
     fetchPage: (after) =>
       postJson({
         url: API,
-        headers,
+        headers: querying.headers,
         payload: Query,
-        body: { query: RECORDS, variables: { after: afterOf(after) } },
-        schema: RecordsResponse,
-      }).pipe(Effect.map(({ data }) => pageOf(data.viewer.records))),
+        body: { query, variables: { after: afterOf(after) } },
+        schema,
+      }).pipe(Effect.map((response) => pageOf(pageFrom(response)))),
+  });
+
+const pullRecords = (querying: Querying): Observing => {
+  const observe = recordObservationsOf(querying.fetchedAt);
+  return pullGraph({
+    querying,
+    query: RECORDS,
+    schema: RecordsResponse,
+    pageFrom: ({ data }) => data.viewer.records,
   }).pipe(Effect.map(Arr.flatMap(observe)));
 };
 
-const pullEntries = ({ headers, pages, fetchedAt }: Querying): Observing => {
-  const observe = entryObservationOf(fetchedAt);
-  const observeAll = (entries: readonly AnnictEntry[]): readonly Observation[] =>
-    pipe(entries, Arr.map(observe), Arr.getSomes);
-  return collectPages({
-    first: START,
-    pages,
-    fetchPage: (after) =>
-      postJson({
-        url: API,
-        headers,
-        payload: Query,
-        body: { query: ENTRIES, variables: { after: afterOf(after) } },
-        schema: EntriesResponse,
-      }).pipe(Effect.map(({ data }) => pageOf(data.viewer.libraryEntries))),
-  }).pipe(Effect.map(observeAll));
-};
+const pullEntries = (querying: Querying): Observing =>
+  pullGraph({
+    querying,
+    query: ENTRIES,
+    schema: EntriesResponse,
+    pageFrom: ({ data }) => data.viewer.libraryEntries,
+  }).pipe(
+    Effect.map((entries): readonly Observation[] =>
+      pipe(entries, Arr.map(entryObservationOf(querying.fetchedAt)), Arr.getSomes),
+    ),
+  );
 
 export const pullAnnict = pullOf({
   provider: "annict",

@@ -2,9 +2,8 @@ import { Effect, Option, pipe } from "effect";
 
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
-import { observationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
-import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
+import { collectObserved } from "#/features/ingest-history/api/providers/observed-pages.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { LIMIT, SERVICE } from "./api";
@@ -27,37 +26,32 @@ const withCursor =
 
 const pullLikes = ({ headers, did, pages, fetchedAt }: Signed): Observing => {
   const first = pageUrl("app.bsky.feed.getActorLikes", did);
-  return collectPages({
+  return collectObserved({
+    kind: "endorsed",
     first,
     pages,
+    fetchedAt,
     fetchPage: (url) =>
       fetchJson({ url, headers, schema: Likes }).pipe(
         Effect.map(({ feed, cursor }) => ({ items: feed, next: withCursor(first)(cursor) })),
       ),
-  }).pipe(
-    Effect.map(
-      observationsOf("endorsed")({
-        subjectOf: ({ post }) => postOf(post),
-        occurredAtOf: () => fetchedAt,
-      }),
-    ),
-  );
+    subjectOf: ({ post }) => postOf(post),
+  });
 };
 
 const pullFollows = ({ headers, did, pages, fetchedAt }: Signed): Observing => {
   const first = pageUrl("app.bsky.graph.getFollows", did);
-  return collectPages({
+  return collectObserved({
+    kind: "followed",
     first,
     pages,
+    fetchedAt,
     fetchPage: (url) =>
       fetchJson({ url, headers, schema: Follows }).pipe(
         Effect.map(({ follows, cursor }) => ({ items: follows, next: withCursor(first)(cursor) })),
       ),
-  }).pipe(
-    Effect.map(
-      observationsOf("followed")({ subjectOf: followedOf, occurredAtOf: () => fetchedAt }),
-    ),
-  );
+    subjectOf: followedOf,
+  });
 };
 
 export const pullBluesky = pullOf({

@@ -1,11 +1,8 @@
-import { Array as Arr, Option, pipe } from "effect";
+import { Option } from "effect";
 import type { UserPlayedGamesResponse } from "psn-api";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
-import {
-  epochOr,
-  libraryEntryObservationsOf,
-} from "#/features/ingest-history/api/providers/observe";
+import { epochOr, libraryObservationsOf } from "#/features/ingest-history/api/providers/observe";
 
 import { STORE } from "./api";
 
@@ -28,18 +25,15 @@ const gameOf = (game: PlayedGame): SubjectInput => ({
   tags: [],
 });
 
-export const playedObservationsOf =
-  (fetchedAt: number) =>
-  (games: readonly PlayedGame[]): readonly Observation[] => {
-    const at = epochOr(fetchedAt);
-    return pipe(
-      games,
-      Arr.flatMap((game) =>
-        libraryEntryObservationsOf({
-          subject: gameOf(game),
-          collectedAtMs: at(game.firstPlayedDateTime),
-          lastPlayedAtMs: Option.some(at(game.lastPlayedDateTime)),
-        }),
-      ),
-    );
-  };
+export const playedObservationsOf = (
+  fetchedAt: number,
+): ((games: readonly PlayedGame[]) => readonly Observation[]) => {
+  const at = epochOr(fetchedAt);
+  return libraryObservationsOf((game: PlayedGame) =>
+    Option.some({
+      subject: gameOf(game),
+      collectedAtMs: at(game.firstPlayedDateTime),
+      lastPlayedAtMs: Option.some(at(game.lastPlayedDateTime)),
+    }),
+  );
+};

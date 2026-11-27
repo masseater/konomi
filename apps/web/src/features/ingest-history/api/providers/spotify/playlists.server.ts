@@ -1,17 +1,13 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import {
-  flatMapEach,
-  pageOf,
-  datedObservationsOf,
-} from "#/features/ingest-history/api/providers/observe";
-import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
+import { collectedListsOf, pageOf } from "#/features/ingest-history/api/providers/observe";
+import type { Fetched, Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 import { pagesFor, collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
 
 import { API, LIMIT } from "./api";
 import { Me, PlaylistItems, Playlists } from "./schemas";
-import type { SpotifyPlaylistEntry } from "./schemas";
+import type { SpotifyPlaylist, SpotifyPlaylistEntry } from "./schemas";
 import { trackOf } from "./subjects";
 
 const entryTrackOf = (entry: SpotifyPlaylistEntry): ReturnType<typeof trackOf> =>
@@ -21,41 +17,35 @@ const entryTrackOf = (entry: SpotifyPlaylistEntry): ReturnType<typeof trackOf> =
     Option.flatMap(trackOf),
   );
 
-const pullPlaylist = (
-  { headers, fetchedAt }: Fetching,
-  { id, name }: Readonly<{ id: string; name: string }>,
-): Observing =>
-  Effect.gen(function* playlist() {
-    const entries = yield* collectJsonPages({
-      first: `${API}/playlists/${id}/items?limit=${LIMIT}`,
-      headers,
-      pages: pagesFor(false),
-      schema: PlaylistItems,
-      pageOf,
-    });
-    return datedObservationsOf({
-      kind: "collected",
-      listName: name,
-      fetchedAt,
-      entries,
-      subjectOf: entryTrackOf,
-      occurredAtOf: ({ added_at: addedAt }) => addedAt,
-    });
-  });
-
-export const pullPlaylists = (fetching: Fetching): Observing =>
-  Effect.gen(function* playlists() {
-    const me = yield* fetchJson({ url: `${API}/me`, headers: fetching.headers, schema: Me });
-    const owned = yield* collectJsonPages({
+const ownedOf = ({ headers }: Fetching): Fetched<readonly SpotifyPlaylist[]> =>
+  Effect.gen(function* owned() {
+    const me = yield* fetchJson({ url: `${API}/me`, headers, schema: Me });
+    const playlists = yield* collectJsonPages({
       first: `${API}/me/playlists?limit=${LIMIT}`,
-      headers: fetching.headers,
+      headers,
       pages: pagesFor(false),
       schema: Playlists,
       pageOf,
     });
-    const mine = pipe(
-      owned,
+    return pipe(
+      playlists,
       Arr.filter(({ owner }) => owner.id === me.id),
     );
-    return yield* flatMapEach(mine, (found) => pullPlaylist(fetching, found));
+  });
+
+export const pullPlaylists = (fetching: Fetching): Observing =>
+  collectedListsOf({
+    fetching,
+    listsOf: () => ownedOf(fetching),
+    nameOf: ({ name }) => name,
+    entriesOf: ({ id }) =>
+      collectJsonPages({
+        first: `${API}/playlists/${id}/items?limit=${LIMIT}`,
+        headers: fetching.headers,
+        pages: pagesFor(false),
+        schema: PlaylistItems,
+        pageOf,
+      }),
+    subjectOf: entryTrackOf,
+    occurredAtOf: ({ added_at: addedAt }) => addedAt,
   });
