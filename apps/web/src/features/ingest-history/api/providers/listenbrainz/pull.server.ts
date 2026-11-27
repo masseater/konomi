@@ -1,14 +1,16 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
-import { collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
+import {
+  pagedListing,
+  pulledListings,
+} from "#/features/ingest-history/api/providers/listing.server";
+import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import { urlWith } from "#/features/ingest-history/api/providers/url-with";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, HEADERS, FIELD, LIMIT, LOVED } from "./api";
 import { Feedback, Listens } from "./schemas";
-import type { ListenBrainzListen, ListenBrainzLoved } from "./schemas";
 import { listenObservationsOf, lovedObservationsOf } from "./subjects";
 
 const OFFSET = "offset";
@@ -24,31 +26,20 @@ const fullPageNext =
 const nextOffset = (url: string): string =>
   String(Number(new URL(url).searchParams.get(OFFSET)) + LIMIT);
 
-type Pulling = Readonly<{ user: string; pages: number }>;
-
-const pullLoved = ({
-  user,
-  pages,
-}: Pulling): Effect.Effect<readonly ListenBrainzLoved[], ProviderError> =>
-  collectJsonPages({
+const lovedListing = (user: string): Listing =>
+  pagedListing({
     first: `${API}/feedback/user/${user}/get-feedback?score=${LOVED}&count=${LIMIT}&metadata=true&${OFFSET}=0`,
-    headers: HEADERS,
-    pages,
     schema: Feedback,
     pageOf: ({ feedback }, url) => ({
       items: feedback,
       next: fullPageNext({ url, items: feedback })({ name: OFFSET, value: nextOffset(url) }),
     }),
+    observe: () => lovedObservationsOf,
   });
 
-const pullListens = ({
-  user,
-  pages,
-}: Pulling): Effect.Effect<readonly ListenBrainzListen[], ProviderError> =>
-  collectJsonPages({
+const listensListing = (user: string): Listing =>
+  pagedListing({
     first: `${API}/user/${user}/listens?count=${LIMIT}`,
-    headers: HEADERS,
-    pages,
     schema: Listens,
     pageOf: ({ payload: { listens } }, url) => ({
       items: listens,
@@ -59,17 +50,17 @@ const pullListens = ({
         ),
       ),
     }),
+    observe: () => listenObservationsOf,
   });
 
 export const pullListenbrainz = pullOf({
   provider: "listenbrainz",
   cursor: "backfilled",
-  observe: ({ credential, pages }) =>
+  observe: ({ credential, pages, fetchedAt }) =>
     Effect.gen(function* listenbrainz() {
       const name = yield* requireField(credential, FIELD.user);
       const user = encodeURIComponent(name);
-      const listens = yield* pullListens({ user, pages });
-      const loved = yield* pullLoved({ user, pages });
-      return [...listenObservationsOf(listens), ...lovedObservationsOf(loved)];
+      const listings = pulledListings([listensListing(user), lovedListing(user)]);
+      return yield* listings({ headers: HEADERS, pages, fetchedAt });
     }),
 });

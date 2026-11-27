@@ -2,6 +2,7 @@ import { parseNextUrl } from "@book000/pixivts";
 import type { ParsedNextUrl, PixivError, Result } from "@book000/pixivts";
 import { Effect, Match, Option, String as Str } from "effect";
 
+import { flatMapEach } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
@@ -12,7 +13,7 @@ import { FIRST_PAGE } from "./api";
 
 export type Paged = Readonly<{ nextUrl: string | null }>;
 
-export type Listing<Body extends Paged, Item> = Readonly<{
+type Listing<Body extends Paged, Item> = Readonly<{
   name: string;
   list: (cursor: Readonly<ParsedNextUrl>) => PromiseLike<Result<Body, PixivError>>;
   itemsOf: (body: Body) => readonly Item[];
@@ -52,9 +53,33 @@ const fetchPageOf =
       Effect.withSpan("pixiv.list", { attributes: { name } }),
     );
 
-export const collectListing =
+const collectListing =
   (pages: number) =>
   <Body extends Paged, Item>(
     listing: Listing<Body, Item>,
   ): Effect.Effect<readonly Item[], ProviderError> =>
     collectPages({ first: FIRST_PAGE, pages, fetchPage: fetchPageOf(listing) });
+
+export const collectRestricted =
+  (pages: number) =>
+  <Restrict extends number | string, Body extends Paged, Item>({
+    prefix,
+    restricts,
+    list,
+    itemsOf,
+  }: Readonly<{
+    prefix: string;
+    restricts: readonly Restrict[];
+    list: (
+      cursor: Readonly<ParsedNextUrl>,
+      restrict: Restrict,
+    ) => PromiseLike<Result<Body, PixivError>>;
+    itemsOf: (body: Body) => readonly Item[];
+  }>): Effect.Effect<readonly Item[], ProviderError> =>
+    flatMapEach(restricts, (restrict) =>
+      collectListing(pages)({
+        name: `${prefix}-${restrict}`,
+        list: (cursor) => list(cursor, restrict),
+        itemsOf,
+      }),
+    );
