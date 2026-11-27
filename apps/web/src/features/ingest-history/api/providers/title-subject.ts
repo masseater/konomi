@@ -1,4 +1,4 @@
-import { Option } from "effect";
+import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { SubjectInput } from "#/entities/signal";
 import type { ProviderId } from "#/shared/config";
@@ -36,3 +36,28 @@ export const titleSubjectOf = ({
       tags: [name],
     }),
   });
+
+export const splitTitleSubjectOf = ({
+  provider,
+  title,
+  separator,
+  isSeries,
+  searchUrlOf,
+}: Readonly<{
+  provider: ProviderId;
+  title: string;
+  separator: string | RegExp;
+  isSeries: (parts: readonly string[]) => boolean;
+  searchUrlOf: (query: string) => string;
+}>): SubjectInput => {
+  const parts = Str.split(title, separator);
+  return titleSubjectOf({
+    provider,
+    title,
+    series: pipe(
+      Arr.head(parts),
+      Option.filter(() => isSeries(parts)),
+    ),
+    searchUrlOf,
+  });
+};

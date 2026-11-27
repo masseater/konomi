@@ -2,7 +2,7 @@ import { Array as Arr, Match, Option, String as Str, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { cellOf } from "#/features/ingest-history/api/providers/export-cell";
-import { titleSubjectOf as sharedTitleSubjectOf } from "#/features/ingest-history/api/providers/title-subject";
+import { splitTitleSubjectOf } from "#/features/ingest-history/api/providers/title-subject";
 
 import { MIN_WATCHED_SEC, NOT_VIEWING, STORE_SEARCH, VIEWING_COLUMN } from "./api";
 import type { HourlyViewingRow, SessionViewingRow, ViewingRow } from "./schemas";
@@ -115,23 +115,18 @@ const watchedLongEnough = (row: ViewingRow, startedAtMs: number): boolean =>
 const searchUrlOf = (query: string): string =>
   `${STORE_SEARCH}?k=${encodeURIComponent(query)}&i=instant-video`;
 
-const titleSubjectOf = (title: string): SubjectInput => {
-  const parts = Str.split(title, SEPARATOR);
-  return sharedTitleSubjectOf({
+const titleSubjectOf = (title: string): SubjectInput =>
+  splitTitleSubjectOf({
     provider: "prime-video",
     title,
-    series: pipe(
-      Arr.head(parts),
-      Option.filter(() =>
-        pipe(
-          Arr.drop(parts, SERIES_NAME_PARTS),
-          Arr.some((part) => SEASON.test(part)),
-        ),
+    separator: SEPARATOR,
+    isSeries: (parts) =>
+      pipe(
+        Arr.drop(parts, SERIES_NAME_PARTS),
+        Arr.some((part) => SEASON.test(part)),
       ),
-    ),
     searchUrlOf,
   });
-};
 
 const viewingObservationOf = (row: ViewingRow): Option.Option<Observation> =>
   Option.all({
