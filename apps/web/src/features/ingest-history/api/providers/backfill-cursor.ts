@@ -1,21 +1,16 @@
-import { Effect, Option, Schema, pipe } from "effect";
+import { Schema } from "effect";
+import type { Effect } from "effect";
 
+import { cursorStateOf } from "#/features/ingest-history/api/providers/cursor-state";
 import { pagesFor, pagesUpTo } from "#/features/ingest-history/api/providers/paging.server";
 
-const CursorJson = Schema.fromJsonString(Schema.Struct({ backfilled: Schema.Boolean }));
-const decodeCursor = Schema.decodeUnknownOption(CursorJson);
-const encodeCursor = Schema.encodeEffect(CursorJson);
+const cursorState = cursorStateOf(Schema.Struct({ backfilled: Schema.Boolean }))({
+  backfilled: false,
+});
 
-const backfilledOf = (cursor: string): boolean =>
-  pipe(
-    decodeCursor(cursor),
-    Option.map(({ backfilled }) => backfilled),
-    Option.getOrElse(() => false),
-  );
+const backfilledOf = (cursor: string): boolean => cursorState.read(cursor).backfilled;
 
-export const BACKFILLED: Effect.Effect<string> = encodeCursor({ backfilled: true }).pipe(
-  Effect.orDie,
-);
+export const BACKFILLED: Effect.Effect<string> = cursorState.write({ backfilled: true });
 
 export const pagesWithin =
   (backfill: number) =>
