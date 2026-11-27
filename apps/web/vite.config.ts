@@ -13,6 +13,7 @@ export default defineConfig({
   run: {
     tasks: {
       dev: { command: "alchemy dev", cache: false },
+      test: "vp test run",
       "db:generate": "drizzle-kit generate",
       "auth:generate": {
         command:
