@@ -1,11 +1,16 @@
-import { Array as Arr, Match, Option, pipe } from "effect";
+import { Array as Arr, Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { epochOr, listEntryObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import {
+  orEmpty,
+  seriesOrBook,
+  subjectIn,
+} from "#/features/ingest-history/api/providers/subject-in";
 
 import { WEB } from "./api";
 import type { LISTS } from "./api";
-import type { MalEntry, MalGenre } from "./schemas";
+import type { MalEntry } from "./schemas";
 
 export type MalList = (typeof LISTS)[number];
 
@@ -22,29 +27,24 @@ const STATUS_LABEL: Readonly<Record<string, string>> = {
 
 const entryOf =
   (list: MalList) =>
-  ({ node }: MalEntry): SubjectInput => ({
-    provider: "myanimelist",
-    externalId: `${list}:${node.id}`,
-    type: Match.value(list).pipe(
-      Match.when("anime", () => "series" as const),
-      Match.orElse(() => "book" as const),
-    ),
-    title: node.title,
-    url: `${WEB}/${list}/${node.id}`,
-    credits: [],
-    tags: [
-      ...pipe(
-        Option.fromNullishOr(node.genres),
-        Option.getOrElse((): readonly MalGenre[] => []),
-        Arr.map(({ name }) => name),
-      ),
-      ...pipe(
-        Option.fromNullishOr(node.start_season),
-        Option.map(({ year }) => String(year)),
-        Option.toArray,
-      ),
-    ],
-  });
+  ({ node }: MalEntry): SubjectInput =>
+    subjectIn("myanimelist")({
+      externalId: `${list}:${node.id}`,
+      type: seriesOrBook(list === "anime"),
+      title: node.title,
+      url: `${WEB}/${list}/${node.id}`,
+      tags: [
+        ...pipe(
+          orEmpty(node.genres),
+          Arr.map(({ name }) => name),
+        ),
+        ...pipe(
+          Option.fromNullishOr(node.start_season),
+          Option.map(({ year }) => String(year)),
+          Option.toArray,
+        ),
+      ],
+    });
 
 const contextOf = (status: Option.Option<string>): Option.Option<string> =>
   pipe(

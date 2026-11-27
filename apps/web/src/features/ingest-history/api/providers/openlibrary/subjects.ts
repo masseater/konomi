@@ -2,20 +2,15 @@ import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
+import { orEmpty, subjectIn, textTagsOf } from "#/features/ingest-history/api/providers/subject-in";
 import type { SignalKind } from "#/shared/config";
 
 import { WEB } from "./api";
 import type { OpenLibraryEntry } from "./schemas";
 
-const namesOf = (names: readonly string[] | null | undefined): readonly string[] =>
-  pipe(
-    Option.fromNullishOr(names),
-    Option.getOrElse((): readonly string[] => []),
-  );
-
 const authorsOf = (work: OpenLibraryEntry["work"]): readonly CreatorInput[] =>
   pipe(
-    Arr.zip(namesOf(work.author_keys), namesOf(work.author_names)),
+    Arr.zip(orEmpty(work.author_keys), orEmpty(work.author_names)),
     Arr.map(([key, title]): CreatorInput => ({
       provider: "openlibrary",
       externalId: key,
@@ -25,15 +20,15 @@ const authorsOf = (work: OpenLibraryEntry["work"]): readonly CreatorInput[] =>
     })),
   );
 
-const bookOf = (work: OpenLibraryEntry["work"]): SubjectInput => ({
-  provider: "openlibrary",
-  externalId: work.key,
-  type: "book",
-  title: work.title,
-  url: `${WEB}${work.key}`,
-  credits: authorsOf(work),
-  tags: pipe(Option.fromNullishOr(work.first_publish_year), Option.map(String), Option.toArray),
-});
+const bookOf = (work: OpenLibraryEntry["work"]): SubjectInput =>
+  subjectIn("openlibrary")({
+    externalId: work.key,
+    type: "book",
+    title: work.title,
+    url: `${WEB}${work.key}`,
+    credits: authorsOf(work),
+    tags: textTagsOf(work.first_publish_year),
+  });
 
 const isoOf = (logged: string | null | undefined): string | undefined =>
   pipe(

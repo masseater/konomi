@@ -1,7 +1,13 @@
-import { Array as Arr, Match, Option, pipe } from "effect";
+import { Array as Arr, Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { listEntryObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import {
+  orEmpty,
+  seriesOrBook,
+  subjectIn,
+  textTagsOf,
+} from "#/features/ingest-history/api/providers/subject-in";
 
 import type { AniListEntry, AniListMedia } from "./schemas";
 
@@ -25,24 +31,14 @@ const titleOf = ({ title, id }: AniListMedia): string =>
     Option.getOrElse(() => String(id)),
   );
 
-const mediaOf = (media: AniListMedia): SubjectInput => ({
-  provider: "anilist",
-  externalId: `${media.type}:${media.id}`,
-  type: Match.value(media.type).pipe(
-    Match.when("ANIME", () => "series" as const),
-    Match.orElse(() => "book" as const),
-  ),
-  title: titleOf(media),
-  url: media.siteUrl,
-  credits: [],
-  tags: [
-    ...pipe(
-      Option.fromNullishOr(media.genres),
-      Option.getOrElse((): readonly string[] => []),
-    ),
-    ...pipe(Option.fromNullishOr(media.seasonYear), Option.map(String), Option.toArray),
-  ],
-});
+const mediaOf = (media: AniListMedia): SubjectInput =>
+  subjectIn("anilist")({
+    externalId: `${media.type}:${media.id}`,
+    type: seriesOrBook(media.type === "ANIME"),
+    title: titleOf(media),
+    url: media.siteUrl,
+    tags: [...orEmpty(media.genres), ...textTagsOf(media.seasonYear)],
+  });
 
 export const entryObservationsOf =
   (fetchedAt: number) =>
