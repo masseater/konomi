@@ -2,9 +2,9 @@ import type { PixivUser } from "@book000/pixivts";
 import { Array as Arr, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
+import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
 import {
   observationsOf,
-  personMapper,
   followedCreatorsAt,
 } from "#/features/ingest-history/api/providers/observe";
 

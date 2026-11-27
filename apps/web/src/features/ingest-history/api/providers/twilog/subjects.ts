@@ -1,9 +1,9 @@
 import { Option } from "effect";
 
 import type { CreatorInput, ListingKind, Observation, SubjectInput } from "#/entities/signal";
+import { personInputOf } from "#/features/ingest-history/api/providers/creator-input";
 import {
   epochOr,
-  personInputOf,
   nonEmptyOr,
   observationsOf,
 } from "#/features/ingest-history/api/providers/observe";

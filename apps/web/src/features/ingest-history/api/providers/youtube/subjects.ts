@@ -1,7 +1,10 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorInputOf, withoutRelations } from "#/features/ingest-history/api/providers/observe";
+import {
+  creatorInputOf,
+  withoutRelations,
+} from "#/features/ingest-history/api/providers/creator-input";
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
 import type { YoutubePlaylistItem, YoutubeSubscription, YoutubeVideo } from "./schemas";

@@ -3,9 +3,9 @@ import { Array as Arr, Option, pipe } from "effect";
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import {
   personInputOf,
-  nonEmptyOr,
   withoutRelations,
-} from "#/features/ingest-history/api/providers/observe";
+} from "#/features/ingest-history/api/providers/creator-input";
+import { nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
 import { plainTextOf, postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 

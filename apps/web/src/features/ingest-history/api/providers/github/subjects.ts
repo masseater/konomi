@@ -1,10 +1,9 @@
 import { Option, pipe } from "effect";
 
-import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import {
-  epochOr,
-  observationsOf,
   followedCreatorsAt,
+  stampedObservationsOf,
 } from "#/features/ingest-history/api/providers/observe";
 
 import type { GitHubAccount, GitHubStar } from "./schemas";
@@ -33,14 +32,9 @@ const repositoryOf = ({ repo }: GitHubStar): SubjectInput => ({
   ],
 });
 
-export const starObservationsOf =
-  (fetchedAt: number) =>
-  (stars: readonly GitHubStar[]): readonly Observation[] => {
-    const at = epochOr(fetchedAt);
-    return observationsOf("endorsed")({
-      subjectOf: repositoryOf,
-      occurredAtOf: (star) => at(star.starred_at),
-    })(stars);
-  };
+export const starObservationsOf = stampedObservationsOf("endorsed")({
+  subjectOf: repositoryOf,
+  dateOf: ({ starred_at: starredAt }) => starredAt,
+});
 
 export const followObservationsOf = followedCreatorsAt(accountOf);
