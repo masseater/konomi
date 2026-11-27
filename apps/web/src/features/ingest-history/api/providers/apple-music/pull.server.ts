@@ -1,4 +1,4 @@
-import { Clock, Effect, Option } from "effect";
+import { Clock, Effect } from "effect";
 
 import { cursorStateOf, scheduleOf } from "#/features/ingest-history/api/providers/cursor-state";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
@@ -19,10 +19,7 @@ export const pullAppleMusic = ({
     const headers = yield* headersOf(credential);
     const fetchedAt = yield* Clock.currentTimeMillis;
     const state = cursorState.read(cursor);
-    const storefront = yield* Option.match(Option.fromUndefinedOr(state.storefront), {
-      onNone: () => storefrontOf(headers),
-      onSome: Effect.succeed,
-    });
+    const storefront = yield* storefrontOf(headers)(state.storefront);
     const listening: Listening = { fetch: fetchSongs(headers), storefront, fetchedAt };
     const schedule = scheduleOf({
       at: state.libraryAtMs,

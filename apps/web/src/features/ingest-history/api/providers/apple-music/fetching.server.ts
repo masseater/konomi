@@ -40,7 +40,13 @@ export const fetchSongs =
       })),
     );
 
-export const storefrontOf = (headers: Headers): Effect.Effect<string, ProviderError> =>
-  fetchJson({ url: `${API}/me/storefront`, headers, schema: Storefronts }).pipe(
-    Effect.map(({ data }) => Arr.headNonEmpty(data).id),
-  );
+export const storefrontOf =
+  (headers: Headers) =>
+  (known: string | undefined): Effect.Effect<string, ProviderError> =>
+    Option.match(Option.fromUndefinedOr(known), {
+      onNone: () =>
+        fetchJson({ url: `${API}/me/storefront`, headers, schema: Storefronts }).pipe(
+          Effect.map(({ data }) => Arr.headNonEmpty(data).id),
+        ),
+      onSome: Effect.succeed,
+    });
