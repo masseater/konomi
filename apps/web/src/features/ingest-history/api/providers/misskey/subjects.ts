@@ -34,7 +34,7 @@ export const followedOf =
   (user: MisskeyUser): SubjectInput =>
     withoutRelations(accountOf(origin)(user));
 
-export const noteOf =
+const noteOf =
   (origin: string) =>
   (note: MisskeyNote): SubjectInput => {
     const url = `${origin}/notes/${note.id}`;
@@ -53,8 +53,6 @@ export const noteOf =
     };
   };
 
-type Noted = Readonly<{ createdAt: string; note: MisskeyNote }>;
-
 export const notedAs = ({
   kind,
   origin,
@@ -63,8 +61,10 @@ export const notedAs = ({
   kind: SignalKind;
   origin: string;
   at: (text: string) => number;
-}>): ((items: readonly Noted[]) => readonly Observation[]) =>
-  observationsOf(kind)<Noted>({
+}>): ((
+  items: readonly Readonly<{ createdAt: string; note: MisskeyNote }>[],
+) => readonly Observation[]) =>
+  observationsOf(kind)<Readonly<{ createdAt: string; note: MisskeyNote }>>({
     subjectOf: ({ note }) => noteOf(origin)(note),
     occurredAtOf: ({ createdAt }) => at(createdAt),
   });

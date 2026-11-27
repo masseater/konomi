@@ -39,7 +39,7 @@ const observed =
     ...contextOf(context),
   });
 
-export const observeAt =
+const observeAt =
   ({
     kind,
     context,

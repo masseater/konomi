@@ -3,19 +3,14 @@ import { Array as Arr, Option, String as Str, pipe } from "effect";
 import type { SubjectInput } from "#/entities/signal";
 import type { ProviderId } from "#/shared/config";
 
-export type TitledWork = Readonly<{
+type TitledWork = Readonly<{
   provider: ProviderId;
   title: string;
   series: Option.Option<string>;
   searchUrlOf: (query: string) => string;
 }>;
 
-export const titleSubjectOf = ({
-  provider,
-  title,
-  series,
-  searchUrlOf,
-}: TitledWork): SubjectInput =>
+const titleSubjectOf = ({ provider, title, series, searchUrlOf }: TitledWork): SubjectInput =>
   Option.match(series, {
     onNone: () => ({
       provider,
