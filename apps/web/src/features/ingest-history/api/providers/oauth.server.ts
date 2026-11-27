@@ -13,7 +13,7 @@ import { Base64, Hex } from "effect/encoding";
 import type { Credential } from "#/entities/connection";
 import type { Authorization, ProviderError } from "#/features/ingest-history/model/provider";
 
-import { fieldOf, requireField } from "./credential-field";
+import { fieldOf, requireField, requireFields } from "./credential-field";
 import { postForm } from "./http.server";
 
 export const OAUTH_FIELD = {
@@ -38,14 +38,18 @@ const TokenResponse = Schema.Struct({
   refresh_token: Schema.optional(Schema.String),
 });
 
+const clientOf = (credential: Credential) =>
+  requireFields(credential, {
+    client_id: OAUTH_FIELD.clientId,
+    client_secret: OAUTH_FIELD.clientSecret,
+  });
+
 const basicAuthOf = (credential: Credential): Effect.Effect<string, ProviderError> =>
-  Effect.all(
-    [
-      requireField(credential, OAUTH_FIELD.clientId),
-      requireField(credential, OAUTH_FIELD.clientSecret),
-    ],
-    { concurrency: 1 },
-  ).pipe(Effect.map(([id, secret]) => `Basic ${Base64.encode(`${id}:${secret}`)}`));
+  clientOf(credential).pipe(
+    Effect.map(
+      ({ client_id, client_secret }) => `Basic ${Base64.encode(`${client_id}:${client_secret}`)}`,
+    ),
+  );
 
 const withTokens = (credential: Credential, tokens: typeof TokenResponse.Type): Credential => ({
   method: credential.method,
@@ -71,13 +75,7 @@ const clientAuthOf = (
 ): Effect.Effect<TokenRequest, ProviderError> =>
   Match.value(authorization.clientAuthentication).pipe(
     Match.when("body", () =>
-      Effect.all(
-        {
-          client_id: requireField(credential, OAUTH_FIELD.clientId),
-          client_secret: requireField(credential, OAUTH_FIELD.clientSecret),
-        },
-        { concurrency: 1 },
-      ).pipe(Effect.map((fields): TokenRequest => ({ headers: {}, fields }))),
+      clientOf(credential).pipe(Effect.map((fields): TokenRequest => ({ headers: {}, fields }))),
     ),
     Match.orElse(() =>
       basicAuthOf(credential).pipe(

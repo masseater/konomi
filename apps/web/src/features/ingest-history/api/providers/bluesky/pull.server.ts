@@ -2,7 +2,7 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
-import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson, postJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { followedBy } from "#/features/ingest-history/api/providers/observe";
@@ -17,13 +17,7 @@ import { followedOf, postOf } from "./subjects";
 type Signed = Readonly<{ headers: Headers; did: string; pages: number; fetchedAt: number }>;
 
 const signIn = (credential: Credential): Effect.Effect<typeof Session.Type, ProviderError> =>
-  Effect.all(
-    {
-      identifier: requireField(credential, FIELD.identifier),
-      password: requireField(credential, FIELD.appPassword),
-    },
-    { concurrency: 1 },
-  ).pipe(
+  requireFields(credential, { identifier: FIELD.identifier, password: FIELD.appPassword }).pipe(
     Effect.flatMap((body) =>
       postJson({
         url: `${SERVICE}/com.atproto.server.createSession`,

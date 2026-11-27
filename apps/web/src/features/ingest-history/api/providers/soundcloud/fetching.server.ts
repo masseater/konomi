@@ -2,7 +2,7 @@ import { Effect, Option } from "effect";
 import type { Schema } from "effect";
 
 import type { Credential } from "#/entities/connection";
-import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
@@ -23,13 +23,7 @@ export const sessionOf = ({
   Session,
   ProviderError
 > =>
-  Effect.all(
-    {
-      token: requireField(credential, FIELD.token),
-      clientId: requireField(credential, FIELD.clientId),
-    },
-    { concurrency: 1 },
-  ).pipe(
+  requireFields(credential, { token: FIELD.token, clientId: FIELD.clientId }).pipe(
     Effect.map(({ token, clientId }) => ({
       headers: { Authorization: `OAuth ${token}`, Origin: "https://soundcloud.com" },
       clientId,

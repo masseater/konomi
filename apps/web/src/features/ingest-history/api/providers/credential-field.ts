@@ -1,4 +1,4 @@
-import { Effect, Function as Fn, Option, String as Str, pipe } from "effect";
+import { Effect, Function as Fn, Option, Record as Rec, String as Str, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
@@ -45,11 +45,26 @@ export const userClientOf: {
     credential: Credential,
     fields: UserClientFields,
   ): Effect.Effect<UserClientFields, CredentialRejected> =>
-    Effect.all(
-      {
-        user: requireField(credential, fields.user).pipe(Effect.map(encodeURIComponent)),
-        clientId: requireField(credential, fields.clientId),
-      },
-      { concurrency: 1 },
+    requireFields(credential, fields).pipe(
+      Effect.map(({ user, clientId }) => ({ user: encodeURIComponent(user), clientId })),
     ),
+);
+
+export const requireFields: {
+  <Key extends string>(
+    names: Readonly<Record<Key, string>>,
+  ): (credential: Credential) => Effect.Effect<Record<Key, string>, CredentialRejected>;
+  <Key extends string>(
+    credential: Credential,
+    names: Readonly<Record<Key, string>>,
+  ): Effect.Effect<Record<Key, string>, CredentialRejected>;
+} = Fn.dual(
+  BINARY,
+  (
+    credential: Credential,
+    names: Readonly<Record<string, string>>,
+  ): Effect.Effect<Record<string, string>, CredentialRejected> =>
+    Effect.forEach(Rec.toEntries(names), ([key, name]) =>
+      requireField(credential, name).pipe(Effect.map((value) => [key, value] as const)),
+    ).pipe(Effect.map(Rec.fromEntries)),
 );

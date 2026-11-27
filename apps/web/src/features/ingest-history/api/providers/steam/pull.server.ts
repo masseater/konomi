@@ -1,6 +1,6 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
@@ -26,13 +26,10 @@ export const pullSteam = pullOf({
   cursor: "kept",
   observe: ({ credential, fetchedAt }) =>
     Effect.gen(function* steam() {
-      const account = yield* Effect.all(
-        {
-          apiKey: requireField(credential, FIELD.apiKey),
-          steamId: requireField(credential, FIELD.steamId),
-        },
-        { concurrency: 1 },
-      );
+      const account = yield* requireFields(credential, {
+        apiKey: FIELD.apiKey,
+        steamId: FIELD.steamId,
+      });
       const { response } = yield* fetchJson({
         url: ownedGamesUrl(account),
         headers: {},

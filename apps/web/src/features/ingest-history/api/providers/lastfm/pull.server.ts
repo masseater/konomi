@@ -2,7 +2,7 @@ import { Array as Arr, Clock, Effect, Match, Option, Record as Rec, Schema, pipe
 
 import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
-import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
@@ -22,13 +22,7 @@ const NEXT_PAGE = 1;
 type Account = Readonly<{ user: string; apiKey: string }>;
 
 const accountOf = (credential: Credential): Effect.Effect<Account, ProviderError> =>
-  Effect.all(
-    {
-      user: requireField(credential, FIELD.user),
-      apiKey: requireField(credential, FIELD.apiKey),
-    },
-    { concurrency: 1 },
-  );
+  requireFields(credential, { user: FIELD.user, apiKey: FIELD.apiKey });
 
 const methodUrl = ({
   account,
