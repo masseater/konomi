@@ -2,6 +2,7 @@
   "name": "web",
   "version": "0.0.0",
   "private": true,
+  "description": "The konomi site and MCP server on Cloudflare Workers.",
   "type": "module",
   "imports": {
     "#/*": "./src/*"

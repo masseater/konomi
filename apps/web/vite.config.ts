@@ -1,3 +1,4 @@
+import { LOCKED } from "@r_masseater/msch/locked-inputs";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -13,11 +14,11 @@ export default defineConfig({
   run: {
     tasks: {
       dev: { command: "alchemy dev", cache: false },
-      test: "vp test run",
+      test: { command: "vp test run", cache: LOCKED },
       "db:generate": "drizzle-kit generate",
       "auth:generate": {
         command:
-          "auth generate --config src/shared/auth/auth.server.ts --output src/shared/auth/generated/auth.table.ts --yes",
+          "auth generate --config src/shared/auth/auth.server.ts --output src/shared/db/generated/auth.table.ts --yes",
       },
       "db:check": [
         "drizzle-kit check",
