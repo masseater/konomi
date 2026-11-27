@@ -4,6 +4,7 @@ import type { Effect, Schema } from "effect";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
+import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 export type TokenPage<Item> = Readonly<{
@@ -15,11 +16,7 @@ const tokenPageOf = <Item>({ items, nextPageToken }: TokenPage<Item>, url: strin
   items,
   next: pipe(
     Option.fromNullishOr(nextPageToken),
-    Option.map((token) => {
-      const next = new URL(url);
-      next.searchParams.set("pageToken", token);
-      return next.toString();
-    }),
+    Option.map((token) => urlWith(url, { pageToken: token })),
   ),
 });
 

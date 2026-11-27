@@ -3,6 +3,7 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, HEADERS, FIELD, LIMIT, LOVED } from "./api";
@@ -17,11 +18,7 @@ const fullPageNext =
   (param: Readonly<{ name: string; value: string }>): Option.Option<string> =>
     pipe(
       Option.liftPredicate(items.length, (count: number) => count >= LIMIT),
-      Option.map(() => {
-        const next = new URL(url);
-        next.searchParams.set(param.name, param.value);
-        return next.toString();
-      }),
+      Option.map(() => urlWith(url, { [param.name]: param.value })),
     );
 
 const nextOffset = (url: string): string =>

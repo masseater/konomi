@@ -5,6 +5,7 @@ import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
+import { urlAdvancing, urlWith } from "#/features/ingest-history/api/providers/url-with";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 const NEXT = 1;
@@ -17,16 +18,15 @@ const numberedPageOf =
     items,
     next: pipe(
       Option.liftPredicate(items.length, (count: number) => count >= limit),
-      Option.map(() => {
-        const next = new URL(url);
-        const current = Number(next.searchParams.get(param));
-        const advance = pipe(
-          Option.fromUndefinedOr(step),
-          Option.getOrElse(() => NEXT),
-        );
-        next.searchParams.set(param, String(current + advance));
-        return next.toString();
-      }),
+      Option.map(() =>
+        urlAdvancing(url, {
+          param,
+          step: pipe(
+            Option.fromUndefinedOr(step),
+            Option.getOrElse(() => NEXT),
+          ),
+        }),
+      ),
     ),
   });
 
@@ -40,15 +40,12 @@ export const collectNumbered = <Item>({
   numbering: Numbering;
   pages: number;
   fetchItems: (url: string) => Effect.Effect<readonly Item[], ProviderError>;
-}>): Effect.Effect<readonly Item[], ProviderError> => {
-  const first = new URL(base);
-  first.searchParams.set(numbering.param, String(numbering.start));
-  return collectPages({
-    first: first.toString(),
+}>): Effect.Effect<readonly Item[], ProviderError> =>
+  collectPages({
+    first: urlWith(base, { [numbering.param]: String(numbering.start) }),
     pages,
     fetchPage: (url) => fetchItems(url).pipe(Effect.map(numberedPageOf({ url, ...numbering }))),
   });
-};
 
 export const collectNumberedPages = <Body, Item>({
   base,

@@ -11,6 +11,7 @@ import {
 import { Base64, Hex } from "effect/encoding";
 
 import type { Credential } from "#/entities/connection";
+import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 import type { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { Authorization, ProviderError } from "#/features/ingest-history/model/provider";
 
@@ -166,21 +167,15 @@ export const authorizeUrlOf = ({
   clientId: string;
   redirectUri: string;
   state: string;
-}>): string => {
-  const url = new URL(authorization.authorizeUrl);
-  const params = {
+}>): string =>
+  urlWith(authorization.authorizeUrl, {
     ...authorization.params,
     client_id: clientId,
     response_type: "code",
     redirect_uri: redirectUri,
     scope: Arr.join(authorization.scopes, SCOPE_SEPARATOR),
     state,
-  };
-  for (const [name, value] of Rec.toEntries(params)) {
-    url.searchParams.set(name, value);
-  }
-  return url.toString();
-};
+  });
 
 export const bearerHeadersOf = (
   credential: Credential,

@@ -3,6 +3,7 @@ import { Array as Arr, Option, pipe } from "effect";
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
 import { personInputOf, observationsOf } from "#/features/ingest-history/api/providers/observe";
 import { durationFromMs } from "#/features/ingest-history/api/providers/subject-fields";
+import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 
 import { MUSICBRAINZ } from "./api";
 import type { ListenBrainzListen, ListenBrainzLoved, ListenBrainzTrack } from "./schemas";
@@ -20,17 +21,16 @@ const mappedArtistOf = ({
     url: `${MUSICBRAINZ}/artist/${mbid}`,
   });
 
-const namedArtistOf = (name: string): CreatorInput => {
-  const url = new URL(`${MUSICBRAINZ}/search`);
-  url.searchParams.set("query", name);
-  url.searchParams.set("type", "artist");
-  return personInputOf({
+const searchUrlFor = (type: string, query: string): string =>
+  urlWith(`${MUSICBRAINZ}/search`, { query, type });
+
+const namedArtistOf = (name: string): CreatorInput =>
+  personInputOf({
     provider: "listenbrainz",
     externalId: `artist-name:${name}`,
     title: name,
-    url: url.toString(),
+    url: searchUrlFor("artist", name),
   });
-};
 
 const artistsOf = (track: ListenBrainzTrack): readonly CreatorInput[] =>
   pipe(
@@ -53,12 +53,8 @@ const recordingMbidOf = (track: ListenBrainzTrack): Option.Option<string> =>
     ),
   );
 
-const searchUrlOf = (track: ListenBrainzTrack): string => {
-  const url = new URL(`${MUSICBRAINZ}/search`);
-  url.searchParams.set("query", `${track.track_name} ${track.artist_name}`);
-  url.searchParams.set("type", "recording");
-  return url.toString();
-};
+const searchUrlOf = (track: ListenBrainzTrack): string =>
+  searchUrlFor("recording", `${track.track_name} ${track.artist_name}`);
 
 const trackOf =
   (fallbackId: string) =>
