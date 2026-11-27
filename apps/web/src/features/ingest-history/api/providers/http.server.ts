@@ -108,11 +108,17 @@ export const browse = <Value, Failure>(
 
 export type Headers = Readonly<Record<string, string>>;
 
+export type Endpoint = Readonly<{ url: string; headers: Headers }>;
+
+export type Decoded<Body extends Schema.Top, Needs = never> = Effect.Effect<
+  Body["Type"],
+  ProviderError,
+  Body["DecodingServices"] | Needs
+>;
+
 const decodedBody =
   <Body extends Schema.Top>(schema: Body, url: string) =>
-  (
-    response: HttpClientResponse.HttpClientResponse,
-  ): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"]> =>
+  (response: HttpClientResponse.HttpClientResponse): Decoded<Body> =>
     HttpClientResponse.schemaBodyJson(schema)(response).pipe(
       Effect.catchTags({
         HttpClientError: () =>
@@ -126,7 +132,7 @@ const sendJson =
   <Body extends Schema.Top>(schema: Body) =>
   <Requirement>(
     built: Effect.Effect<HttpClientRequest.HttpClientRequest, ProviderError, Requirement>,
-  ): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"] | Requirement> =>
+  ): Decoded<Body, Requirement> =>
     built.pipe(
       Effect.flatMap((request) =>
         okResponse(request).pipe(Effect.flatMap(decodedBody(schema, request.url)), withFetch),
@@ -137,11 +143,8 @@ export const fetchJson = <Body extends Schema.Top>({
   url,
   headers,
   schema,
-}: Readonly<{ url: string; headers: Headers; schema: Body }>): Effect.Effect<
-  Body["Type"],
-  ProviderError,
-  Body["DecodingServices"]
-> => HttpClientRequest.get(url, { headers }).pipe(Effect.succeed, sendJson(schema));
+}: Endpoint & Readonly<{ schema: Body }>): Decoded<Body> =>
+  HttpClientRequest.get(url, { headers }).pipe(Effect.succeed, sendJson(schema));
 
 export const postJson = <Payload extends Schema.Top, Body extends Schema.Top>({
   url,
@@ -149,16 +152,9 @@ export const postJson = <Payload extends Schema.Top, Body extends Schema.Top>({
   payload,
   body,
   schema,
-}: Readonly<{
-  url: string;
-  headers: Headers;
-  payload: Payload;
-  body: Payload["Type"];
-  schema: Body;
-}>): Effect.Effect<
-  Body["Type"],
-  ProviderError,
-  Body["DecodingServices"] | Payload["EncodingServices"]
+}: Endpoint & Readonly<{ payload: Payload; body: Payload["Type"]; schema: Body }>): Decoded<
+  Body,
+  Payload["EncodingServices"]
 > =>
   HttpClientRequest.post(url, { headers }).pipe(
     HttpClientRequest.schemaBodyJson(payload)(body),
@@ -171,12 +167,8 @@ export const postForm = <Body extends Schema.Top>({
   headers,
   fields,
   schema,
-}: Readonly<{
-  url: string;
-  headers: Headers;
-  fields: Readonly<Record<string, string>>;
-  schema: Body;
-}>): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"]> =>
+}: Endpoint &
+  Readonly<{ fields: Readonly<Record<string, string>>; schema: Body }>): Decoded<Body> =>
   HttpClientRequest.post(url, { headers }).pipe(
     HttpClientRequest.bodyUrlParams(fields),
     Effect.succeed,

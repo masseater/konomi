@@ -1,6 +1,5 @@
 import { Effect, Option, pipe } from "effect";
 
-import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectObserved } from "#/features/ingest-history/api/providers/observed-pages.server";
@@ -31,10 +30,9 @@ const pullLikes = ({ headers, did, pages, fetchedAt }: Signed): Observing => {
     first,
     pages,
     fetchedAt,
-    fetchPage: (url) =>
-      fetchJson({ url, headers, schema: Likes }).pipe(
-        Effect.map(({ feed, cursor }) => ({ items: feed, next: withCursor(first)(cursor) })),
-      ),
+    headers,
+    schema: Likes,
+    pageOf: ({ feed, cursor }) => ({ items: feed, next: withCursor(first)(cursor) }),
     subjectOf: ({ post }) => postOf(post),
   });
 };
@@ -46,10 +44,9 @@ const pullFollows = ({ headers, did, pages, fetchedAt }: Signed): Observing => {
     first,
     pages,
     fetchedAt,
-    fetchPage: (url) =>
-      fetchJson({ url, headers, schema: Follows }).pipe(
-        Effect.map(({ follows, cursor }) => ({ items: follows, next: withCursor(first)(cursor) })),
-      ),
+    headers,
+    schema: Follows,
+    pageOf: ({ follows, cursor }) => ({ items: follows, next: withCursor(first)(cursor) }),
     subjectOf: followedOf,
   });
 };

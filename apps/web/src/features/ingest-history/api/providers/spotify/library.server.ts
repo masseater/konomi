@@ -58,12 +58,11 @@ export const pullFollowed = ({
     first: `${API}/me/following?type=artist&limit=${LIMIT}`,
     pages,
     fetchedAt,
-    fetchPage: (url) =>
-      fetchJson({ url, headers, schema: FollowedArtists }).pipe(
-        Effect.map(({ artists }) => {
-          const { items, next } = pageOf(artists);
-          return { items: pipe(items, Arr.map(followedArtistOf), Arr.getSomes), next };
-        }),
-      ),
+    headers,
+    schema: FollowedArtists,
+    pageOf: ({ artists }) => {
+      const { items, next } = pageOf(artists);
+      return { items: pipe(items, Arr.map(followedArtistOf), Arr.getSomes), next };
+    },
     subjectOf: (subject) => subject,
   });
