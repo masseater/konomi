@@ -1,5 +1,5 @@
 import { and, count, desc, eq, gte, inArray, like, lte, or } from "drizzle-orm";
-import type { SQL } from "drizzle-orm";
+import type { SQL, SQLWrapper } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { Array as Arr, Effect, Option, String as Str, pipe } from "effect";
 
@@ -90,8 +90,15 @@ export const conditionsOf = (filter: SignalFilter): SQL | undefined => {
   return and(...Arr.getSomes([keyword, kinds, types, providers, since, until]));
 };
 
+export type KeyMatch = (column: Readonly<SQLWrapper>) => SQL;
+
+export const among =
+  (keys: readonly string[]): KeyMatch =>
+  (column) =>
+    inArray(column, [...keys]);
+
 export const creditsOf = (
-  keys: readonly string[],
+  match: KeyMatch,
 ): Effect.Effect<
   readonly Readonly<{
     subjectKey: string;
@@ -112,17 +119,17 @@ export const creditsOf = (
       })
       .from(credit)
       .innerJoin(creator, eq(creator.key, credit.creatorKey))
-      .where(inArray(credit.subjectKey, [...keys])),
+      .where(match(credit.subjectKey)),
   );
 
 export const tagsOf = (
-  keys: readonly string[],
+  match: KeyMatch,
 ): Effect.Effect<readonly Readonly<{ subjectKey: string; tag: string }>[]> =>
   Effect.promise(() =>
     db
       .select({ subjectKey: subjectTag.subjectKey, tag: subjectTag.tag })
       .from(subjectTag)
-      .where(inArray(subjectTag.subjectKey, [...keys])),
+      .where(match(subjectTag.subjectKey)),
   );
 
 type SignalRow = Omit<FoundSignal, "credits" | "tags">;
@@ -158,8 +165,8 @@ export const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundS
       return Effect.all(
         {
           rows: Effect.succeed(rows),
-          credits: creditsOf(keys),
-          tags: tagsOf(keys),
+          credits: creditsOf(among(keys)),
+          tags: tagsOf(among(keys)),
         },
         { concurrency: 1 },
       );

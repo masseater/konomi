@@ -5,10 +5,10 @@ import {
   UnauthorizedError,
 } from "@modelcontextprotocol/client";
 import type { TextContent } from "@modelcontextprotocol/client";
-import { Array as Arr, Effect, Match, Option, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 import type { Scope } from "effect";
 
-import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
+import { failureWhen } from "#/features/ingest-history/api/providers/provider-failure";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import { ProviderUnavailable } from "#/features/ingest-history/model/provider-unavailable";
 
@@ -21,15 +21,10 @@ const rejects = (cause: unknown): boolean =>
   cause instanceof UnauthorizedError ||
   (SdkHttpError.isInstance(cause) && REJECTING_STATUSES.has(cause.status));
 
-const failureOf = (cause: unknown): ProviderError =>
-  Match.value(cause).pipe(
-    Match.when(rejects, () =>
-      CredentialRejected.make({ message: "MCP サーバーがトークンを断った" }),
-    ),
-    Match.orElse(() =>
-      ProviderUnavailable.make({ message: `MCP の呼び出しに失敗した: ${String(cause)}` }),
-    ),
-  );
+const failureOf = failureWhen(rejects)({
+  rejected: "MCP サーバーがトークンを断った",
+  failed: "MCP の呼び出しに失敗した",
+});
 
 const connected = ({
   resource,
