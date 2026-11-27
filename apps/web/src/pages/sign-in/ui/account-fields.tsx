@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { HTMLInputAutoCompleteAttribute, ReactNode } from "react";
 
 import { Input } from "#/shared/ui/input";
 
@@ -10,7 +10,7 @@ export const AccountFields = ({
   passwordAutoComplete,
   withName,
 }: Readonly<{
-  passwordAutoComplete: "current-password" | "new-password";
+  passwordAutoComplete: HTMLInputAutoCompleteAttribute;
   withName: boolean;
 }>): ReactNode => (
   <>

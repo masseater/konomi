@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useCallback } from "react";
-import type { ReactNode } from "react";
+import type { HTMLInputAutoCompleteAttribute, ReactNode } from "react";
 
 import { Button } from "#/shared/ui/button";
 
@@ -16,7 +16,7 @@ export const AccountForm = ({
   withName = false,
 }: Readonly<{
   mutationFn: (form: Readonly<FormData>) => Promise<unknown>;
-  passwordAutoComplete: "current-password" | "new-password";
+  passwordAutoComplete: HTMLInputAutoCompleteAttribute;
   submitLabel: string;
   failure: string;
   variant?: "default" | "outline";
