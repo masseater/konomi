@@ -3,6 +3,7 @@ import { Array as Arr, Clock, Effect, Match, Option, Schema, pipe } from "effect
 import type { Observation } from "#/entities/signal";
 import { freshOf } from "#/features/ingest-history/api/providers/fresh";
 import { epochOr, observeAt } from "#/features/ingest-history/api/providers/observe";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
 
@@ -55,11 +56,7 @@ const pullRecent = (
     }),
   );
 
-const pullLibrary = ({
-  fetch,
-  storefront,
-  fetchedAt,
-}: Listening): Effect.Effect<readonly Observation[], ProviderError> =>
+const pullLibrary = ({ fetch, storefront, fetchedAt }: Listening): Observing =>
   Effect.gen(function* library() {
     const songs = yield* collectPages({
       first: `${API}/me/library/songs?limit=${LIBRARY_LIMIT}`,

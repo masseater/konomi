@@ -4,9 +4,9 @@ import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { epochOr, followedBy } from "#/features/ingest-history/api/providers/observe";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, LIMIT } from "./api";
 import { headersOf } from "./headers.server";
@@ -18,10 +18,7 @@ const pullFollowed = ({
   userId,
   pages,
   fetchedAt,
-}: Readonly<{ headers: Headers; userId: string; pages: number; fetchedAt: number }>): Effect.Effect<
-  readonly Observation[],
-  ProviderError
-> => {
+}: Readonly<{ headers: Headers; userId: string; pages: number; fetchedAt: number }>): Observing => {
   const first = `${API}/channels/followed?user_id=${userId}&first=${LIMIT}`;
   const at = epochOr(fetchedAt);
   return collectPages({
@@ -63,7 +60,7 @@ export const pullTwitch = pullOf({
             pullFollowed({
               headers,
               userId: id,
-              pages: pages,
+              pages,
               fetchedAt,
             }),
         }),

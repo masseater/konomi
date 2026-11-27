@@ -41,7 +41,7 @@ export const pullVocaDb = pullOf({
       const userId = yield* requireField(credential, FIELD.user).pipe(Effect.flatMap(userIdOf));
       const rated = yield* collectPages({
         first: String(FIRST),
-        pages: pages,
+        pages,
         fetchPage: (start) =>
           fetchJson({ url: ratedUrl(userId, start), headers: HEADERS, schema: RatedSongs }).pipe(
             Effect.map(({ items }) => ({

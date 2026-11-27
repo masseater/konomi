@@ -43,7 +43,9 @@ export const starObservationsOf =
     );
   };
 
-export const followObservationsOf = (fetchedAt: number) =>
+export const followObservationsOf = (
+  fetchedAt: number,
+): ((items: readonly GitHubAccount[]) => readonly Observation[]) =>
   followedBy({
     subjectOf: (account: GitHubAccount) => ({ ...accountOf(account), credits: [], tags: [] }),
     occurredAtOf: () => fetchedAt,

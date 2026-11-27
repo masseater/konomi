@@ -45,7 +45,7 @@ export const pullVrchat = pullOf({
   observe: ({ credential, pages, fetchedAt }) =>
     Effect.gen(function* vrchat() {
       const auth = yield* requireField(credential, FIELD.auth);
-      const listing = { headers: { ...HEADERS, Cookie: `auth=${auth}` }, pages: pages };
+      const listing = { headers: { ...HEADERS, Cookie: `auth=${auth}` }, pages };
       const works = worksAt(listing);
       const friends = friendsOf(listing);
       const worlds = favoriteObservationsOf({ kind: "world", fetchedAt });

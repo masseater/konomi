@@ -20,7 +20,7 @@ export const pullHatena = pullOf({
       const bookmarks = yield* collectNumbered({
         base: `${WEB}/${encodeURIComponent(user)}/bookmark.rss`,
         numbering: NUMBERING,
-        pages: pages,
+        pages,
         fetchItems: (url) =>
           fetchFeed({ url, headers: HEADERS, schema: BookmarkFeed }).pipe(
             Effect.map((feed) => itemsOf(feed["rdf:RDF"].item)),

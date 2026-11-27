@@ -4,9 +4,9 @@ import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { followedBy } from "#/features/ingest-history/api/providers/observe";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 import type { SignalKind } from "#/shared/config";
 
 import { FollowingPage, MylistIndex, MylistPage, VideoPage } from "./schemas";
@@ -69,7 +69,7 @@ const pullVideoListing = (
   { headers, fetchedAt }: Fetching,
   pages: number,
   { path, kind }: VideoListing,
-): Effect.Effect<readonly Observation[], ProviderError> =>
+): Observing =>
   Effect.gen(function* listing() {
     const toObservation = observe({ kind, fetchedAt });
     const collected: Observation[] = [];
@@ -83,10 +83,7 @@ const pullVideoListing = (
     return collected;
   });
 
-const pullMylists = ({
-  headers,
-  fetchedAt,
-}: Fetching): Effect.Effect<readonly Observation[], ProviderError> =>
+const pullMylists = ({ headers, fetchedAt }: Fetching): Observing =>
   Effect.gen(function* mylists() {
     const { data } = yield* fetchJson({
       url: `${API_ORIGIN}/v1/users/me/mylists`,
@@ -106,10 +103,7 @@ const pullMylists = ({
     return collected;
   });
 
-const pullFollowing = ({
-  headers,
-  fetchedAt,
-}: Fetching): Effect.Effect<readonly Observation[], ProviderError> =>
+const pullFollowing = ({ headers, fetchedAt }: Fetching): Observing =>
   fetchJson({
     url: pageUrl("/v1/users/me/following/users", FIRST_PAGE),
     headers,

@@ -1,27 +1,24 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
 import { epochOr, flatMapEach, observeAt } from "#/features/ingest-history/api/providers/observe";
-import type { Fetching } from "#/features/ingest-history/api/providers/observe";
-import { pagesFor, collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
+import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
+import { pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 
 import { API, LIMIT } from "./api";
-import { tokenPageOf } from "./page";
+import { collectTokenPages } from "./page";
 import { PlaylistItems, Playlists } from "./schemas";
 import { playlistVideoOf } from "./subjects";
 
 const pullPlaylist = (
   { headers, fetchedAt }: Fetching,
   { id, title }: Readonly<{ id: string; title: string }>,
-): Effect.Effect<readonly Observation[], ProviderError> =>
+): Observing =>
   Effect.gen(function* playlist() {
-    const items = yield* collectJsonPages({
+    const items = yield* collectTokenPages({
       first: `${API}/playlistItems?playlistId=${id}&part=snippet,contentDetails&maxResults=${LIMIT}`,
       headers,
       pages: pagesFor(false),
       schema: PlaylistItems,
-      pageOf: tokenPageOf,
     });
     const collected = observeAt({
       kind: "collected",
@@ -37,16 +34,13 @@ const pullPlaylist = (
     );
   });
 
-export const pullPlaylists = (
-  fetching: Fetching,
-): Effect.Effect<readonly Observation[], ProviderError> =>
+export const pullPlaylists = (fetching: Fetching): Observing =>
   Effect.gen(function* playlists() {
-    const owned = yield* collectJsonPages({
+    const owned = yield* collectTokenPages({
       first: `${API}/playlists?mine=true&part=snippet&maxResults=${LIMIT}`,
       headers: fetching.headers,
       pages: pagesFor(false),
       schema: Playlists,
-      pageOf: tokenPageOf,
     });
     return yield* flatMapEach(owned, ({ id, snippet }) =>
       pullPlaylist(fetching, { id, title: snippet.title }),

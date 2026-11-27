@@ -1,6 +1,5 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import {
   epochOr,
@@ -8,21 +7,17 @@ import {
   pageOf,
   followedBy,
 } from "#/features/ingest-history/api/providers/observe";
-import type { Fetching } from "#/features/ingest-history/api/providers/observe";
+import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 import {
   collectPages,
   collectJsonPages,
 } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, LIMIT } from "./api";
 import { FollowedArtists, RecentlyPlayed, SavedTracks } from "./schemas";
 import { followedArtistOf, trackOf } from "./subjects";
 
-export const pullRecent = ({
-  headers,
-  fetchedAt,
-}: Fetching): Effect.Effect<readonly Observation[], ProviderError> =>
+export const pullRecent = ({ headers, fetchedAt }: Fetching): Observing =>
   Effect.gen(function* recent() {
     const { items } = yield* fetchJson({
       url: `${API}/me/player/recently-played?limit=${LIMIT}`,
@@ -47,7 +42,7 @@ export const pullSaved = ({
   headers,
   fetchedAt,
   pages,
-}: Fetching & Readonly<{ pages: number }>): Effect.Effect<readonly Observation[], ProviderError> =>
+}: Fetching & Readonly<{ pages: number }>): Observing =>
   Effect.gen(function* saved() {
     const items = yield* collectJsonPages({
       first: `${API}/me/tracks?limit=${LIMIT}`,
@@ -74,7 +69,7 @@ export const pullFollowed = ({
   headers,
   fetchedAt,
   pages,
-}: Fetching & Readonly<{ pages: number }>): Effect.Effect<readonly Observation[], ProviderError> =>
+}: Fetching & Readonly<{ pages: number }>): Observing =>
   collectPages({
     first: `${API}/me/following?type=artist&limit=${LIMIT}`,
     pages,

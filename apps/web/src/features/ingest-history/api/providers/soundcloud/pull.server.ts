@@ -2,8 +2,8 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { epochOr, observeAt, followedBy } from "#/features/ingest-history/api/providers/observe";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { collectFrom, fetchFrom, firstUrlOf, sessionOf } from "./fetching.server";
 import type { Session } from "./fetching.server";
@@ -12,7 +12,7 @@ import { followedUserOf, playlistOf, trackOf } from "./subjects";
 
 type Pulling = Session & Readonly<{ userId: number; pages: number }>;
 
-const pullPlayed = (session: Pulling): Effect.Effect<readonly Observation[], ProviderError> =>
+const pullPlayed = (session: Pulling): Observing =>
   collectFrom({
     session,
     path: "/me/play-history/tracks",
@@ -50,7 +50,7 @@ const likedOf =
     return pipe(likes, Arr.map(endorsed), Arr.getSomes);
   };
 
-const pullLikedTracks = (session: Pulling): Effect.Effect<readonly Observation[], ProviderError> =>
+const pullLikedTracks = (session: Pulling): Observing =>
   collectFrom({
     session,
     path: `/users/${session.userId}/track_likes`,
@@ -66,9 +66,7 @@ const pullLikedTracks = (session: Pulling): Effect.Effect<readonly Observation[]
     Effect.map(likedOf(session)),
   );
 
-const pullLikedPlaylists = (
-  session: Pulling,
-): Effect.Effect<readonly Observation[], ProviderError> =>
+const pullLikedPlaylists = (session: Pulling): Observing =>
   collectFrom({
     session,
     path: `/users/${session.userId}/playlist_likes`,
@@ -84,7 +82,7 @@ const pullLikedPlaylists = (
     Effect.map(likedOf(session)),
   );
 
-const pullFollowings = (session: Pulling): Effect.Effect<readonly Observation[], ProviderError> =>
+const pullFollowings = (session: Pulling): Observing =>
   collectFrom({
     session,
     path: `/users/${session.userId}/followings`,
@@ -101,7 +99,7 @@ export const pullSoundcloud = pullOf({
     Effect.gen(function* soundcloud() {
       const session = yield* sessionOf({ credential, fetchedAt });
       const me = yield* fetchFrom({ session, schema: Me })(firstUrlOf("/me"));
-      const pulling: Pulling = { ...session, userId: me.id, pages: pages };
+      const pulling: Pulling = { ...session, userId: me.id, pages };
       const observations = [
         ...(yield* pullPlayed(pulling)),
         ...(yield* pullLikedTracks(pulling)),

@@ -1,13 +1,12 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
 import { userClientOf } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { flatMapEach } from "#/features/ingest-history/api/providers/observe";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, FIELD, LIMIT, LISTS } from "./api";
 import { UserList } from "./schemas";
@@ -20,7 +19,7 @@ const FIELDS = "list_status,genres,start_season";
 
 const pullList =
   ({ user, headers, pages, fetchedAt }: Listing) =>
-  (list: MalList): Effect.Effect<readonly Observation[], ProviderError> => {
+  (list: MalList): Observing => {
     const observe = entryObservationsOf({ list, fetchedAt });
     return collectPages({
       first: `${API}/users/${user}/${list}list?fields=${FIELDS}&limit=${LIMIT}&nsfw=true&sort=list_updated_at`,
@@ -47,7 +46,7 @@ export const pullMyAnimeList = pullOf({
       const pull = pullList({
         user: account.user,
         headers: { "X-MAL-CLIENT-ID": account.clientId },
-        pages: pages,
+        pages,
         fetchedAt,
       });
       return yield* flatMapEach(LISTS, pull);

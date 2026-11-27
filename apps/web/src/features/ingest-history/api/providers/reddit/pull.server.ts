@@ -4,9 +4,9 @@ import type { ListingKind, Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.server";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, LIMIT, USER_AGENT } from "./api";
 import { Listing, Me } from "./schemas";
@@ -17,7 +17,7 @@ type Reading = Readonly<{ headers: Headers; user: string; pages: number; fetched
 
 const listingOf =
   ({ headers, user, pages, fetchedAt }: Reading) =>
-  (path: string, kind: ListingKind): Effect.Effect<readonly Observation[], ProviderError> => {
+  (path: string, kind: ListingKind): Observing => {
     const first = `${API}/user/${user}/${path}?limit=${LIMIT}&raw_json=1`;
     const observe = (thing: RedditThing): Observation => ({
       kind,
@@ -50,7 +50,7 @@ export const pullReddit = pullOf({
       const listing = listingOf({
         headers,
         user: encodeURIComponent(name),
-        pages: pages,
+        pages,
         fetchedAt,
       });
       return [

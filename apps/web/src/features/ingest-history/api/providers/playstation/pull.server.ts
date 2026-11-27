@@ -42,7 +42,7 @@ export const pullPlaystation = pullOf({
       const accessToken = yield* accessTokenOf(credential);
       const games = yield* collectPages({
         first: FIRST_OFFSET,
-        pages: pages,
+        pages,
         fetchPage: playedPage(accessToken),
       });
       return playedObservationsOf(fetchedAt)(games);

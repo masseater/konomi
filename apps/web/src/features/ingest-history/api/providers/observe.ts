@@ -1,9 +1,13 @@
-import { Array as Arr, Effect, Option, pipe } from "effect";
+import { Array as Arr, Effect, Function as Fn, Option, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import type { SignalKind } from "#/shared/config";
+
+export type Fetched<Item> = Effect.Effect<Item, ProviderError>;
+
+export type Observing = Fetched<readonly Observation[]>;
 
 export type Fetching = Readonly<{ headers: Readonly<Record<string, string>>; fetchedAt: number }>;
 
@@ -99,8 +103,21 @@ export const followedBy =
       })),
     );
 
-export const flatMapEach = <Item, Out>(
-  items: readonly Item[],
-  pull: (item: Item) => Effect.Effect<readonly Out[], ProviderError>,
-): Effect.Effect<readonly Out[], ProviderError> =>
-  Effect.forEach(items, pull, { concurrency: 1 }).pipe(Effect.map(Arr.flatten));
+const TWO = 2;
+
+export const flatMapEach: {
+  <Item, Out>(
+    pull: (item: Item) => Fetched<readonly Out[]>,
+  ): (items: readonly Item[]) => Fetched<readonly Out[]>;
+  <Item, Out>(
+    items: readonly Item[],
+    pull: (item: Item) => Fetched<readonly Out[]>,
+  ): Fetched<readonly Out[]>;
+} = Fn.dual(
+  TWO,
+  <Item, Out>(
+    items: readonly Item[],
+    pull: (item: Item) => Fetched<readonly Out[]>,
+  ): Fetched<readonly Out[]> =>
+    Effect.forEach(items, pull, { concurrency: 1 }).pipe(Effect.map(Arr.flatten)),
+);

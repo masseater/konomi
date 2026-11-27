@@ -4,9 +4,9 @@ import type { Observation } from "#/entities/signal";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, FIELD } from "./api";
 import { EntriesResponse, Query, RecordsResponse } from "./schemas";
@@ -57,11 +57,7 @@ const afterOf = (cursor: string): string | null =>
 
 type Querying = Readonly<{ headers: Headers; pages: number; fetchedAt: number }>;
 
-const pullRecords = ({
-  headers,
-  pages,
-  fetchedAt,
-}: Querying): Effect.Effect<readonly Observation[], ProviderError> => {
+const pullRecords = ({ headers, pages, fetchedAt }: Querying): Observing => {
   const observe = recordObservationsOf(fetchedAt);
   return collectPages({
     first: START,
@@ -77,11 +73,7 @@ const pullRecords = ({
   }).pipe(Effect.map(Arr.flatMap(observe)));
 };
 
-const pullEntries = ({
-  headers,
-  pages,
-  fetchedAt,
-}: Querying): Effect.Effect<readonly Observation[], ProviderError> => {
+const pullEntries = ({ headers, pages, fetchedAt }: Querying): Observing => {
   const observe = entryObservationOf(fetchedAt);
   const observeAll = (entries: readonly AnnictEntry[]): readonly Observation[] =>
     pipe(entries, Arr.map(observe), Arr.getSomes);
@@ -108,7 +100,7 @@ export const pullAnnict = pullOf({
         headers: yield* requireField(credential, FIELD.token).pipe(
           Effect.map((token) => ({ Authorization: `Bearer ${token}` })),
         ),
-        pages: pages,
+        pages,
         fetchedAt,
       };
       return [...(yield* pullRecords(querying)), ...(yield* pullEntries(querying))];

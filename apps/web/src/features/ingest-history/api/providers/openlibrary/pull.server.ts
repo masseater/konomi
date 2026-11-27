@@ -50,7 +50,7 @@ export const pullOpenlibrary = pullOf({
     Effect.gen(function* openlibrary() {
       const name = yield* requireField(credential, FIELD.user);
       const user = encodeURIComponent(name);
-      const read = shelfOf({ user, pages: pages });
+      const read = shelfOf({ user, pages });
       return yield* flatMapEach(SHELVES, ({ shelf, kind, context }) =>
         read(shelf).pipe(Effect.map(shelfObservationsOf({ kind, context, fetchedAt }))),
       );

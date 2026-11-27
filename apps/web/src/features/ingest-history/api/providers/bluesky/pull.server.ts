@@ -1,33 +1,19 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
-import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
-import { fetchJson, postJson } from "#/features/ingest-history/api/providers/http.server";
+import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { followedBy } from "#/features/ingest-history/api/providers/observe";
+import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-import { FIELD, LIMIT, SERVICE } from "./api";
-import { Follows, Likes, Login, Session } from "./schemas";
+import { LIMIT, SERVICE } from "./api";
+import { Follows, Likes } from "./schemas";
+import { signIn } from "./sign-in.server";
 import { followedOf, postOf } from "./subjects";
 
 type Signed = Readonly<{ headers: Headers; did: string; pages: number; fetchedAt: number }>;
-
-const signIn = (credential: Credential): Effect.Effect<typeof Session.Type, ProviderError> =>
-  requireFields(credential, { identifier: FIELD.identifier, password: FIELD.appPassword }).pipe(
-    Effect.flatMap((body) =>
-      postJson({
-        url: `${SERVICE}/com.atproto.server.createSession`,
-        headers: {},
-        payload: Login,
-        body,
-        schema: Session,
-      }),
-    ),
-  );
 
 const pageUrl = (method: string, did: string): string =>
   `${SERVICE}/${method}?actor=${encodeURIComponent(did)}&limit=${LIMIT}`;
@@ -40,12 +26,7 @@ const withCursor =
       Option.map((value) => `${first}&cursor=${encodeURIComponent(value)}`),
     );
 
-const pullLikes = ({
-  headers,
-  did,
-  pages,
-  fetchedAt,
-}: Signed): Effect.Effect<readonly Observation[], ProviderError> => {
+const pullLikes = ({ headers, did, pages, fetchedAt }: Signed): Observing => {
   const first = pageUrl("app.bsky.feed.getActorLikes", did);
   return collectPages({
     first,
@@ -65,12 +46,7 @@ const pullLikes = ({
   );
 };
 
-const pullFollows = ({
-  headers,
-  did,
-  pages,
-  fetchedAt,
-}: Signed): Effect.Effect<readonly Observation[], ProviderError> => {
+const pullFollows = ({ headers, did, pages, fetchedAt }: Signed): Observing => {
   const first = pageUrl("app.bsky.graph.getFollows", did);
   return collectPages({
     first,
@@ -91,7 +67,7 @@ export const pullBluesky = pullOf({
       const signed: Signed = {
         headers: { Authorization: `Bearer ${session.accessJwt}` },
         did: session.did,
-        pages: pages,
+        pages,
         fetchedAt,
       };
       return [...(yield* pullLikes(signed)), ...(yield* pullFollows(signed))];

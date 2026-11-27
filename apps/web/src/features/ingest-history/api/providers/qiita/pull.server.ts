@@ -26,7 +26,7 @@ export const pullQiita = pullOf({
         base: `${API}/users/${user}/stocks?per_page=${LIMIT}`,
         numbering: NUMBERING,
         headers,
-        pages: pages,
+        pages,
         schema: Items,
         itemsOf: (items) => items,
       });

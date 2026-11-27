@@ -6,8 +6,8 @@ import { requireField } from "#/features/ingest-history/api/providers/credential
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
+import type { Fetched, Observing } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { FIELD, LIMIT } from "./api";
 import { Favorites, Following, Me, Reactions, Request } from "./schemas";
@@ -21,7 +21,7 @@ const call =
     path: string,
     schema: Schema.Decoder<Item>,
     userId: Option.Option<string>,
-  ): Effect.Effect<Item, ProviderError> =>
+  ): Fetched<Item> =>
     postJson({
       url: `${origin}/api/${path}`,
       headers: { Authorization: `Bearer ${token}` },
@@ -37,7 +37,7 @@ const call =
       schema,
     });
 
-const notesOf = (reading: Reading): Effect.Effect<readonly Observation[], ProviderError> =>
+const notesOf = (reading: Reading): Observing =>
   Effect.gen(function* notes() {
     const api = call(reading);
     const note = noteOf(reading.origin);
@@ -64,7 +64,7 @@ const notesOf = (reading: Reading): Effect.Effect<readonly Observation[], Provid
     ];
   });
 
-const followingOf = (reading: Reading): Effect.Effect<readonly Observation[], ProviderError> =>
+const followingOf = (reading: Reading): Observing =>
   Effect.gen(function* following() {
     const api = call(reading);
     const { id } = yield* api("i", Me, Option.none());

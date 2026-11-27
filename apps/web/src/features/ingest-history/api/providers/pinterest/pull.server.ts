@@ -18,7 +18,7 @@ export const pullPinterest = pullOf({
       const first = `${API}/pins?page_size=${LIMIT}`;
       const pins = yield* collectPages({
         first,
-        pages: pages,
+        pages,
         fetchPage: (url) =>
           fetchJson({ url, headers, schema: Pins }).pipe(
             Effect.map(({ items, bookmark }) => ({

@@ -55,7 +55,9 @@ export const favoriteObservationsOf =
       })),
     );
 
-export const friendObservationsOf = (fetchedAt: number) =>
+export const friendObservationsOf = (
+  fetchedAt: number,
+): ((items: readonly VrchatFriend[]) => readonly Observation[]) =>
   followedBy({
     subjectOf: ({ id, displayName }: VrchatFriend) => ({
       ...personOf({ id, name: displayName }),

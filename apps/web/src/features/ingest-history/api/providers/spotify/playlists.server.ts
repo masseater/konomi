@@ -1,6 +1,5 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import {
   epochOr,
@@ -8,9 +7,8 @@ import {
   observeAt,
   pageOf,
 } from "#/features/ingest-history/api/providers/observe";
-import type { Fetching } from "#/features/ingest-history/api/providers/observe";
+import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 import { pagesFor, collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, LIMIT } from "./api";
 import { Me, PlaylistItems, Playlists } from "./schemas";
@@ -27,7 +25,7 @@ const entryTrackOf = (entry: SpotifyPlaylistEntry): ReturnType<typeof trackOf> =
 const pullPlaylist = (
   { headers, fetchedAt }: Fetching,
   { id, name }: Readonly<{ id: string; name: string }>,
-): Effect.Effect<readonly Observation[], ProviderError> =>
+): Observing =>
   Effect.gen(function* playlist() {
     const entries = yield* collectJsonPages({
       first: `${API}/playlists/${id}/items?limit=${LIMIT}`,
@@ -48,9 +46,7 @@ const pullPlaylist = (
     );
   });
 
-export const pullPlaylists = (
-  fetching: Fetching,
-): Effect.Effect<readonly Observation[], ProviderError> =>
+export const pullPlaylists = (fetching: Fetching): Observing =>
   Effect.gen(function* playlists() {
     const me = yield* fetchJson({ url: `${API}/me`, headers: fetching.headers, schema: Me });
     const owned = yield* collectJsonPages({

@@ -30,7 +30,7 @@ export const pullTwilog = pullOf({
     Effect.gen(function* twilog() {
       const timeline = timelineOf({
         accessToken: yield* requireField(credential, OAUTH_FIELD.accessToken),
-        pages: pages,
+        pages,
       });
       const likes = yield* timeline(TIMELINES.likes);
       const bookmarks = yield* timeline(TIMELINES.bookmarks);

@@ -20,7 +20,7 @@ export const pullRaindrop = pullOf({
         base: `${API}/raindrops/${ALL_COLLECTIONS}?perpage=${LIMIT}&sort=-created`,
         numbering: NUMBERING,
         headers: { Authorization: `Bearer ${token}` },
-        pages: pages,
+        pages,
         schema: Raindrops,
         itemsOf: ({ items }) => items,
       });

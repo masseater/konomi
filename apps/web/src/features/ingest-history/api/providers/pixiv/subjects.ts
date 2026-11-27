@@ -56,7 +56,9 @@ export const novelObservationsOf =
   (novels: readonly Work[]): readonly Observation[] =>
     pipe(novels, Arr.map(novelOf), Arr.map(collectedAt(fetchedAt)));
 
-export const followObservationsOf = (fetchedAt: number) =>
+export const followObservationsOf = (
+  fetchedAt: number,
+): ((items: readonly User[]) => readonly Observation[]) =>
   followedBy({
     subjectOf: (user: User) => ({ ...creatorOf(user), credits: [], tags: [] }),
     occurredAtOf: () => fetchedAt,

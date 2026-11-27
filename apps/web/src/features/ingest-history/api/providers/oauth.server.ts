@@ -11,6 +11,7 @@ import {
 import { Base64, Hex } from "effect/encoding";
 
 import type { Credential } from "#/entities/connection";
+import type { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { Authorization, ProviderError } from "#/features/ingest-history/model/provider";
 
 import { fieldOf, requireField, requireFields } from "./credential-field";
@@ -38,7 +39,9 @@ const TokenResponse = Schema.Struct({
   refresh_token: Schema.optional(Schema.String),
 });
 
-const clientOf = (credential: Credential) =>
+const clientOf = (
+  credential: Credential,
+): Effect.Effect<Record<"client_id" | "client_secret", string>, CredentialRejected> =>
   requireFields(credential, {
     client_id: OAUTH_FIELD.clientId,
     client_secret: OAUTH_FIELD.clientSecret,
@@ -51,22 +54,28 @@ const basicAuthOf = (credential: Credential): Effect.Effect<string, ProviderErro
     ),
   );
 
-export const withTokens = (
-  credential: Credential,
-  tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
-  transient: readonly string[],
-): Credential => ({
-  method: credential.method,
-  fields: {
-    ...Arr.reduce(transient, credential.fields, (fields, key) => Rec.remove(fields, key)),
-    [OAUTH_FIELD.accessToken]: tokens.access_token,
-    ...pipe(
-      Option.fromUndefinedOr(tokens.refresh_token),
-      Option.map((refreshToken) => ({ [OAUTH_FIELD.refreshToken]: refreshToken })),
-      Option.getOrElse(() => ({})),
-    ),
-  },
-});
+type Tokens = Readonly<{ access_token: string; refresh_token?: string | undefined }>;
+
+const THREE = 3;
+
+export const withTokens: {
+  (tokens: Tokens, transient: readonly string[]): (credential: Credential) => Credential;
+  (credential: Credential, tokens: Tokens, transient: readonly string[]): Credential;
+} = Fn.dual(
+  THREE,
+  (credential: Credential, tokens: Tokens, transient: readonly string[]): Credential => ({
+    method: credential.method,
+    fields: {
+      ...Arr.reduce(transient, credential.fields, (fields, key) => Rec.remove(fields, key)),
+      [OAUTH_FIELD.accessToken]: tokens.access_token,
+      ...pipe(
+        Option.fromUndefinedOr(tokens.refresh_token),
+        Option.map((refreshToken) => ({ [OAUTH_FIELD.refreshToken]: refreshToken })),
+        Option.getOrElse(() => ({})),
+      ),
+    },
+  }),
+);
 
 type TokenRequest = Readonly<{
   headers: Readonly<Record<string, string>>;

@@ -56,9 +56,9 @@ export const pullAniList = pullOf({
   observe: ({ credential, pages, fetchedAt }) =>
     Effect.gen(function* anilist() {
       const user = yield* requireField(credential, FIELD.user);
-      const pull = pullList({ user, pages: pages });
+      const pull = pullList({ user, pages });
       const entries = yield* flatMapEach(MEDIA_TYPES, pull);
       const observe = entryObservationsOf(fetchedAt);
-      return Arr.flatMap(entries, observe);
+      return pipe(entries, Arr.flatMap(observe));
     }),
 });

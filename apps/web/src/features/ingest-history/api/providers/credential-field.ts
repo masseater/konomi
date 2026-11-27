@@ -29,6 +29,28 @@ export const requireField: {
     ),
 );
 
+export const requireFields: {
+  <Key extends string>(
+    names: Readonly<Record<Key, string>>,
+  ): (credential: Credential) => Effect.Effect<Record<Key, string>, CredentialRejected>;
+  <Key extends string>(
+    credential: Credential,
+    names: Readonly<Record<Key, string>>,
+  ): Effect.Effect<Record<Key, string>, CredentialRejected>;
+} = Fn.dual(
+  BINARY,
+  (
+    credential: Credential,
+    names: Readonly<Record<string, string>>,
+  ): Effect.Effect<Record<string, string>, CredentialRejected> =>
+    Effect.forEach(
+      Rec.toEntries(names),
+      ([key, name]) =>
+        requireField(credential, name).pipe(Effect.map((value) => [key, value] as const)),
+      { concurrency: 1 },
+    ).pipe(Effect.map(Rec.fromEntries)),
+);
+
 export type UserClientFields = Readonly<{ user: string; clientId: string }>;
 
 export const userClientOf: {
@@ -48,23 +70,4 @@ export const userClientOf: {
     requireFields(credential, fields).pipe(
       Effect.map(({ user, clientId }) => ({ user: encodeURIComponent(user), clientId })),
     ),
-);
-
-export const requireFields: {
-  <Key extends string>(
-    names: Readonly<Record<Key, string>>,
-  ): (credential: Credential) => Effect.Effect<Record<Key, string>, CredentialRejected>;
-  <Key extends string>(
-    credential: Credential,
-    names: Readonly<Record<Key, string>>,
-  ): Effect.Effect<Record<Key, string>, CredentialRejected>;
-} = Fn.dual(
-  BINARY,
-  (
-    credential: Credential,
-    names: Readonly<Record<string, string>>,
-  ): Effect.Effect<Record<string, string>, CredentialRejected> =>
-    Effect.forEach(Rec.toEntries(names), ([key, name]) =>
-      requireField(credential, name).pipe(Effect.map((value) => [key, value] as const)),
-    ).pipe(Effect.map(Rec.fromEntries)),
 );

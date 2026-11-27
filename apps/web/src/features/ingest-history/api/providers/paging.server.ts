@@ -8,7 +8,7 @@ import type { ProviderError } from "#/features/ingest-history/model/provider";
 export type Page<Item> = Readonly<{ items: readonly Item[]; next: Option.Option<string> }>;
 
 const FIRST_PAGE = 1;
-const BACKFILL_PAGES = 20;
+export const BACKFILL_PAGES = 20;
 
 export const pagesUpTo =
   (backfill: number) =>
