@@ -61,31 +61,49 @@ const observeAt =
       Option.map((found) => observed({ kind, context })([found, at(occurredAt)])),
     );
 
-export const listEntryObservationsOf = ({
-  subject,
-  occurredAtMs,
-  context,
-  score,
-  likedFrom,
-  completed,
-}: Readonly<{
-  subject: SubjectInput;
-  occurredAtMs: number;
-  context: Option.Option<string>;
-  score: Option.Option<number>;
-  likedFrom: number;
-  completed: boolean;
-}>): readonly Observation[] => [
-  { kind: "collected", subject, occurredAtMs, ...contextOf(context) },
-  ...pipe(
-    [
-      { kind: "endorsed", applies: Option.exists(score, (value) => value >= likedFrom) },
-      { kind: "consumed", applies: completed },
-    ] as const,
-    Arr.filter(({ applies }) => applies),
-    Arr.map(({ kind }): Observation => ({ kind, subject, occurredAtMs })),
-  ),
-];
+export const listEntriesOf =
+  <Entry>({
+    subjectOf,
+    occurredAtOf,
+    statusOf,
+    labels,
+    scoreOf,
+    likedFrom,
+    completedStatus,
+  }: Readonly<{
+    subjectOf: (entry: Entry) => SubjectInput;
+    occurredAtOf: (entry: Entry) => Option.Option<number>;
+    statusOf: (entry: Entry) => string | null | undefined;
+    labels: Readonly<Record<string, string>>;
+    scoreOf: (entry: Entry) => number | null | undefined;
+    likedFrom: number;
+    completedStatus: string;
+  }>) =>
+  (fetchedAt: number) =>
+  (entry: Entry): readonly Observation[] => {
+    const subject = subjectOf(entry);
+    const occurredAtMs = Option.getOrElse(occurredAtOf(entry), () => fetchedAt);
+    const status = statusOf(entry);
+    const context = pipe(
+      Option.fromNullishOr(status),
+      Option.flatMap((name) => Option.fromUndefinedOr(labels[name])),
+    );
+    const liked = Option.exists(
+      Option.fromNullishOr(scoreOf(entry)),
+      (value) => value >= likedFrom,
+    );
+    return [
+      { kind: "collected", subject, occurredAtMs, ...contextOf(context) },
+      ...pipe(
+        [
+          { kind: "endorsed", applies: liked },
+          { kind: "consumed", applies: status === completedStatus },
+        ] as const,
+        Arr.filter(({ applies }) => applies),
+        Arr.map(({ kind }): Observation => ({ kind, subject, occurredAtMs })),
+      ),
+    ];
+  };
 
 export const libraryObservationsOf =
   <Game>(
@@ -214,13 +232,16 @@ export const stampedObservationsOf =
     );
   };
 
-export const followedCreatorsAt =
-  <Item>(creatorOf: (item: Item) => CreatorInput) =>
+export const fetchedObservationsOf =
+  (kind: SignalKind) =>
+  <Item>(subjectOf: (item: Item) => SubjectInput) =>
   (fetchedAt: number): ((items: readonly Item[]) => readonly Observation[]) =>
-    observationsOf("followed")({
-      subjectOf: (item: Item) => withoutRelations(creatorOf(item)),
-      occurredAtOf: () => fetchedAt,
-    });
+    observationsOf(kind)({ subjectOf, occurredAtOf: () => fetchedAt });
+
+export const followedCreatorsAt = <Item>(
+  creatorOf: (item: Item) => CreatorInput,
+): ((fetchedAt: number) => (items: readonly Item[]) => readonly Observation[]) =>
+  fetchedObservationsOf("followed")((item: Item) => withoutRelations(creatorOf(item)));
 
 const TWO = 2;
 

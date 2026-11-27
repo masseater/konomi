@@ -1,17 +1,17 @@
 import type { PixivUser } from "@book000/pixivts";
 import { Array as Arr, pipe } from "effect";
 
-import type { Observation, SubjectInput } from "#/entities/signal";
+import type { SubjectInput } from "#/entities/signal";
 import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
 import {
-  observationsOf,
+  fetchedObservationsOf,
   followedCreatorsAt,
 } from "#/features/ingest-history/api/providers/observe";
 
 import { WEB } from "./api";
 
-export type User = Pick<PixivUser, "id" | "name">;
-export type Work = Readonly<{
+type User = Pick<PixivUser, "id" | "name">;
+type Work = Readonly<{
   id: number;
   title: string;
   user: User;
@@ -40,13 +40,8 @@ const workOf =
 const illustOf = workOf({ kind: "artwork", url: (id) => `${WEB}/artworks/${id}` });
 const novelOf = workOf({ kind: "book", url: (id) => `${WEB}/novel/show.php?id=${id}` });
 
-const collectedAt =
-  (subjectOf: (work: Work) => SubjectInput) =>
-  (fetchedAt: number): ((works: readonly Work[]) => readonly Observation[]) =>
-    observationsOf("collected")({ subjectOf, occurredAtOf: () => fetchedAt });
+export const illustObservationsOf = fetchedObservationsOf("collected")(illustOf);
 
-export const illustObservationsOf = collectedAt(illustOf);
-
-export const novelObservationsOf = collectedAt(novelOf);
+export const novelObservationsOf = fetchedObservationsOf("collected")(novelOf);
 
 export const followObservationsOf = followedCreatorsAt(creatorOf);
