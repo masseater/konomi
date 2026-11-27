@@ -1,62 +1,51 @@
-import { Clock, Effect, Match, Option, Schema, pipe } from "effect";
+import { Clock, Effect } from "effect";
 
+import { cursorStateOf, scheduleOf } from "#/features/ingest-history/api/providers/cursor-state";
 import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.server";
-import type { Fetching } from "#/features/ingest-history/api/providers/observe";
 import { pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
 
 import { PLAYLIST_INTERVAL_MS } from "./api";
-import { pullLiked, pullSubscriptions } from "./library.server";
+import { pullLibrary } from "./library.server";
 import { pullPlaylists } from "./playlists.server";
 import { Cursor } from "./schemas";
 import { pullWatched } from "./watched.server";
 
-const NEVER = 0;
-
-const CursorJson = Schema.fromJsonString(Cursor);
-const decodeCursor = Schema.decodeUnknownOption(CursorJson);
-const encodeCursor = Schema.encodeEffect(CursorJson);
+const cursorState = cursorStateOf(Cursor)({ backfilled: false });
 
 export const pullYoutube = ({
   credential,
   cursor,
 }: PullInput): Effect.Effect<Pulled, ProviderError> =>
   Effect.gen(function* youtube() {
-    const fetching: Fetching = {
+    const fetching = {
       headers: yield* bearerHeadersOf(credential),
       fetchedAt: yield* Clock.currentTimeMillis,
     };
-    const state = pipe(
-      decodeCursor(cursor),
-      Option.getOrElse((): typeof Cursor.Type => ({ backfilled: false })),
-    );
+    const state = cursorState.read(cursor);
     const pages = pagesFor(state.backfilled);
-    const playlistsAtMs = state.playlistsAtMs ?? NEVER;
-    const playlistsDue = fetching.fetchedAt - playlistsAtMs >= PLAYLIST_INTERVAL_MS;
+    const schedule = scheduleOf({
+      at: state.playlistsAtMs,
+      now: fetching.fetchedAt,
+      every: PLAYLIST_INTERVAL_MS,
+    });
     const watched = yield* pullWatched({
       credential,
       previous: state.history ?? [],
       fetchedAt: fetching.fetchedAt,
     });
-    const playlists = yield* Match.value(playlistsDue).pipe(
-      Match.when(true, () => pullPlaylists(fetching)),
-      Match.orElse(() => Effect.succeed([])),
-    );
+    const playlists = yield* schedule.whenDue(pullPlaylists(fetching));
     const observations = [
       ...watched.observations,
-      ...(yield* pullLiked({ ...fetching, pages })),
-      ...(yield* pullSubscriptions({ ...fetching, pages })),
+      ...(yield* pullLibrary({ ...fetching, pages })),
       ...playlists,
     ];
     return {
       observations,
-      cursor: yield* encodeCursor({
+      cursor: yield* cursorState.write({
         backfilled: true,
-        playlistsAtMs: Match.value(playlistsDue).pipe(
-          Match.when(true, () => fetching.fetchedAt),
-          Match.orElse(() => playlistsAtMs),
-        ),
+        playlistsAtMs: schedule.stamp,
         history: watched.history,
-      }).pipe(Effect.orDie),
+      }),
     };
   }).pipe(Effect.withSpan("youtube.pull"));

@@ -1,13 +1,16 @@
 import { Option } from "effect";
 
-import { jsonListing } from "#/features/ingest-history/api/providers/listing.server";
+import {
+  jsonListing,
+  pulledListings,
+} from "#/features/ingest-history/api/providers/listing.server";
 
 import { API, LIMIT } from "./api";
 import { tokenPageOf } from "./page";
 import { Subscriptions, Videos } from "./schemas";
 import { likedVideoOf, subscribedChannelOf } from "./subjects";
 
-export const pullLiked = jsonListing({
+const pullLiked = jsonListing({
   kind: "endorsed",
   first: `${API}/videos?myRating=like&part=snippet,contentDetails&maxResults=${LIMIT}`,
   schema: Videos,
@@ -15,7 +18,7 @@ export const pullLiked = jsonListing({
   subjectOf: (video) => Option.some(likedVideoOf(video)),
 });
 
-export const pullSubscriptions = jsonListing({
+const pullSubscriptions = jsonListing({
   kind: "followed",
   first: `${API}/subscriptions?mine=true&part=snippet&maxResults=${LIMIT}`,
   schema: Subscriptions,
@@ -23,3 +26,5 @@ export const pullSubscriptions = jsonListing({
   subjectOf: (subscription) => subscribedChannelOf(subscription),
   occurredAtOf: (item) => item.snippet.publishedAt,
 });
+
+export const pullLibrary = pulledListings([pullLiked, pullSubscriptions]);

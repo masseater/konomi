@@ -1,6 +1,7 @@
-import { Array as Arr, Clock, Effect, Match, Option, Schema, pipe } from "effect";
+import { Array as Arr, Clock, Effect, Match, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
+import { cursorStateOf } from "#/features/ingest-history/api/providers/cursor-state";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { observationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
@@ -13,9 +14,7 @@ import { Cursor, LovedTracks, RecentTracks } from "./schemas";
 import type { LastfmTrack } from "./schemas";
 import { trackOf } from "./subjects";
 
-const CursorJson = Schema.fromJsonString(Cursor);
-const decodeCursor = Schema.decodeUnknownOption(CursorJson);
-const encodeCursor = Schema.encodeEffect(CursorJson);
+const cursorState = cursorStateOf(Cursor)({ backfilled: false });
 const MS_PER_SECOND = 1000;
 const NEXT_PAGE = 1;
 
@@ -108,10 +107,7 @@ export const pullLastfm = ({
   Effect.gen(function* lastfm() {
     const account = yield* accountOf(credential);
     const fetchedAt = yield* Clock.currentTimeMillis;
-    const previous = pipe(
-      decodeCursor(cursor),
-      Option.getOrElse((): typeof Cursor.Type => ({ backfilled: false })),
-    );
+    const previous = cursorState.read(cursor);
     const pages = pagesFor(previous.backfilled);
     const fromUts = Option.fromUndefinedOr(previous.latestUts);
     const scrobbles = yield* pullScrobbles({ account, pages, fromUts });
@@ -123,6 +119,6 @@ export const pullLastfm = ({
     );
     return {
       observations: [...playsOf(scrobbles), ...loved],
-      cursor: yield* encodeCursor(next).pipe(Effect.orDie),
+      cursor: yield* cursorState.write(next),
     };
   }).pipe(Effect.withSpan("lastfm.pull"));
