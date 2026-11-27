@@ -1,16 +1,16 @@
 import { Effect, Option, pipe } from "effect";
 
-import type { Headers } from "#/features/ingest-history/api/providers/http.server";
-import type { Observing } from "#/features/ingest-history/api/providers/observe";
-import { collectObserved } from "#/features/ingest-history/api/providers/observed-pages.server";
+import {
+  jsonListing,
+  pulledListings,
+} from "#/features/ingest-history/api/providers/listing.server";
+import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { LIMIT, SERVICE } from "./api";
 import { Follows, Likes } from "./schemas";
 import { signIn } from "./sign-in.server";
 import { followedOf, postOf } from "./subjects";
-
-type Signed = Readonly<{ headers: Headers; did: string; pages: number; fetchedAt: number }>;
 
 const pageUrl = (method: string, did: string): string =>
   `${SERVICE}/${method}?actor=${encodeURIComponent(did)}&limit=${LIMIT}`;
@@ -23,31 +23,25 @@ const withCursor =
       Option.map((value) => `${first}&cursor=${encodeURIComponent(value)}`),
     );
 
-const pullLikes = ({ headers, did, pages, fetchedAt }: Signed): Observing => {
+const likesOf = (did: string): Listing => {
   const first = pageUrl("app.bsky.feed.getActorLikes", did);
-  return collectObserved({
+  return jsonListing({
     kind: "endorsed",
     first,
-    pages,
-    fetchedAt,
-    headers,
     schema: Likes,
     pageOf: ({ feed, cursor }) => ({ items: feed, next: withCursor(first)(cursor) }),
-    subjectOf: ({ post }) => postOf(post),
+    subjectOf: ({ post }) => Option.some(postOf(post)),
   });
 };
 
-const pullFollows = ({ headers, did, pages, fetchedAt }: Signed): Observing => {
+const followsOf = (did: string): Listing => {
   const first = pageUrl("app.bsky.graph.getFollows", did);
-  return collectObserved({
+  return jsonListing({
     kind: "followed",
     first,
-    pages,
-    fetchedAt,
-    headers,
     schema: Follows,
     pageOf: ({ follows, cursor }) => ({ items: follows, next: withCursor(first)(cursor) }),
-    subjectOf: followedOf,
+    subjectOf: (followed) => Option.some(followedOf(followed)),
   });
 };
 
@@ -55,14 +49,13 @@ export const pullBluesky = pullOf({
   provider: "bluesky",
   cursor: "backfilled",
   observe: ({ credential, pages, fetchedAt }) =>
-    Effect.gen(function* bluesky() {
-      const session = yield* signIn(credential);
-      const signed: Signed = {
-        headers: { Authorization: `Bearer ${session.accessJwt}` },
-        did: session.did,
-        pages,
-        fetchedAt,
-      };
-      return [...(yield* pullLikes(signed)), ...(yield* pullFollows(signed))];
-    }),
+    signIn(credential).pipe(
+      Effect.flatMap(({ accessJwt, did }) =>
+        pulledListings([likesOf(did), followsOf(did)])({
+          headers: { Authorization: `Bearer ${accessJwt}` },
+          pages,
+          fetchedAt,
+        }),
+      ),
+    ),
 });

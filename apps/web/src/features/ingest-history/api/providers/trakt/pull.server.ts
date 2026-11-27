@@ -1,7 +1,10 @@
 import { Effect, Function as Fn } from "effect";
 
 import { userClientOf } from "#/features/ingest-history/api/providers/credential-field";
-import { collectNumberedPages } from "#/features/ingest-history/api/providers/numbered-pages.server";
+import {
+  numberedListing,
+  pulledListings,
+} from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, FIELD, LIMIT } from "./api";
@@ -15,31 +18,30 @@ export const pullTrakt = pullOf({
   cursor: "backfilled",
   observe: ({ credential, pages, fetchedAt }) =>
     Effect.gen(function* trakt() {
-      const account = yield* userClientOf(credential, FIELD);
+      const { user, clientId } = yield* userClientOf(credential, FIELD);
       const headers = {
         "Content-Type": "application/json",
         "trakt-api-version": "2",
-        "trakt-api-key": account.clientId,
+        "trakt-api-key": clientId,
       };
-      const history = yield* collectNumberedPages({
-        base: `${API}/users/${account.user}/history?limit=${LIMIT}`,
-        numbering: NUMBERING,
-        headers,
-        pages,
-        schema: History,
-        itemsOf: Fn.identity,
-      });
-      const ratings = yield* collectNumberedPages({
-        base: `${API}/users/${account.user}/ratings?limit=${LIMIT}`,
-        numbering: NUMBERING,
-        headers,
-        pages,
-        schema: Ratings,
-        itemsOf: Fn.identity,
-      });
-      return [
-        ...historyObservationsOf(fetchedAt)(history),
-        ...ratingObservationsOf(fetchedAt)(ratings),
-      ];
+      const listings = pulledListings([
+        numberedListing({
+          label: "history",
+          base: `${API}/users/${user}/history?limit=${LIMIT}`,
+          numbering: NUMBERING,
+          schema: History,
+          itemsOf: Fn.identity,
+          observe: historyObservationsOf,
+        }),
+        numberedListing({
+          label: "ratings",
+          base: `${API}/users/${user}/ratings?limit=${LIMIT}`,
+          numbering: NUMBERING,
+          schema: Ratings,
+          itemsOf: Fn.identity,
+          observe: ratingObservationsOf,
+        }),
+      ]);
+      return yield* listings({ headers, pages, fetchedAt });
     }),
 });

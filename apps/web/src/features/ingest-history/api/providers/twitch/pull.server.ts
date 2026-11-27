@@ -2,10 +2,7 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import type { Headers } from "#/features/ingest-history/api/providers/http.server";
-import { epochOr, observationsOf } from "#/features/ingest-history/api/providers/observe";
-import type { Observing } from "#/features/ingest-history/api/providers/observe";
-import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
+import { jsonListing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, LIMIT } from "./api";
@@ -13,36 +10,23 @@ import { headersOf } from "./headers.server";
 import { FollowedChannels, Users } from "./schemas";
 import { channelOf } from "./subjects";
 
-const pullFollowed = ({
-  headers,
-  userId,
-  pages,
-  fetchedAt,
-}: Readonly<{ headers: Headers; userId: string; pages: number; fetchedAt: number }>): Observing => {
+const followedBy = (userId: string): ReturnType<typeof jsonListing> => {
   const first = `${API}/channels/followed?user_id=${userId}&first=${LIMIT}`;
-  const at = epochOr(fetchedAt);
-  return collectPages({
+  return jsonListing({
+    kind: "followed",
     first,
-    pages,
-    fetchPage: (url) =>
-      fetchJson({ url, headers, schema: FollowedChannels }).pipe(
-        Effect.map(({ data, pagination }) => ({
-          items: data,
-          next: pipe(
-            Option.fromNullishOr(pagination),
-            Option.flatMap(({ cursor }) => Option.fromNullishOr(cursor)),
-            Option.map((cursor) => `${first}&after=${cursor}`),
-          ),
-        })),
+    schema: FollowedChannels,
+    pageOf: ({ data, pagination }) => ({
+      items: data,
+      next: pipe(
+        Option.fromNullishOr(pagination),
+        Option.flatMap(({ cursor }) => Option.fromNullishOr(cursor)),
+        Option.map((cursor) => `${first}&after=${cursor}`),
       ),
-  }).pipe(
-    Effect.map(
-      observationsOf("followed")({
-        subjectOf: channelOf,
-        occurredAtOf: (followed) => at(followed.followed_at),
-      }),
-    ),
-  );
+    }),
+    subjectOf: (followed) => Option.some(channelOf(followed)),
+    occurredAtOf: (followed) => followed.followed_at,
+  });
 };
 
 export const pullTwitch = pullOf({
@@ -52,19 +36,12 @@ export const pullTwitch = pullOf({
     Effect.gen(function* twitch() {
       const headers = yield* headersOf(credential);
       const { data } = yield* fetchJson({ url: `${API}/users`, headers, schema: Users });
-      const observations = yield* pipe(
+      return yield* pipe(
         Arr.head(data),
         Option.match({
           onNone: () => Effect.succeed(Arr.empty<Observation>()),
-          onSome: ({ id }) =>
-            pullFollowed({
-              headers,
-              userId: id,
-              pages,
-              fetchedAt,
-            }),
+          onSome: ({ id }) => followedBy(id)({ headers, pages, fetchedAt }),
         }),
       );
-      return observations;
     }),
 });
