@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
-import type { Observation, SubjectInput } from "#/entities/signal";
-import { listEntryObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import type { SubjectInput } from "#/entities/signal";
+import { listEntriesOf } from "#/features/ingest-history/api/providers/observe";
 import {
   orEmpty,
   seriesOrBook,
@@ -40,21 +40,16 @@ const mediaOf = (media: AniListMedia): SubjectInput =>
     tags: [...orEmpty(media.genres), ...textTagsOf(media.seasonYear)],
   });
 
-export const entryObservationsOf =
-  (fetchedAt: number) =>
-  (entry: AniListEntry): readonly Observation[] => {
-    const subject = mediaOf(entry.media);
-    const occurredAtMs = pipe(
-      Option.fromNullishOr(entry.updatedAt),
+export const entryObservationsOf = listEntriesOf<AniListEntry>({
+  subjectOf: ({ media }) => mediaOf(media),
+  occurredAtOf: ({ updatedAt }) =>
+    pipe(
+      Option.fromNullishOr(updatedAt),
       Option.map((seconds) => seconds * MS_PER_SECOND),
-      Option.getOrElse(() => fetchedAt),
-    );
-    return listEntryObservationsOf({
-      subject,
-      occurredAtMs,
-      context: Option.fromUndefinedOr(STATUS_LABEL[entry.status]),
-      score: Option.fromNullishOr(entry.score),
-      likedFrom: LIKED_SCORE,
-      completed: entry.status === "COMPLETED",
-    });
-  };
+    ),
+  statusOf: ({ status }) => status,
+  labels: STATUS_LABEL,
+  scoreOf: ({ score }) => score,
+  likedFrom: LIKED_SCORE,
+  completedStatus: "COMPLETED",
+});

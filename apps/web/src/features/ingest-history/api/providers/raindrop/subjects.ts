@@ -1,7 +1,7 @@
 import { Option, pipe } from "effect";
 
-import type { Observation, SubjectInput } from "#/entities/signal";
-import { epochOr, observationsOf } from "#/features/ingest-history/api/providers/observe";
+import type { SubjectInput } from "#/entities/signal";
+import { stampedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 
 import type { RaindropItem } from "./schemas";
@@ -22,12 +22,7 @@ const pageOf = ({ _id: id, ...item }: RaindropItem): SubjectInput => ({
   ],
 });
 
-export const raindropObservationsOf =
-  (fetchedAt: number) =>
-  (items: readonly RaindropItem[]): readonly Observation[] => {
-    const at = epochOr(fetchedAt);
-    return observationsOf("collected")({
-      subjectOf: pageOf,
-      occurredAtOf: (item) => at(item.created),
-    })(items);
-  };
+export const raindropObservationsOf = stampedObservationsOf("collected")<RaindropItem>({
+  subjectOf: pageOf,
+  dateOf: ({ created }) => created,
+});

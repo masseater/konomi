@@ -1,7 +1,8 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
-import { epochOr, listEntryObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
+import { listEntriesOf } from "#/features/ingest-history/api/providers/observe";
 import {
   orEmpty,
   seriesOrBook,
@@ -46,24 +47,17 @@ const entryOf =
       ],
     });
 
-const contextOf = (status: Option.Option<string>): Option.Option<string> =>
-  pipe(
-    status,
-    Option.flatMap((value) => Option.fromUndefinedOr(STATUS_LABEL[value])),
-  );
-
-export const entryObservationsOf =
-  ({ list, fetchedAt }: Readonly<{ list: MalList; fetchedAt: number }>) =>
-  (entry: MalEntry): readonly Observation[] => {
-    const subject = entryOf(list)(entry);
-    const { status, score, updated_at: updatedAt } = entry.list_status;
-    const occurredAtMs = epochOr(fetchedAt)(updatedAt);
-    return listEntryObservationsOf({
-      subject,
-      occurredAtMs,
-      context: contextOf(Option.fromNullishOr(status)),
-      score: Option.fromNullishOr(score),
-      likedFrom: LIKED_SCORE,
-      completed: status === "completed",
-    });
-  };
+export const entryObservationsOf = ({
+  list,
+  fetchedAt,
+}: Readonly<{ list: MalList; fetchedAt: number }>): ((entry: MalEntry) => readonly Observation[]) =>
+  listEntriesOf<MalEntry>({
+    subjectOf: entryOf(list),
+    occurredAtOf: ({ list_status: { updated_at: updatedAt } }) =>
+      parsedEpoch(Option.fromNullishOr(updatedAt)),
+    statusOf: ({ list_status: { status } }) => status,
+    labels: STATUS_LABEL,
+    scoreOf: ({ list_status: { score } }) => score,
+    likedFrom: LIKED_SCORE,
+    completedStatus: "completed",
+  })(fetchedAt);

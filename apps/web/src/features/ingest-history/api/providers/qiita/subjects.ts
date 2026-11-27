@@ -1,8 +1,8 @@
 import { Array as Arr, Option, pipe } from "effect";
 
-import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
-import { nonEmptyOr, observationsOf } from "#/features/ingest-history/api/providers/observe";
+import { fetchedObservationsOf, nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
 import type { QiitaItem } from "./schemas";
@@ -28,7 +28,4 @@ const articleOf = (item: QiitaItem): SubjectInput => ({
   ),
 });
 
-export const stockObservationsOf =
-  (fetchedAt: number) =>
-  (items: readonly QiitaItem[]): readonly Observation[] =>
-    observationsOf("collected")({ subjectOf: articleOf, occurredAtOf: () => fetchedAt })(items);
+export const stockObservationsOf = fetchedObservationsOf("collected")(articleOf);

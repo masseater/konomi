@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import type { Work } from "./subjects";
 import { followObservationsOf, illustObservationsOf, novelObservationsOf } from "./subjects";
 
 const FETCHED_AT = 1_792_972_800_000;
@@ -8,6 +7,11 @@ const CREATED_AT = "2026-10-01T12:00:00+09:00";
 
 const ILLUST_ID = 1;
 const NOVEL_ID = 2;
+
+type Work =
+  ReturnType<typeof illustObservationsOf> extends (items: readonly (infer Item)[]) => unknown
+    ? Item
+    : never;
 
 const workOf = (id: number): Work => ({
   id,
