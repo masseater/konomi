@@ -38,6 +38,9 @@ const isComplete =
       Arr.every((vector) => vector.length === EMBEDDING_DIMENSIONS),
     );
 
+const failedBy = (cause: unknown): EmbeddingFailed =>
+  EmbeddingFailed.make({ message: String(cause) });
+
 const noEmbeddings = (): EmbeddingFailed =>
   EmbeddingFailed.make({ message: `${EMBEDDING_MODEL} returned no embeddings` });
 
@@ -51,7 +54,7 @@ export const embedTexts = (
         { text: pipe(texts, Arr.map(clip)), truncate_inputs: true },
         { gateway: { id: "default", metadata: { caller: "konomi.signal-embed" } } },
       ),
-    catch: (cause) => EmbeddingFailed.make({ message: String(cause) }),
+    catch: failedBy,
   }).pipe(
     Effect.flatMap((output) => {
       if ("data" in output) {
@@ -67,6 +70,12 @@ export const embedTexts = (
   );
 
 type Pending = Readonly<{ key: string; title: string }>;
+
+const keysOf = (pending: readonly Pending[]): readonly string[] =>
+  pipe(
+    pending,
+    Arr.map(({ key }) => key),
+  );
 
 const pendingSubjects: Effect.Effect<readonly Pending[]> = Effect.promise(() =>
   db
@@ -88,10 +97,7 @@ const valuesFor = <Row extends Readonly<{ subjectKey: string }>>(
   );
 
 const describeAll = (pending: readonly Pending[]): Effect.Effect<readonly string[]> => {
-  const keys = pipe(
-    pending,
-    Arr.map(({ key }) => key),
-  );
+  const keys = keysOf(pending);
   return Effect.all({ credits: creditsOf(keys), tags: tagsOf(keys) }, { concurrency: 1 }).pipe(
     Effect.map(({ credits, tags }) =>
       pipe(
@@ -131,17 +137,14 @@ const upsertVectors = (
           Arr.zipWith(vectors, (id, values) => ({ id, values: [...values] })),
         ),
       ),
-    catch: (cause) => EmbeddingFailed.make({ message: String(cause) }),
+    catch: failedBy,
   });
 
 const storeVectors = (
   pending: readonly Pending[],
   vectors: readonly (readonly number[])[],
 ): Effect.Effect<void, EmbeddingFailed> => {
-  const keys = pipe(
-    pending,
-    Arr.map(({ key }) => key),
-  );
+  const keys = keysOf(pending);
   return Effect.forEach(keys, vectorIdOf, { concurrency: 1 }).pipe(
     Effect.tap((ids) => upsertVectors(ids, vectors)),
     Effect.flatMap((ids) => markEmbedded(pipe(keys, Arr.zip(ids)))),
