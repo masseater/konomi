@@ -22,20 +22,17 @@ export type SyncOutcome =
 const sealCredential = (credential: Credential): Effect.Effect<string> =>
   encodeCredential(credential).pipe(Effect.orDie, Effect.flatMap(sealSecret));
 
-type Sealing = Readonly<{ provider: ProviderId; credential: Credential }>;
-
 const writeSealed = ({
   provider,
   credential,
   span,
   write,
-}: Sealing &
-  Readonly<{
-    span: string;
-    write: (
-      sealed: Readonly<{ sealedCredential: string; updatedAtMs: number }>,
-    ) => Promise<unknown>;
-  }>): Effect.Effect<void> =>
+}: Readonly<{
+  provider: ProviderId;
+  credential: Credential;
+  span: string;
+  write: (sealed: Readonly<{ sealedCredential: string; updatedAtMs: number }>) => Promise<unknown>;
+}>): Effect.Effect<void> =>
   Effect.all(
     {
       sealedCredential: sealCredential(credential),
@@ -48,7 +45,10 @@ const writeSealed = ({
     Effect.withSpan(span, { attributes: { provider } }),
   );
 
-export const saveCredential = ({ provider, credential }: Sealing): Effect.Effect<void> =>
+export const saveCredential = ({
+  provider,
+  credential,
+}: Readonly<{ provider: ProviderId; credential: Credential }>): Effect.Effect<void> =>
   writeSealed({
     provider,
     credential,
@@ -69,7 +69,10 @@ export const saveCredential = ({ provider, credential }: Sealing): Effect.Effect
         }),
   });
 
-export const replaceCredential = ({ provider, credential }: Sealing): Effect.Effect<void> =>
+export const replaceCredential = ({
+  provider,
+  credential,
+}: Readonly<{ provider: ProviderId; credential: Credential }>): Effect.Effect<void> =>
   writeSealed({
     provider,
     credential,

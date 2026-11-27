@@ -155,20 +155,19 @@ export const fetchJson = <Body extends Schema.Top>({
   Body["DecodingServices"]
 > => HttpClientRequest.get(url, { headers }).pipe(Effect.succeed, sendJson(schema));
 
-type Posting = Readonly<{ url: string; headers: Headers }>;
-
 const posted =
   <Body extends Schema.Top>(schema: Body) =>
   <Requirement>({
     url,
     headers,
     attach,
-  }: Posting &
-    Readonly<{
-      attach: (
-        request: HttpClientRequest.HttpClientRequest,
-      ) => Effect.Effect<HttpClientRequest.HttpClientRequest, ProviderError, Requirement>;
-    }>): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"] | Requirement> =>
+  }: Readonly<{
+    url: string;
+    headers: Headers;
+    attach: (
+      request: HttpClientRequest.HttpClientRequest,
+    ) => Effect.Effect<HttpClientRequest.HttpClientRequest, ProviderError, Requirement>;
+  }>): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"] | Requirement> =>
     attach(HttpClientRequest.post(url, { headers })).pipe(sendJson(schema));
 
 export const postJson = <Payload extends Schema.Top, Body extends Schema.Top>({
@@ -177,12 +176,13 @@ export const postJson = <Payload extends Schema.Top, Body extends Schema.Top>({
   payload,
   body,
   schema,
-}: Posting &
-  Readonly<{
-    payload: Payload;
-    body: Payload["Type"];
-    schema: Body;
-  }>): Effect.Effect<
+}: Readonly<{
+  url: string;
+  headers: Headers;
+  payload: Payload;
+  body: Payload["Type"];
+  schema: Body;
+}>): Effect.Effect<
   Body["Type"],
   ProviderError,
   Body["DecodingServices"] | Payload["EncodingServices"]
@@ -202,11 +202,12 @@ export const postForm = <Body extends Schema.Top>({
   headers,
   fields,
   schema,
-}: Posting &
-  Readonly<{
-    fields: Readonly<Record<string, string>>;
-    schema: Body;
-  }>): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"]> =>
+}: Readonly<{
+  url: string;
+  headers: Headers;
+  fields: Readonly<Record<string, string>>;
+  schema: Body;
+}>): Effect.Effect<Body["Type"], ProviderError, Body["DecodingServices"]> =>
   posted(schema)({
     url,
     headers,

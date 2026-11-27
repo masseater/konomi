@@ -87,35 +87,35 @@ export const listEntryObservationsOf = ({
   ),
 ];
 
-type LibraryEntry = Readonly<{
-  subject: SubjectInput;
-  collectedAtMs: number;
-  lastPlayedAtMs: Option.Option<number>;
-}>;
-
-export const libraryEntryObservationsOf = ({
-  subject,
-  collectedAtMs,
-  lastPlayedAtMs,
-}: LibraryEntry): readonly Observation[] => [
-  { kind: "collected", subject, occurredAtMs: collectedAtMs },
-  ...pipe(
-    lastPlayedAtMs,
-    Option.map((occurredAtMs): Observation => ({ kind: "consumed", subject, occurredAtMs })),
-    Option.toArray,
-  ),
-];
-
 export const libraryObservationsOf =
-  <Game>(entryOf: (game: Game) => Option.Option<LibraryEntry>) =>
+  <Game>(
+    entryOf: (game: Game) => Option.Option<
+      Readonly<{
+        subject: SubjectInput;
+        collectedAtMs: number;
+        lastPlayedAtMs: Option.Option<number>;
+      }>
+    >,
+  ) =>
   (games: readonly Game[]): readonly Observation[] =>
     pipe(
       games,
       Arr.flatMap((game) =>
         pipe(
           entryOf(game),
-          Option.map(libraryEntryObservationsOf),
-          Option.getOrElse((): readonly Observation[] => []),
+          Option.toArray,
+          Arr.flatMap(({ subject, collectedAtMs, lastPlayedAtMs }): readonly Observation[] => [
+            { kind: "collected", subject, occurredAtMs: collectedAtMs },
+            ...pipe(
+              lastPlayedAtMs,
+              Option.map((occurredAtMs): Observation => ({
+                kind: "consumed",
+                subject,
+                occurredAtMs,
+              })),
+              Option.toArray,
+            ),
+          ]),
         ),
       ),
     );
