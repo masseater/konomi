@@ -1,11 +1,12 @@
-import { Effect } from "effect";
+import { Effect, Option, pipe } from "effect";
 import type { Schema } from "effect";
 
 import type { Credential } from "#/entities/connection";
+import type { Observation } from "#/entities/signal";
 import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { pageOf } from "#/features/ingest-history/api/providers/observe";
-import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
+import { pagedListing } from "#/features/ingest-history/api/providers/listing.server";
+import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
@@ -50,24 +51,30 @@ export const fetchFrom = <Body extends Schema.Top>({
   return (url) => fetchJson({ url: sign(url), headers, schema });
 };
 
-export const collectFrom = <Item>({
-  session,
-  path,
-  pages,
-  schema,
-}: Readonly<{
-  session: Session;
-  path: string;
-  pages: number;
-  schema: Schema.Decoder<
-    Readonly<{ collection: readonly Item[]; next_href?: string | null | undefined }>
-  >;
-}>): Effect.Effect<readonly Item[], ProviderError> =>
-  collectPages({
-    first: firstUrlOf(path),
-    pages,
-    fetchPage: (url) =>
-      fetchFrom({ session, schema })(url).pipe(
-        Effect.map(({ collection, next_href: next }) => pageOf({ items: collection, next })),
-      ),
-  });
+export type Collected<Entry> = Readonly<{
+  collection: readonly Entry[];
+  next_href?: string | null | undefined;
+}>;
+
+export const collectionListing =
+  (clientId: string) =>
+  <Entry>({
+    path,
+    schema,
+    observe,
+  }: Readonly<{
+    path: string;
+    schema: Schema.Decoder<Collected<Entry>>;
+    observe: (fetchedAt: number) => (entries: readonly Entry[]) => readonly Observation[];
+  }>): Listing => {
+    const sign = withClientId(clientId);
+    return pagedListing({
+      first: sign(firstUrlOf(path)),
+      schema,
+      pageOf: ({ collection, next_href: next }) => ({
+        items: collection,
+        next: pipe(Option.fromNullishOr(next), Option.map(sign)),
+      }),
+      observe,
+    });
+  };
