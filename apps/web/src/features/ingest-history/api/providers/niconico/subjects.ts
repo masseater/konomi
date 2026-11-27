@@ -1,7 +1,7 @@
 import { Array as Arr, DateTime, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorMapper, personMapper } from "#/features/ingest-history/api/providers/observe";
+import { creatorMapper, personMapper } from "#/features/ingest-history/api/providers/creator-input";
 
 import type { VideoEntry } from "./schemas";
 

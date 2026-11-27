@@ -1,6 +1,7 @@
 import { Array as Arr, Effect, Function as Fn, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import { withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
 import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
@@ -146,22 +147,6 @@ export const datedObservationsOf =
     );
   };
 
-export const creatorInputOf =
-  (type: CreatorInput["type"]) =>
-  ({
-    provider,
-    externalId,
-    title,
-    url,
-  }: Readonly<{
-    provider: CreatorInput["provider"];
-    externalId: string;
-    title: string;
-    url: string;
-  }>): CreatorInput => ({ provider, externalId, type, title, url });
-
-export const personInputOf = creatorInputOf("person");
-
 export const nonEmptyOr =
   (fallback: string) =>
   (value: string | null | undefined): string =>
@@ -170,29 +155,6 @@ export const nonEmptyOr =
       Option.filter(Str.isNonEmpty),
       Option.getOrElse(() => fallback),
     );
-
-export const creatorMapper =
-  (type: CreatorInput["type"]) =>
-  ({
-    provider,
-    idPrefix,
-    urlBase,
-  }: Readonly<{ provider: CreatorInput["provider"]; idPrefix: string; urlBase: string }>) =>
-  ({ id, name }: Readonly<{ id: string | number; name: string }>): CreatorInput =>
-    creatorInputOf(type)({
-      provider,
-      externalId: `${idPrefix}${id}`,
-      title: name,
-      url: `${urlBase}${id}`,
-    });
-
-export const personMapper = creatorMapper("person");
-
-export const withRelations =
-  (relations: Pick<SubjectInput, "credits" | "tags">) =>
-  (creator: CreatorInput): SubjectInput => ({ ...creator, ...relations });
-
-export const withoutRelations = withRelations({ credits: [], tags: [] });
 
 export const pageOf = <Item>({
   items,
@@ -220,6 +182,37 @@ export const observationsOf =
         occurredAtMs: occurredAtOf(item),
       })),
     );
+
+const KEEP_ALL = (): boolean => true;
+const NO_CONTEXT = (): Option.Option<string> => Option.none();
+
+export const stampedObservationsOf =
+  (kind: SignalKind) =>
+  <Item>({
+    subjectOf,
+    dateOf,
+    keeps = KEEP_ALL,
+    contextOf: contextFor = NO_CONTEXT,
+  }: Readonly<{
+    subjectOf: (item: Item) => SubjectInput;
+    dateOf: (item: Item) => string | null | undefined;
+    keeps?: (item: Item) => boolean;
+    contextOf?: (item: Item) => Option.Option<string>;
+  }>) =>
+  (fetchedAt: number) =>
+  (items: readonly Item[]): readonly Observation[] => {
+    const at = epochOr(fetchedAt);
+    return pipe(
+      items,
+      Arr.filter(keeps),
+      Arr.map((item): Observation => ({
+        kind,
+        subject: subjectOf(item),
+        occurredAtMs: at(dateOf(item)),
+        ...contextOf(contextFor(item)),
+      })),
+    );
+  };
 
 export const followedCreatorsAt =
   <Item>(creatorOf: (item: Item) => CreatorInput) =>

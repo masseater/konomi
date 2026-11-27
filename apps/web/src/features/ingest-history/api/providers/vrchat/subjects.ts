@@ -1,9 +1,9 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
+import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
 import {
   observationsOf,
-  personMapper,
   followedCreatorsAt,
 } from "#/features/ingest-history/api/providers/observe";
 import type { SubjectType } from "#/shared/config";

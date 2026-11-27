@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { personMapper } from "#/features/ingest-history/api/providers/observe";
+import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 
 import { WEB } from "./api";

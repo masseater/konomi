@@ -1,7 +1,8 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { withRelations, nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
+import { withRelations } from "#/features/ingest-history/api/providers/creator-input";
+import { nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 

@@ -3,10 +3,9 @@ import { Option, pipe } from "effect";
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
 import {
   personInputOf,
-  nonEmptyOr,
-  observationsOf,
   withoutRelations,
-} from "#/features/ingest-history/api/providers/observe";
+} from "#/features/ingest-history/api/providers/creator-input";
+import { nonEmptyOr, observationsOf } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 import type { SignalKind } from "#/shared/config";

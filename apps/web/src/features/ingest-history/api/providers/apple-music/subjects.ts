@@ -1,7 +1,7 @@
 import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { personInputOf } from "#/features/ingest-history/api/providers/observe";
+import { personInputOf } from "#/features/ingest-history/api/providers/creator-input";
 import {
   durationFromMs,
   publishedOf,

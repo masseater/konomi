@@ -1,13 +1,16 @@
-import { Array as Arr, DateTime, Match, Option, String as Str, pipe } from "effect";
+import { Array as Arr, Match, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { withRelations } from "#/features/ingest-history/api/providers/observe";
+import { withRelations } from "#/features/ingest-history/api/providers/creator-input";
+import {
+  durationFromMs,
+  publishedOf,
+} from "#/features/ingest-history/api/providers/subject-fields";
 import type { SubjectType } from "#/shared/config";
 
 import type { SpotifyArtist, SpotifyArtistRef, SpotifyTrack, SpotifyUrls } from "./schemas";
 
 const OPEN_URL = "https://open.spotify.com";
-const MS_PER_SECOND = 1000;
 const FULL_DATE_LENGTH = 10;
 
 const urlOf = (external: SpotifyUrls, path: string): string =>
@@ -31,20 +34,12 @@ const artistOf = (artist: SpotifyArtistRef): Option.Option<CreatorInput> =>
   pipe(Option.fromNullishOr(artist.id), Option.map(creatorOf(artist)));
 
 const releasedAtOf = (track: SpotifyTrack): Readonly<{ publishedAtMs?: number }> =>
-  pipe(
-    Option.fromNullishOr(track.album),
-    Option.flatMap(({ release_date: date }) => Option.fromNullishOr(date)),
-    Option.filter((date) => Str.length(date) === FULL_DATE_LENGTH),
-    Option.flatMap(DateTime.make),
-    Option.map((date) => ({ publishedAtMs: DateTime.toEpochMillis(date) })),
-    Option.getOrElse(() => ({})),
-  );
-
-const durationOf = (track: SpotifyTrack): Readonly<{ durationSec?: number }> =>
-  pipe(
-    Option.fromNullishOr(track.duration_ms),
-    Option.map((ms) => ({ durationSec: Math.round(ms / MS_PER_SECOND) })),
-    Option.getOrElse(() => ({})),
+  publishedOf(
+    pipe(
+      Option.fromNullishOr(track.album),
+      Option.flatMap(({ release_date: date }) => Option.fromNullishOr(date)),
+      Option.filter((date) => Str.length(date) === FULL_DATE_LENGTH),
+    ),
   );
 
 const creditsOf = (track: SpotifyTrack): readonly CreatorInput[] =>
@@ -75,7 +70,7 @@ export const trackOf = (track: SpotifyTrack): Option.Option<SubjectInput> =>
         type,
         title: track.name,
         url: urlOf(track.external_urls, `${type}/${id}`),
-        ...durationOf(track),
+        ...durationFromMs(Option.fromNullishOr(track.duration_ms)),
         ...releasedAtOf(track),
         credits: creditsOf(track),
         tags: [],

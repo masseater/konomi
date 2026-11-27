@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
-import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
-import { epochOr } from "#/features/ingest-history/api/providers/observe";
+import type { CreatorInput, SubjectInput } from "#/entities/signal";
+import { stampedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
 import { WEB } from "./api";
@@ -38,22 +38,8 @@ const songOf = ({ song }: VocaDbRated): SubjectInput => ({
   tags: Option.toArray(Option.fromNullishOr(song.songType)),
 });
 
-const ratedObservationOf =
-  (at: (text: string) => number) =>
-  (entry: VocaDbRated): Observation => ({
-    kind: "endorsed",
-    subject: songOf(entry),
-    occurredAtMs: at(entry.date),
-    ...pipe(
-      Option.fromUndefinedOr(RATING_LABEL[entry.rating]),
-      Option.map((context) => ({ context })),
-      Option.getOrElse(() => ({})),
-    ),
-  });
-
-export const ratedObservationsOf =
-  (fetchedAt: number) =>
-  (rated: readonly VocaDbRated[]): readonly Observation[] => {
-    const observe = ratedObservationOf(epochOr(fetchedAt));
-    return pipe(rated, Arr.map(observe));
-  };
+export const ratedObservationsOf = stampedObservationsOf("endorsed")({
+  subjectOf: songOf,
+  dateOf: ({ date }) => date,
+  contextOf: ({ rating }) => Option.fromUndefinedOr(RATING_LABEL[rating]),
+});
