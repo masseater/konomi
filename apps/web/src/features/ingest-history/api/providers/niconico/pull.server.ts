@@ -3,7 +3,7 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 import type { Observation } from "#/entities/signal";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { observationsOf } from "#/features/ingest-history/api/providers/observe";
+import { followedCreatorsAt } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { SignalKind } from "#/shared/config";
@@ -100,14 +100,9 @@ const pullFollowing = ({ headers, fetchedAt }: Fetching): Observing =>
     schema: FollowingPage,
   }).pipe(
     Effect.map(({ data }) =>
-      observationsOf("followed")({
-        subjectOf: ({ id, nickname }: (typeof data.items)[number]) => ({
-          ...personOf({ id: String(id), name: nickname }),
-          credits: [],
-          tags: [],
-        }),
-        occurredAtOf: () => fetchedAt,
-      })(data.items),
+      followedCreatorsAt(({ id, nickname }: (typeof data.items)[number]) =>
+        personOf({ id: String(id), name: nickname }),
+      )(fetchedAt)(data.items),
     ),
   );
 

@@ -2,10 +2,10 @@ import { Option, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
 import {
-  withRelations,
   personInputOf,
   nonEmptyOr,
   observationsOf,
+  withoutRelations,
 } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
@@ -32,7 +32,7 @@ const accountOf =
 export const followedOf =
   (origin: string) =>
   (user: MisskeyUser): SubjectInput =>
-    withRelations({ credits: [], tags: [] })(accountOf(origin)(user));
+    withoutRelations(accountOf(origin)(user));
 
 export const noteOf =
   (origin: string) =>

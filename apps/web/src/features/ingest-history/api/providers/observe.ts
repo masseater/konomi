@@ -127,6 +127,8 @@ export const withRelations =
   (relations: Pick<SubjectInput, "credits" | "tags">) =>
   (creator: CreatorInput): SubjectInput => ({ ...creator, ...relations });
 
+export const withoutRelations = withRelations({ credits: [], tags: [] });
+
 export const pageOf = <Item>({
   items,
   next,
@@ -153,6 +155,14 @@ export const observationsOf =
         occurredAtMs: occurredAtOf(item),
       })),
     );
+
+export const followedCreatorsAt =
+  <Item>(creatorOf: (item: Item) => CreatorInput) =>
+  (fetchedAt: number): ((items: readonly Item[]) => readonly Observation[]) =>
+    observationsOf("followed")({
+      subjectOf: (item: Item) => withoutRelations(creatorOf(item)),
+      occurredAtOf: () => fetchedAt,
+    });
 
 const TWO = 2;
 

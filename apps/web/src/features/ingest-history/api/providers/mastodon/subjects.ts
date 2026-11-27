@@ -2,9 +2,9 @@ import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import {
-  withRelations,
   personInputOf,
   nonEmptyOr,
+  withoutRelations,
 } from "#/features/ingest-history/api/providers/observe";
 import { plainTextOf, postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
@@ -20,7 +20,7 @@ const accountOf = (account: MastodonAccount): CreatorInput =>
   });
 
 export const followedOf = (account: MastodonAccount): SubjectInput =>
-  withRelations({ credits: [], tags: [] })(accountOf(account));
+  withoutRelations(accountOf(account));
 
 export const statusOf = (status: MastodonStatus): SubjectInput => {
   const url = pipe(

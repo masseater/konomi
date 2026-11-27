@@ -2,7 +2,11 @@ import type { PixivUser } from "@book000/pixivts";
 import { Array as Arr, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
-import { observationsOf, personMapper } from "#/features/ingest-history/api/providers/observe";
+import {
+  observationsOf,
+  personMapper,
+  followedCreatorsAt,
+} from "#/features/ingest-history/api/providers/observe";
 
 import { WEB } from "./api";
 
@@ -36,24 +40,14 @@ const workOf =
 const illustOf = workOf({ kind: "artwork", url: (id) => `${WEB}/artworks/${id}` });
 const novelOf = workOf({ kind: "book", url: (id) => `${WEB}/novel/show.php?id=${id}` });
 
-const collectedAt =
-  (fetchedAt: number) =>
-  (subject: SubjectInput): Observation => ({ kind: "collected", subject, occurredAtMs: fetchedAt });
-
 export const illustObservationsOf =
   (fetchedAt: number) =>
   (illusts: readonly Work[]): readonly Observation[] =>
-    pipe(illusts, Arr.map(illustOf), Arr.map(collectedAt(fetchedAt)));
+    observationsOf("collected")({ subjectOf: illustOf, occurredAtOf: () => fetchedAt })(illusts);
 
 export const novelObservationsOf =
   (fetchedAt: number) =>
   (novels: readonly Work[]): readonly Observation[] =>
-    pipe(novels, Arr.map(novelOf), Arr.map(collectedAt(fetchedAt)));
+    observationsOf("collected")({ subjectOf: novelOf, occurredAtOf: () => fetchedAt })(novels);
 
-export const followObservationsOf = (
-  fetchedAt: number,
-): ((items: readonly User[]) => readonly Observation[]) =>
-  observationsOf("followed")({
-    subjectOf: (user: User) => ({ ...creatorOf(user), credits: [], tags: [] }),
-    occurredAtOf: () => fetchedAt,
-  });
+export const followObservationsOf = followedCreatorsAt(creatorOf);

@@ -1,7 +1,11 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
-import { observationsOf, personMapper } from "#/features/ingest-history/api/providers/observe";
+import {
+  observationsOf,
+  personMapper,
+  followedCreatorsAt,
+} from "#/features/ingest-history/api/providers/observe";
 import type { SubjectType } from "#/shared/config";
 
 import { AUTHOR_TAG, WEB } from "./api";
@@ -40,23 +44,8 @@ const workOf =
 export const favoriteObservationsOf =
   ({ kind, fetchedAt }: Readonly<{ kind: WorkKind; fetchedAt: number }>) =>
   (works: readonly VrchatWork[]): readonly Observation[] =>
-    pipe(
-      works,
-      Arr.map((work) => ({
-        kind: "collected" as const,
-        subject: workOf(kind)(work),
-        occurredAtMs: fetchedAt,
-      })),
-    );
+    observationsOf("collected")({ subjectOf: workOf(kind), occurredAtOf: () => fetchedAt })(works);
 
-export const friendObservationsOf = (
-  fetchedAt: number,
-): ((items: readonly VrchatFriend[]) => readonly Observation[]) =>
-  observationsOf("followed")({
-    subjectOf: ({ id, displayName }: VrchatFriend) => ({
-      ...personOf({ id, name: displayName }),
-      credits: [],
-      tags: [],
-    }),
-    occurredAtOf: () => fetchedAt,
-  });
+export const friendObservationsOf = followedCreatorsAt(({ id, displayName }: VrchatFriend) =>
+  personOf({ id, name: displayName }),
+);
