@@ -1,63 +1,23 @@
-import { Array as Arr, Clock, Effect, Match, Option, Record as Rec, Schema, pipe } from "effect";
+import { Array as Arr, Clock, Effect, Match, Option, Schema, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
-import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { observationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
-import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
 
-import { API, FIELD, LIMIT } from "./api";
+import { accountOf, methodUrl, nextOf } from "./methods";
+import type { Account } from "./methods";
 import { Cursor, LovedTracks, RecentTracks } from "./schemas";
-import type { LastfmTrack, LastfmTrackPage } from "./schemas";
-import { trackOf, tracksOf } from "./subjects";
+import type { LastfmTrack } from "./schemas";
+import { trackOf } from "./subjects";
 
 const CursorJson = Schema.fromJsonString(Cursor);
 const decodeCursor = Schema.decodeUnknownOption(CursorJson);
 const encodeCursor = Schema.encodeEffect(CursorJson);
 const MS_PER_SECOND = 1000;
 const NEXT_PAGE = 1;
-
-type Account = Readonly<{ user: string; apiKey: string }>;
-
-const accountOf = (credential: PullInput["credential"]): Effect.Effect<Account, ProviderError> =>
-  requireFields(credential, { user: FIELD.user, apiKey: FIELD.apiKey });
-
-const methodUrl = ({
-  account,
-  method,
-  params,
-}: Readonly<{
-  account: Account;
-  method: string;
-  params: Readonly<Record<string, string>>;
-}>): string => {
-  const url = new URL(API);
-  const query = { ...params, method, user: account.user, api_key: account.apiKey };
-  for (const [name, value] of Rec.toEntries(query)) {
-    url.searchParams.set(name, value);
-  }
-  url.searchParams.set("format", "json");
-  url.searchParams.set("limit", String(LIMIT));
-  return url.toString();
-};
-
-const nextOf =
-  (url: string) =>
-  (page: LastfmTrackPage): Page<LastfmTrack> => ({
-    items: tracksOf(page.track),
-    next: pipe(
-      Option.some(page["@attr"]),
-      Option.filter(({ page: current, totalPages }) => current < totalPages),
-      Option.map(({ page: current }) => {
-        const next = new URL(url);
-        next.searchParams.set("page", String(current + NEXT_PAGE));
-        return next.toString();
-      }),
-    ),
-  });
 
 const scrobbledAt = (track: LastfmTrack): Option.Option<number> =>
   pipe(

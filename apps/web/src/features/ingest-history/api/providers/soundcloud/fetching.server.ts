@@ -6,6 +6,7 @@ import { requireFields } from "#/features/ingest-history/api/providers/credentia
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { pageOf } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
+import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, FIELD, LIMIT } from "./api";
@@ -36,11 +37,8 @@ export const firstUrlOf = (path: string): string =>
 
 const withClientId =
   (clientId: string) =>
-  (url: string): string => {
-    const signed = new URL(url);
-    signed.searchParams.set("client_id", clientId);
-    return signed.toString();
-  };
+  (url: string): string =>
+    urlWith(url, { client_id: clientId });
 
 export const fetchFrom = <Body extends Schema.Top>({
   session: { headers, clientId },
