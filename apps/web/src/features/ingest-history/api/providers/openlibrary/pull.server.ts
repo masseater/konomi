@@ -2,6 +2,7 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
+import { flatMapEach } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
@@ -50,13 +51,8 @@ export const pullOpenlibrary = pullOf({
       const name = yield* requireField(credential, FIELD.user);
       const user = encodeURIComponent(name);
       const read = shelfOf({ user, pages: pages });
-      const observed = yield* pipe(
-        SHELVES,
-        Arr.map(({ shelf, kind, context }) =>
-          read(shelf).pipe(Effect.map(shelfObservationsOf({ kind, context, fetchedAt }))),
-        ),
-        Effect.all,
+      return yield* flatMapEach(SHELVES, ({ shelf, kind, context }) =>
+        read(shelf).pipe(Effect.map(shelfObservationsOf({ kind, context, fetchedAt }))),
       );
-      return Arr.flatten(observed);
     }),
 });

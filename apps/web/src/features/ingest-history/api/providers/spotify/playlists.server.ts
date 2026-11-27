@@ -2,13 +2,17 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { epochOr, observeAt } from "#/features/ingest-history/api/providers/observe";
+import {
+  epochOr,
+  flatMapEach,
+  observeAt,
+  pageOf,
+} from "#/features/ingest-history/api/providers/observe";
 import type { Fetching } from "#/features/ingest-history/api/providers/observe";
-import { pagesFor } from "#/features/ingest-history/api/providers/paging.server";
+import { pagesFor, collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, LIMIT } from "./api";
-import { collectOffsetPages } from "./page";
 import { Me, PlaylistItems, Playlists } from "./schemas";
 import type { SpotifyPlaylistEntry } from "./schemas";
 import { trackOf } from "./subjects";
@@ -25,11 +29,12 @@ const pullPlaylist = (
   { id, name }: Readonly<{ id: string; name: string }>,
 ): Effect.Effect<readonly Observation[], ProviderError> =>
   Effect.gen(function* playlist() {
-    const entries = yield* collectOffsetPages({
+    const entries = yield* collectJsonPages({
       first: `${API}/playlists/${id}/items?limit=${LIMIT}`,
       headers,
       pages: pagesFor(false),
       schema: PlaylistItems,
+      pageOf,
     });
     const collected = observeAt({
       kind: "collected",
@@ -48,18 +53,16 @@ export const pullPlaylists = (
 ): Effect.Effect<readonly Observation[], ProviderError> =>
   Effect.gen(function* playlists() {
     const me = yield* fetchJson({ url: `${API}/me`, headers: fetching.headers, schema: Me });
-    const owned = yield* collectOffsetPages({
+    const owned = yield* collectJsonPages({
       first: `${API}/me/playlists?limit=${LIMIT}`,
       headers: fetching.headers,
       pages: pagesFor(false),
       schema: Playlists,
+      pageOf,
     });
     const mine = pipe(
       owned,
       Arr.filter(({ owner }) => owner.id === me.id),
     );
-    const lists = yield* Effect.forEach(mine, (found) => pullPlaylist(fetching, found), {
-      concurrency: 1,
-    });
-    return Arr.flatten(lists);
+    return yield* flatMapEach(mine, (found) => pullPlaylist(fetching, found));
   });

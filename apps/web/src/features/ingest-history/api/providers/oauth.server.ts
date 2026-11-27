@@ -51,10 +51,14 @@ const basicAuthOf = (credential: Credential): Effect.Effect<string, ProviderErro
     ),
   );
 
-const withTokens = (credential: Credential, tokens: typeof TokenResponse.Type): Credential => ({
+export const withTokens = (
+  credential: Credential,
+  tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
+  transient: readonly string[],
+): Credential => ({
   method: credential.method,
   fields: {
-    ...Rec.remove(credential.fields, OAUTH_FIELD.state),
+    ...Arr.reduce(transient, credential.fields, (fields, key) => Rec.remove(fields, key)),
     [OAUTH_FIELD.accessToken]: tokens.access_token,
     ...pipe(
       Option.fromUndefinedOr(tokens.refresh_token),
@@ -98,7 +102,7 @@ const requestTokens = (
         schema: TokenResponse,
       }),
     ),
-    Effect.map((tokens) => withTokens(credential, tokens)),
+    Effect.map((tokens) => withTokens(credential, tokens, [OAUTH_FIELD.state])),
   );
 
 export const refreshAccess =

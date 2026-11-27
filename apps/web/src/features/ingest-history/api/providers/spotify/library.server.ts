@@ -9,11 +9,13 @@ import {
   followedBy,
 } from "#/features/ingest-history/api/providers/observe";
 import type { Fetching } from "#/features/ingest-history/api/providers/observe";
-import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
+import {
+  collectPages,
+  collectJsonPages,
+} from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, LIMIT } from "./api";
-import { collectOffsetPages } from "./page";
 import { FollowedArtists, RecentlyPlayed, SavedTracks } from "./schemas";
 import { followedArtistOf, trackOf } from "./subjects";
 
@@ -47,11 +49,12 @@ export const pullSaved = ({
   pages,
 }: Fetching & Readonly<{ pages: number }>): Effect.Effect<readonly Observation[], ProviderError> =>
   Effect.gen(function* saved() {
-    const items = yield* collectOffsetPages({
+    const items = yield* collectJsonPages({
       first: `${API}/me/tracks?limit=${LIMIT}`,
       headers,
       pages,
       schema: SavedTracks,
+      pageOf,
     });
     const endorsed = observeAt({
       kind: "endorsed",

@@ -1,7 +1,7 @@
 import { Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { withRelations } from "#/features/ingest-history/api/providers/observe";
+import { withRelations, personInputOf } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
@@ -15,17 +15,16 @@ const accountOf =
       Option.map((host) => `${user.username}@${host}`),
       Option.getOrElse(() => user.username),
     );
-    return {
+    return personInputOf({
       provider: "misskey",
       externalId: `${origin}/users/${user.id}`,
-      type: "person",
       title: pipe(
         Option.fromNullishOr(user.name),
         Option.filter(Str.isNonEmpty),
         Option.getOrElse(() => acct),
       ),
       url: `${origin}/@${acct}`,
-    };
+    });
   };
 
 export const followedOf =

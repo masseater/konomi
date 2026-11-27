@@ -4,13 +4,12 @@ import {
   refreshAuthorization,
   startAuthorization,
 } from "@modelcontextprotocol/client";
-import type { OAuthTokens } from "@modelcontextprotocol/client";
-import { Array as Arr, Effect, Match, Option, Record as Rec, Schema, pipe } from "effect";
+import { Array as Arr, Effect, Match, Option, Schema, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import { fieldOf, requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
-import { OAUTH_FIELD } from "#/features/ingest-history/api/providers/oauth.server";
+import { OAUTH_FIELD, withTokens } from "#/features/ingest-history/api/providers/oauth.server";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type {
   Authorization,
@@ -123,20 +122,6 @@ export const startDiscovered = ({
     };
   }).pipe(Effect.withSpan("oauth.discovered.start"));
 
-const withTokens = (credential: Credential, tokens: OAuthTokens): Credential => ({
-  method: credential.method,
-  fields: {
-    ...pipe(credential.fields, Rec.remove(OAUTH_FIELD.state), Rec.remove(VERIFIER_FIELD)),
-    [OAUTH_FIELD.accessToken]: tokens.access_token,
-    ...pipe(
-      Option.fromUndefinedOr(tokens.refresh_token),
-      Option.orElse(() => fieldOf(credential, OAUTH_FIELD.refreshToken)),
-      Option.map((refreshToken) => ({ [OAUTH_FIELD.refreshToken]: refreshToken })),
-      Option.getOrElse(() => ({})),
-    ),
-  },
-});
-
 export const finishDiscovered = ({
   discovery,
   credential,
@@ -162,7 +147,7 @@ export const finishDiscovered = ({
         }),
       catch: unavailable("トークンの受け取り"),
     });
-    return withTokens(credential, tokens);
+    return withTokens(credential, tokens, [OAUTH_FIELD.state, VERIFIER_FIELD]);
   }).pipe(Effect.withSpan("oauth.discovered.finish"));
 
 export const refreshDiscovered =
@@ -180,5 +165,5 @@ export const refreshDiscovered =
           }),
         catch: unavailable("トークンの更新"),
       });
-      return withTokens(credential, tokens);
+      return withTokens(credential, tokens, [OAUTH_FIELD.state, VERIFIER_FIELD]);
     }).pipe(Effect.withSpan("oauth.discovered.refresh"));

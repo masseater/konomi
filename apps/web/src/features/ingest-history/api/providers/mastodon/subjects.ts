@@ -1,23 +1,23 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { withRelations } from "#/features/ingest-history/api/providers/observe";
+import { withRelations, personInputOf } from "#/features/ingest-history/api/providers/observe";
 import { plainTextOf, postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
 import type { MastodonAccount, MastodonStatus, MastodonTag } from "./schemas";
 
-const accountOf = (account: MastodonAccount): CreatorInput => ({
-  provider: "mastodon",
-  externalId: account.url,
-  type: "person",
-  title: pipe(
-    Option.fromNullishOr(account.display_name),
-    Option.filter(Str.isNonEmpty),
-    Option.getOrElse(() => account.acct),
-  ),
-  url: account.url,
-});
+const accountOf = (account: MastodonAccount): CreatorInput =>
+  personInputOf({
+    provider: "mastodon",
+    externalId: account.url,
+    title: pipe(
+      Option.fromNullishOr(account.display_name),
+      Option.filter(Str.isNonEmpty),
+      Option.getOrElse(() => account.acct),
+    ),
+    url: account.url,
+  });
 
 export const followedOf = (account: MastodonAccount): SubjectInput =>
   withRelations({ credits: [], tags: [] })(accountOf(account));

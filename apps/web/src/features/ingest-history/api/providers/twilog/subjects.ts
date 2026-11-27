@@ -1,7 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, ListingKind, Observation, SubjectInput } from "#/entities/signal";
-import { epochOr } from "#/features/ingest-history/api/providers/observe";
+import { epochOr, personInputOf } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
@@ -9,17 +9,17 @@ import type { TwilogLog } from "./schemas";
 
 const X_ORIGIN = "https://x.com";
 
-const authorOf = (log: TwilogLog): CreatorInput => ({
-  provider: "twilog",
-  externalId: `@${log.authorId}`,
-  type: "person",
-  title: pipe(
-    Option.fromNullishOr(log.authorName),
-    Option.filter(Str.isNonEmpty),
-    Option.getOrElse(() => log.authorId),
-  ),
-  url: `${X_ORIGIN}/${log.authorId}`,
-});
+const authorOf = (log: TwilogLog): CreatorInput =>
+  personInputOf({
+    provider: "twilog",
+    externalId: `@${log.authorId}`,
+    title: pipe(
+      Option.fromNullishOr(log.authorName),
+      Option.filter(Str.isNonEmpty),
+      Option.getOrElse(() => log.authorId),
+    ),
+    url: `${X_ORIGIN}/${log.authorId}`,
+  });
 
 const postOf = (log: TwilogLog): SubjectInput => ({
   provider: "twilog",

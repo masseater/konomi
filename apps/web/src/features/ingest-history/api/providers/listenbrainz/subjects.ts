@@ -1,6 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import { personInputOf } from "#/features/ingest-history/api/providers/observe";
 import { durationFromMs } from "#/features/ingest-history/api/providers/subject-fields";
 
 import { MUSICBRAINZ } from "./api";
@@ -11,25 +12,24 @@ const MS_PER_SECOND = 1000;
 const mappedArtistOf = ({
   artist_credit_name: title,
   artist_mbid: mbid,
-}: Readonly<{ artist_credit_name: string; artist_mbid: string }>): CreatorInput => ({
-  provider: "listenbrainz",
-  externalId: `artist:${mbid}`,
-  type: "person",
-  title,
-  url: `${MUSICBRAINZ}/artist/${mbid}`,
-});
+}: Readonly<{ artist_credit_name: string; artist_mbid: string }>): CreatorInput =>
+  personInputOf({
+    provider: "listenbrainz",
+    externalId: `artist:${mbid}`,
+    title,
+    url: `${MUSICBRAINZ}/artist/${mbid}`,
+  });
 
 const namedArtistOf = (name: string): CreatorInput => {
   const url = new URL(`${MUSICBRAINZ}/search`);
   url.searchParams.set("query", name);
   url.searchParams.set("type", "artist");
-  return {
+  return personInputOf({
     provider: "listenbrainz",
     externalId: `artist-name:${name}`,
-    type: "person",
     title: name,
     url: url.toString(),
-  };
+  });
 };
 
 const artistsOf = (track: ListenBrainzTrack): readonly CreatorInput[] =>

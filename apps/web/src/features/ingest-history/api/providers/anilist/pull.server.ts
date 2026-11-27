@@ -2,6 +2,7 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
+import { flatMapEach } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
@@ -56,8 +57,8 @@ export const pullAniList = pullOf({
     Effect.gen(function* anilist() {
       const user = yield* requireField(credential, FIELD.user);
       const pull = pullList({ user, pages: pages });
-      const lists = yield* pipe(MEDIA_TYPES, Arr.map(pull), Effect.all);
+      const entries = yield* flatMapEach(MEDIA_TYPES, pull);
       const observe = entryObservationsOf(fetchedAt);
-      return pipe(lists, Arr.flatten, Arr.flatMap(observe));
+      return Arr.flatMap(entries, observe);
     }),
 });

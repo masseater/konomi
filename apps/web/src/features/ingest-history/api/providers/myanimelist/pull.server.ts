@@ -4,6 +4,7 @@ import type { Observation } from "#/entities/signal";
 import { userClientOf } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
+import { flatMapEach } from "#/features/ingest-history/api/providers/observe";
 import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
@@ -49,9 +50,6 @@ export const pullMyAnimeList = pullOf({
         pages: pages,
         fetchedAt,
       });
-      const lists = yield* pipe(LISTS, Arr.map(pull), (pulls) =>
-        Effect.all(pulls, { concurrency: 1 }),
-      );
-      return Arr.flatten(lists);
+      return yield* flatMapEach(LISTS, pull);
     }),
 });

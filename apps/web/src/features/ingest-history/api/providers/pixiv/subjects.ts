@@ -2,7 +2,7 @@ import type { PixivUser } from "@book000/pixivts";
 import { Array as Arr, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
-import { followedBy } from "#/features/ingest-history/api/providers/observe";
+import { followedBy, personInputOf } from "#/features/ingest-history/api/providers/observe";
 
 import { WEB } from "./api";
 
@@ -15,13 +15,13 @@ export type Work = Readonly<{
   createDate: string;
 }>;
 
-const creatorOf = ({ id, name }: User): CreatorInput => ({
-  provider: "pixiv",
-  externalId: `user:${id}`,
-  type: "person",
-  title: name,
-  url: `${WEB}/users/${id}`,
-});
+const creatorOf = ({ id, name }: User): CreatorInput =>
+  personInputOf({
+    provider: "pixiv",
+    externalId: `user:${id}`,
+    title: name,
+    url: `${WEB}/users/${id}`,
+  });
 
 const workOf =
   ({ kind, url }: Readonly<{ kind: "artwork" | "book"; url: (id: number) => string }>) =>

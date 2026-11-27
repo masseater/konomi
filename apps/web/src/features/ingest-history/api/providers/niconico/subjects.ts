@@ -1,6 +1,7 @@
 import { Array as Arr, DateTime, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
+import { personInputOf } from "#/features/ingest-history/api/providers/observe";
 
 import type { VideoEntry } from "./schemas";
 
@@ -11,13 +12,13 @@ const CHANNEL_URL = "https://ch.nicovideo.jp/";
 const epochMillisOf = (text: string): Option.Option<number> =>
   pipe(DateTime.make(text), Option.map(DateTime.toEpochMillis));
 
-export const personOf = ({ id, name }: Readonly<{ id: string; name: string }>): CreatorInput => ({
-  provider: "niconico",
-  externalId: id,
-  type: "person",
-  title: name,
-  url: `${USER_URL}${id}`,
-});
+export const personOf = ({ id, name }: Readonly<{ id: string; name: string }>): CreatorInput =>
+  personInputOf({
+    provider: "niconico",
+    externalId: id,
+    title: name,
+    url: `${USER_URL}${id}`,
+  });
 
 const channelOf = ({ id, name }: Readonly<{ id: string; name: string }>): CreatorInput => ({
   provider: "niconico",

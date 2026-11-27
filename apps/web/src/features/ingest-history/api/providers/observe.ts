@@ -1,7 +1,8 @@
-import { Array as Arr, Option, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 import type { SignalKind } from "#/shared/config";
 
 export type Fetching = Readonly<{ headers: Readonly<Record<string, string>>; fetchedAt: number }>;
@@ -56,6 +57,18 @@ export const observeAt =
       Option.map((found) => observed({ kind, context })([found, at(occurredAt)])),
     );
 
+export const personInputOf = ({
+  provider,
+  externalId,
+  title,
+  url,
+}: Readonly<{
+  provider: CreatorInput["provider"];
+  externalId: string;
+  title: string;
+  url: string;
+}>): CreatorInput => ({ provider, externalId, type: "person", title, url });
+
 export const withRelations =
   (relations: Pick<SubjectInput, "credits" | "tags">) =>
   (creator: CreatorInput): SubjectInput => ({ ...creator, ...relations });
@@ -85,3 +98,9 @@ export const followedBy =
         occurredAtMs: occurredAtOf(item),
       })),
     );
+
+export const flatMapEach = <Item, Out>(
+  items: readonly Item[],
+  pull: (item: Item) => Effect.Effect<readonly Out[], ProviderError>,
+): Effect.Effect<readonly Out[], ProviderError> =>
+  Effect.forEach(items, pull, { concurrency: 1 }).pipe(Effect.map(Arr.flatten));
