@@ -3,12 +3,11 @@ import { Array as Arr, Clock, Effect, pipe } from "effect";
 
 import { BACKFILLED, pagesOf } from "#/features/ingest-history/api/providers/backfill-cursor";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
-import { flatMapEach } from "#/features/ingest-history/api/providers/observe";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
 
 import { FIELD } from "./api";
-import { collectListing } from "./listing.server";
+import { collectRestricted } from "./listing.server";
 import { followObservationsOf, illustObservationsOf, novelObservationsOf } from "./subjects";
 
 const RESTRICTS = [BookmarkRestrict.PUBLIC, BookmarkRestrict.PRIVATE] as const;
@@ -29,33 +28,30 @@ export const pullPixiv = ({
     const refreshToken = yield* requireField(credential, FIELD.refreshToken);
     const client = yield* clientOf(refreshToken);
     const fetchedAt = yield* Clock.currentTimeMillis;
-    const collect = collectListing(pagesOf(cursor));
+    const collect = collectRestricted(pagesOf(cursor));
     const { userId, users: lists } = client;
-    const illusts = yield* flatMapEach(RESTRICTS, (restrict) =>
-      collect({
-        name: `illust-bookmarks-${restrict}`,
-        list: (page) => lists.bookmarks.illusts({ ...page, userId, restrict }),
-        itemsOf: ({ illusts: items }) => items,
-      }),
-    );
-    const novels = yield* flatMapEach(RESTRICTS, (restrict) =>
-      collect({
-        name: `novel-bookmarks-${restrict}`,
-        list: (page) => lists.bookmarks.novels({ ...page, userId, restrict }),
-        itemsOf: ({ novels: items }) => items,
-      }),
-    );
-    const users = yield* flatMapEach(FOLLOW_RESTRICTS, (restrict) =>
-      collect({
-        name: `following-${restrict}`,
-        list: (page) => lists.following({ ...page, userId, restrict }),
-        itemsOf: ({ userPreviews }) =>
-          pipe(
-            userPreviews,
-            Arr.map(({ user }) => user),
-          ),
-      }),
-    );
+    const illusts = yield* collect({
+      prefix: "illust-bookmarks",
+      restricts: RESTRICTS,
+      list: (page, restrict) => lists.bookmarks.illusts({ ...page, userId, restrict }),
+      itemsOf: ({ illusts: items }) => items,
+    });
+    const novels = yield* collect({
+      prefix: "novel-bookmarks",
+      restricts: RESTRICTS,
+      list: (page, restrict) => lists.bookmarks.novels({ ...page, userId, restrict }),
+      itemsOf: ({ novels: items }) => items,
+    });
+    const users = yield* collect({
+      prefix: "following",
+      restricts: FOLLOW_RESTRICTS,
+      list: (page, restrict) => lists.following({ ...page, userId, restrict }),
+      itemsOf: ({ userPreviews }) =>
+        pipe(
+          userPreviews,
+          Arr.map(({ user }) => user),
+        ),
+    });
     return {
       observations: [
         ...illustObservationsOf(fetchedAt)(illusts),
