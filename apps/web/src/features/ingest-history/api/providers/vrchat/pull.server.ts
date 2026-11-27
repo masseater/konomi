@@ -11,10 +11,11 @@ import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import { API, FIELD, HEADERS, LIMIT } from "./api";
 import { Friends, Works } from "./schemas";
 import { favoriteObservationsOf, friendObservationsOf } from "./subjects";
+import type { WorkKind } from "./subjects";
 
 const NUMBERING = { param: "offset", limit: LIMIT, start: 0, step: LIMIT } as const;
 
-const favorites = (kind: "world" | "avatar"): Listing =>
+const favorites = (kind: WorkKind): Listing =>
   numberedListing({
     label: `${kind}-favorites`,
     base: `${API}/${kind}s/favorites?n=${LIMIT}`,
