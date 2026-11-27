@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 
 import type { Credential } from "#/entities/connection";
+import { withFields } from "#/features/ingest-history/api/providers/credential-field";
 import type { Provider, ProviderError } from "#/features/ingest-history/model/provider";
 
 import { FIELD } from "./api";
@@ -9,10 +10,7 @@ import { pullSoundcloud } from "./pull.server";
 
 const renewClientId = (credential: Credential): Effect.Effect<Credential, ProviderError> =>
   scrapeClientId.pipe(
-    Effect.map((clientId) => ({
-      method: credential.method,
-      fields: { ...credential.fields, [FIELD.clientId]: clientId },
-    })),
+    Effect.map((clientId) => withFields(credential, { [FIELD.clientId]: clientId })),
   );
 
 export const soundcloud: Provider = {

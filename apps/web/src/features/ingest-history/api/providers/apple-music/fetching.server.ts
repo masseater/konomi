@@ -4,6 +4,7 @@ import type { Credential } from "#/entities/connection";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
+import { bearerOf } from "#/features/ingest-history/api/providers/oauth.server";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
@@ -23,7 +24,7 @@ export const headersOf = (credential: Credential): Effect.Effect<Headers, Provid
     { concurrency: 1 },
   ).pipe(
     Effect.map(({ developerToken, userToken }) => ({
-      Authorization: `Bearer ${developerToken}`,
+      ...bearerOf(developerToken),
       "Music-User-Token": userToken,
     })),
   );

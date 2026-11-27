@@ -1,13 +1,4 @@
-import {
-  Array as Arr,
-  Effect,
-  Function as Fn,
-  Match,
-  Option,
-  Record as Rec,
-  Schema,
-  pipe,
-} from "effect";
+import { Array as Arr, Effect, Function as Fn, Match, Option, Schema, pipe } from "effect";
 import { Base64, Hex } from "effect/encoding";
 
 import type { Credential } from "#/entities/connection";
@@ -15,7 +6,13 @@ import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 import type { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { Authorization, ProviderError } from "#/features/ingest-history/model/provider";
 
-import { fieldOf, requireField, requireFields } from "./credential-field";
+import {
+  fieldOf,
+  requireField,
+  requireFields,
+  withFields,
+  withoutFields,
+} from "./credential-field";
 import { postForm } from "./http.server";
 
 export const OAUTH_FIELD = {
@@ -57,35 +54,34 @@ const basicAuthOf = (credential: Credential): Effect.Effect<string, ProviderErro
 
 const THREE = 3;
 
+export type Tokens = Readonly<{ access_token: string; refresh_token?: string | undefined }>;
+
+const tokenFieldsOf = ({
+  access_token: accessToken,
+  refresh_token: refreshToken,
+}: Tokens): Record<string, string> => ({
+  [OAUTH_FIELD.accessToken]: accessToken,
+  ...pipe(
+    Option.fromUndefinedOr(refreshToken),
+    Option.map((token) => ({ [OAUTH_FIELD.refreshToken]: token })),
+    Option.getOrElse(() => ({})),
+  ),
+});
+
 export const withTokens: {
-  (
-    tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
-    transient: readonly string[],
-  ): (credential: Credential) => Credential;
-  (
-    credential: Credential,
-    tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
-    transient: readonly string[],
-  ): Credential;
+  (tokens: Tokens, transient: readonly string[]): (credential: Credential) => Credential;
+  (credential: Credential, tokens: Tokens, transient: readonly string[]): Credential;
 } = Fn.dual(
   THREE,
-  (
-    credential: Credential,
-    tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
-    transient: readonly string[],
-  ): Credential => ({
-    method: credential.method,
-    fields: {
-      ...Arr.reduce(transient, credential.fields, (fields, key) => Rec.remove(fields, key)),
-      [OAUTH_FIELD.accessToken]: tokens.access_token,
-      ...pipe(
-        Option.fromUndefinedOr(tokens.refresh_token),
-        Option.map((refreshToken) => ({ [OAUTH_FIELD.refreshToken]: refreshToken })),
-        Option.getOrElse(() => ({})),
-      ),
-    },
-  }),
+  (credential: Credential, tokens: Tokens, transient: readonly string[]): Credential =>
+    pipe(credential, withoutFields(transient), withFields(tokenFieldsOf(tokens))),
 );
+
+export type Authorizing = Readonly<{ authorization: Authorization; credential: Credential }>;
+
+export type Redirecting = Readonly<{ credential: Credential; redirectUri: string }>;
+
+export type Exchanging = Redirecting & Readonly<{ code: string }>;
 
 type TokenRequest = Readonly<{
   headers: Readonly<Record<string, string>>;
@@ -142,12 +138,7 @@ export const exchangeCode = ({
   credential,
   code,
   redirectUri,
-}: Readonly<{
-  authorization: Authorization;
-  credential: Credential;
-  code: string;
-  redirectUri: string;
-}>): Effect.Effect<Credential, ProviderError> =>
+}: Authorizing & Exchanging): Effect.Effect<Credential, ProviderError> =>
   requestTokens(authorization, credential, {
     grant_type: "authorization_code",
     code,
@@ -177,12 +168,14 @@ export const authorizeUrlOf = ({
     state,
   });
 
+export const bearerOf = (token: string): Readonly<Record<string, string>> => ({
+  Authorization: `Bearer ${token}`,
+});
+
 export const bearerHeadersOf = (
   credential: Credential,
 ): Effect.Effect<Readonly<Record<string, string>>, ProviderError> =>
-  requireField(credential, OAUTH_FIELD.accessToken).pipe(
-    Effect.map((token) => ({ Authorization: `Bearer ${token}` })),
-  );
+  requireField(credential, OAUTH_FIELD.accessToken).pipe(Effect.map(bearerOf));
 
 export const stateMatches: {
   (state: string): (credential: Credential) => boolean;

@@ -2,18 +2,15 @@ import { Effect, Option, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import { replaceCredential } from "#/entities/connection/index.server";
-import type {
-  Authorization,
-  Discovery,
-  ProviderError,
-} from "#/features/ingest-history/model/provider";
+import type { Discovery, ProviderError } from "#/features/ingest-history/model/provider";
 import type { ProviderId } from "#/shared/config";
 
-import { requireField } from "./providers/credential-field";
+import { requireField, withFields } from "./providers/credential-field";
 import { finishDiscovered, startDiscovered } from "./providers/discovered-oauth.server";
 import { OAUTH_FIELD, authorizeUrlOf, exchangeCode, newState } from "./providers/oauth.server";
+import type { Authorizing, Exchanging, Redirecting } from "./providers/oauth.server";
 
-export type Authorizing = Readonly<{ authorization: Authorization; credential: Credential }>;
+export type Starting = Authorizing & Redirecting & Readonly<{ provider: ProviderId }>;
 
 type Started = Readonly<{ url: string; credential: Credential }>;
 
@@ -35,20 +32,14 @@ export const startByEndpoints = ({
   authorization,
   credential,
   redirectUri,
-}: Authorizing & Readonly<{ provider: ProviderId; redirectUri: string }>): Effect.Effect<
-  string,
-  ProviderError
-> =>
+}: Starting): Effect.Effect<string, ProviderError> =>
   startedWith({
     provider,
     begin: (state) =>
       requireField(credential, OAUTH_FIELD.clientId).pipe(
         Effect.map((clientId): Started => ({
           url: authorizeUrlOf({ authorization, clientId, redirectUri, state }),
-          credential: {
-            method: credential.method,
-            fields: { ...credential.fields, [OAUTH_FIELD.state]: state },
-          },
+          credential: withFields(credential, { [OAUTH_FIELD.state]: state }),
         })),
       ),
   });
@@ -59,11 +50,7 @@ export const startByDiscovery = ({
   credential,
   discovery,
   redirectUri,
-}: Authorizing &
-  Readonly<{ provider: ProviderId; redirectUri: string; discovery: Discovery }>): Effect.Effect<
-  string,
-  ProviderError
-> =>
+}: Starting & Readonly<{ discovery: Discovery }>): Effect.Effect<string, ProviderError> =>
   startedWith({
     provider,
     begin: (state) => startDiscovered({ authorization, discovery, credential, redirectUri, state }),
@@ -74,10 +61,7 @@ export const exchangeFor = ({
   credential,
   code,
   redirectUri,
-}: Authorizing & Readonly<{ code: string; redirectUri: string }>): Effect.Effect<
-  Credential,
-  ProviderError
-> =>
+}: Authorizing & Exchanging): Effect.Effect<Credential, ProviderError> =>
   pipe(
     Option.fromUndefinedOr(authorization.discovery),
     Option.match({
