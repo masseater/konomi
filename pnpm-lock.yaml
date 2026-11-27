@@ -311,8 +311,8 @@ catalogs:
       specifier: 1.8.1
       version: 1.8.1
     renovate:
-      specifier: 44.260.0
-      version: 44.260.0
+      specifier: 44.260.1
+      version: 44.260.1
     tailwindcss:
       specifier: 4.3.5
       version: 4.3.5
@@ -369,7 +369,7 @@ importers:
         version: 3.48.0
       renovate:
         specifier: catalog:stack
-        version: 44.260.0(supports-color@8.1.1)(typanion@3.14.0)
+        version: 44.260.1(supports-color@8.1.1)(typanion@3.14.0)
       vite-plus:
         specifier: catalog:stack
         version: 1.8.0(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(@vitest/ui@5.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.51.2)(typescript@7.1.0-beta)(yaml@2.9.1)
@@ -1265,15 +1265,6 @@ packages:
   '@commitlint/types@21.2.3':
     resolution: {integrity: sha512-sGEA473TlCvhCGNoTBY9OXZVWdscIXdGt0dm8EpB+2MRfmt8LNh/X56P/T3nCtEB+eH5qGEa3odphSAoUxSfSQ==}
     engines: {node: '>=22.12.0'}
-
-  '@containerbase/base@14.68.3':
-    resolution: {integrity: sha512-PiUE8GjftYvVZ1z+XEhGCDestdOFnpzTk8EQ3wdrH4BvpJ4kXMTsqG4BUIwi1ui9dBDFOq5ICESFNy5PA555NA==}
-    engines: {node: '>=24.10.0'}
-    peerDependencies:
-      zod: ^4.0.0
-    peerDependenciesMeta:
-      zod:
-        optional: true
 
   '@containerbase/base@14.69.0':
     resolution: {integrity: sha512-m+DFun6PKfMABNOIVH4NejCNCE7SyR7gKW793qwsY5DklNhBl5cZkU8pTV8gI/+hprJdy5ajMkHqfbu+QAcn/w==}
@@ -9149,8 +9140,8 @@ packages:
   remove-accents@0.5.0:
     resolution: {integrity: sha512-8g3/Otx1eJaVD12e31UbJj1YzdtVvzH85HV7t+9MJYk/u3XmkOUJ5Ys9wQrf9PCPK8+xn4ymzqYCiZl6QWKn+A==}
 
-  renovate@44.260.0:
-    resolution: {integrity: sha512-n3PZvn7Iyv34xnzuud34WmXDmii5kJu+oGQaqI5jK8aJQqUAQ4GRMmpxUORxdEox9OFC4asJVKqBgRvG63PeIw==}
+  renovate@44.260.1:
+    resolution: {integrity: sha512-KxW1KxjwHLjj+hJ6nUr61FOJgzbQXjR4CLpecv5uBppwYMD0qG2DXnyM4+QdTWNnjUbuLgaCnYJ4fzXkeUcCAQ==}
     engines: {node: ^24.11.0 || ^26.13.0, pnpm: ^11.0.0}
     hasBin: true
 
@@ -11219,12 +11210,6 @@ snapshots:
     dependencies:
       conventional-commits-parser: 7.1.2
       picocolors: 1.1.1
-
-  '@containerbase/base@14.68.3(zod@4.6.7)':
-    dependencies:
-      semver: 7.8.6
-    optionalDependencies:
-      zod: 4.6.7
 
   '@containerbase/base@14.69.0(zod@4.6.7)':
     dependencies:
@@ -14024,7 +14009,7 @@ snapshots:
 
   '@renovatebot/osv-offline-db@4.5.10(supports-color@8.1.1)(zod@4.6.7)':
     dependencies:
-      '@containerbase/base': 14.68.3(zod@4.6.7)
+      '@containerbase/base': 14.69.0(zod@4.6.7)
       debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
@@ -19384,7 +19369,7 @@ snapshots:
 
   remove-accents@0.5.0: {}
 
-  renovate@44.260.0(supports-color@8.1.1)(typanion@3.14.0):
+  renovate@44.260.1(supports-color@8.1.1)(typanion@3.14.0):
     dependencies:
       '@aws-sdk/client-codecommit': 3.1139.0
       '@aws-sdk/client-ec2': 3.1139.0
