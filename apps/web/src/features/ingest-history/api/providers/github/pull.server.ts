@@ -7,10 +7,10 @@ import {
 } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { API, FIELD, LIMIT } from "./api";
-import { headersOf } from "./headers";
-import { Accounts, Stars } from "./schemas";
-import { followObservationsOf, starObservationsOf } from "./subjects";
+import { API, FIELD, LIMIT } from "./api.ts";
+import { headersOf } from "./headers.ts";
+import { Accounts, Stars } from "./schemas.ts";
+import { followObservationsOf, starObservationsOf } from "./subjects.ts";
 
 const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
 

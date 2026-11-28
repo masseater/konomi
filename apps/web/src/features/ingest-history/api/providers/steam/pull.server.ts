@@ -5,9 +5,9 @@ import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 
-import { API, FIELD } from "./api";
-import { OwnedGames } from "./schemas";
-import { gamesObservedAt } from "./subjects";
+import { API, FIELD } from "./api.ts";
+import { OwnedGames } from "./schemas.ts";
+import { gamesObservedAt } from "./subjects.ts";
 
 const ownedGamesUrl = ({
   apiKey,

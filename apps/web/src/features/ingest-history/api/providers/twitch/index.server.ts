@@ -1,7 +1,7 @@
 import { CLIENT_FIELDS, refreshAccess } from "#/features/ingest-history/api/providers/oauth.server";
 import type { Authorization, Provider } from "#/features/ingest-history/model/provider";
 
-import { pullTwitch } from "./pull.server";
+import { pullTwitch } from "./pull.server.ts";
 
 const AUTHORIZATION: Authorization = {
   authorizeUrl: "https://id.twitch.tv/oauth2/authorize",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { valuesNamed } from "./json-walk";
+import { valuesNamed } from "./json-walk.ts";
 
 describe("valuesNamed", () => {
   it("finds every value under the key in document order", () => {

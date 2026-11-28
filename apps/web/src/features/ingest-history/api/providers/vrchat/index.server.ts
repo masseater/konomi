@@ -2,8 +2,8 @@ import { Effect } from "effect";
 
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { pullVrchat } from "./pull.server";
+import { FIELD } from "./api.ts";
+import { pullVrchat } from "./pull.server.ts";
 
 export const vrchat: Provider = {
   id: "vrchat",

@@ -1,4 +1,4 @@
-export type { SyncOutcome } from "./api/store.server";
+export type { SyncOutcome } from "./api/store.server.ts";
 export {
   forgetConnection,
   listConnectionViews,
@@ -7,4 +7,4 @@ export {
   recordOutcome,
   replaceCredential,
   saveCredential,
-} from "./api/store.server";
+} from "./api/store.server.ts";

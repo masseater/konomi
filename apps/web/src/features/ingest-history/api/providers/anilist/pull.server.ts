@@ -8,9 +8,9 @@ import {
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { API, FIELD, LIMIT, MEDIA_TYPES } from "./api";
-import { MediaListPage, Query } from "./schemas";
-import { entryObservationsOf } from "./subjects";
+import { API, FIELD, LIMIT, MEDIA_TYPES } from "./api.ts";
+import { MediaListPage, Query } from "./schemas.ts";
+import { entryObservationsOf } from "./subjects.ts";
 
 const FIRST = 1;
 

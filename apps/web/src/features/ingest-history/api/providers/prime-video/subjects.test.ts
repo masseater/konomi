@@ -1,8 +1,8 @@
 import { Array as Arr, pipe } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import type { ViewingRow } from "./schemas";
-import { viewingObservationsOf } from "./subjects";
+import type { ViewingRow } from "./schemas.ts";
+import { viewingObservationsOf } from "./subjects.ts";
 
 const rowOf = (fields: Partial<ViewingRow>): ViewingRow => ({
   Title: "The Boys: Season 3: Episode 5",

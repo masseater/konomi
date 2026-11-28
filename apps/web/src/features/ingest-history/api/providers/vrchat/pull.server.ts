@@ -8,10 +8,10 @@ import {
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { API, FIELD, HEADERS, LIMIT } from "./api";
-import { Friends, Works } from "./schemas";
-import { favoriteObservationsOf, friendObservationsOf } from "./subjects";
-import type { WorkKind } from "./subjects";
+import { API, FIELD, HEADERS, LIMIT } from "./api.ts";
+import { Friends, Works } from "./schemas.ts";
+import { favoriteObservationsOf, friendObservationsOf } from "./subjects.ts";
+import type { WorkKind } from "./subjects.ts";
 
 const NUMBERING = { param: "offset", limit: LIMIT, start: 0, step: LIMIT } as const;
 

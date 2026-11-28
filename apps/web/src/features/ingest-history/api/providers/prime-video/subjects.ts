@@ -4,8 +4,8 @@ import type { Observation, SubjectInput } from "#/entities/signal";
 import { cellOf } from "#/features/ingest-history/api/providers/export-cell";
 import { splitTitleSubjectOf } from "#/features/ingest-history/api/providers/title-subject";
 
-import { MIN_WATCHED_SEC, NOT_VIEWING, STORE_SEARCH, VIEWING_COLUMN } from "./api";
-import type { HourlyViewingRow, SessionViewingRow, ViewingRow } from "./schemas";
+import { MIN_WATCHED_SEC, NOT_VIEWING, STORE_SEARCH, VIEWING_COLUMN } from "./api.ts";
+import type { HourlyViewingRow, SessionViewingRow, ViewingRow } from "./schemas.ts";
 
 const MS_PER_SECOND = 1000;
 const SEASON = /^(?:season|staffel|saison|temporada|シーズン)\s*\d+|^第\s*\d+\s*(?:期|シーズン)/iu;

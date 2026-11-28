@@ -3,10 +3,10 @@ import { Effect, Option, Schema, pipe } from "effect";
 import { IMPORT_ROWS_PER_REQUEST } from "#/features/ingest-history/model/import-limits";
 import type { ProviderId } from "#/shared/config";
 
-import { appleDeveloperToken, saveAppleUserToken } from "./apple-music.server";
-import { finishAuthorization, startAuthorization } from "./connect.server";
-import { importRows } from "./import.server";
-import type { ImportRequest } from "./import.server";
+import { appleDeveloperToken, saveAppleUserToken } from "./apple-music.server.ts";
+import { finishAuthorization, startAuthorization } from "./connect.server.ts";
+import { importRows } from "./import.server.ts";
+import type { ImportRequest } from "./import.server.ts";
 
 const BAD_REQUEST = 400;
 const FOUND = 302;

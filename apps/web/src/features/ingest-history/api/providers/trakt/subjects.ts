@@ -4,8 +4,8 @@ import type { SubjectInput } from "#/entities/signal";
 import { stampedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { subjectIn, textTagsOf } from "#/features/ingest-history/api/providers/subject-in";
 
-import { WEB } from "./api";
-import type { TraktEpisode, TraktRated, TraktWatched, TraktWork } from "./schemas";
+import { WEB } from "./api.ts";
+import type { TraktEpisode, TraktRated, TraktWatched, TraktWork } from "./schemas.ts";
 
 const LIKED_RATING = 8;
 

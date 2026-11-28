@@ -1,4 +1,4 @@
-export { db } from "./client.server";
+export { db } from "./client.server.ts";
 export {
   account,
   authRelations,
@@ -13,4 +13,4 @@ export {
   session,
   user,
   verification,
-} from "./generated/auth.table";
+} from "./generated/auth.table.ts";

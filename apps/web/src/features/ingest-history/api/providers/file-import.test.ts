@@ -2,7 +2,7 @@ import { run } from "@r_masseater/workers-tracing/effect";
 import { Array as Arr, Effect, Schema, pipe } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { fileFormat } from "./file-import.server";
+import { fileFormat } from "./file-import.server.ts";
 
 const format = fileFormat({
   id: "sample",

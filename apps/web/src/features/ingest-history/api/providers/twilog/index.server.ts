@@ -1,8 +1,8 @@
 import { refreshDiscovered } from "#/features/ingest-history/api/providers/discovered-oauth.server";
 import type { Authorization, Provider } from "#/features/ingest-history/model/provider";
 
-import { ORIGIN, RESOURCE } from "./api";
-import { pullTwilog } from "./pull.server";
+import { ORIGIN, RESOURCE } from "./api.ts";
+import { pullTwilog } from "./pull.server.ts";
 
 const DISCOVERY = {
   issuer: ORIGIN,

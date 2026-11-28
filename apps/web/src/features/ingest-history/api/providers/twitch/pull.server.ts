@@ -5,10 +5,10 @@ import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { jsonListing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { API, LIMIT } from "./api";
-import { headersOf } from "./headers.server";
-import { FollowedChannels, Users } from "./schemas";
-import { channelOf } from "./subjects";
+import { API, LIMIT } from "./api.ts";
+import { headersOf } from "./headers.server.ts";
+import { FollowedChannels, Users } from "./schemas.ts";
+import { channelOf } from "./subjects.ts";
 
 const followedBy = (userId: string): ReturnType<typeof jsonListing> => {
   const first = `${API}/channels/followed?user_id=${userId}&first=${LIMIT}`;

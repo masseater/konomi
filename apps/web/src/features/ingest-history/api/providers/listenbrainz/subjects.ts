@@ -6,8 +6,8 @@ import { observationsOf } from "#/features/ingest-history/api/providers/observe"
 import { durationFromMs } from "#/features/ingest-history/api/providers/subject-fields";
 import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 
-import { MUSICBRAINZ } from "./api";
-import type { ListenBrainzListen, ListenBrainzLoved, ListenBrainzTrack } from "./schemas";
+import { MUSICBRAINZ } from "./api.ts";
+import type { ListenBrainzListen, ListenBrainzLoved, ListenBrainzTrack } from "./schemas.ts";
 
 const MS_PER_SECOND = 1000;
 

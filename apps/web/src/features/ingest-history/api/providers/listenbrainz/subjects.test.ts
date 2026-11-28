@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { listenObservationsOf, lovedObservationsOf } from "./subjects";
+import { listenObservationsOf, lovedObservationsOf } from "./subjects.ts";
 
 const LISTENED_AT = 1_771_414_109;
 const LOVED_AT = 1_741_972_335;

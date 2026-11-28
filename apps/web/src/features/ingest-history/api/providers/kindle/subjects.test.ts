@@ -1,8 +1,8 @@
 import { Array as Arr, pipe } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import type { LibraryRow, SessionRow } from "./schemas";
-import { libraryObservationsOf, sessionObservationsOf } from "./subjects";
+import type { LibraryRow, SessionRow } from "./schemas.ts";
+import { libraryObservationsOf, sessionObservationsOf } from "./subjects.ts";
 
 const libraryRowOf = (fields: Partial<LibraryRow>): LibraryRow => ({
   ASIN: "B0EXAMPLE1",

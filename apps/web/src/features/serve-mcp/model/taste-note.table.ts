@@ -1,6 +1,6 @@
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-import type { Statement } from "./statement";
+import type { Statement } from "./statement.ts";
 
 export const tasteNote = sqliteTable(
   "taste_note",

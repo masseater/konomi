@@ -10,11 +10,11 @@ import type { Observing } from "#/features/ingest-history/api/providers/observe"
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
 
-import { accountOf, methodUrl, nextOf } from "./methods";
-import type { Account } from "./methods";
-import { Cursor, LovedTracks, RecentTracks } from "./schemas";
-import type { LastfmTrack } from "./schemas";
-import { trackOf } from "./subjects";
+import { accountOf, methodUrl, nextOf } from "./methods.ts";
+import type { Account } from "./methods.ts";
+import { Cursor, LovedTracks, RecentTracks } from "./schemas.ts";
+import type { LastfmTrack } from "./schemas.ts";
+import { trackOf } from "./subjects.ts";
 
 const cursorState = cursorStateOf(Cursor)({ backfilled: false });
 const MS_PER_SECOND = 1000;

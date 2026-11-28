@@ -3,8 +3,8 @@ import { Effect } from "effect";
 import { fileFormat } from "#/features/ingest-history/api/providers/file-import.server";
 import type { ImportFormat } from "#/features/ingest-history/model/provider";
 
-import { Library, Session } from "./schemas";
-import { libraryObservationsOf, sessionObservationsOf } from "./subjects";
+import { Library, Session } from "./schemas.ts";
+import { libraryObservationsOf, sessionObservationsOf } from "./subjects.ts";
 
 export const KINDLE_IMPORTS: readonly ImportFormat[] = [
   fileFormat({

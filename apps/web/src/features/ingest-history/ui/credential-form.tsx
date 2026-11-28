@@ -8,8 +8,8 @@ import type { ProviderId } from "#/shared/config";
 import { Button } from "#/shared/ui/button";
 import { Input } from "#/shared/ui/input";
 
-import { MethodLinks } from "./method-links";
-import { useConnectionForm } from "./use-connection-form";
+import { MethodLinks } from "./method-links.tsx";
+import { useConnectionForm } from "./use-connection-form.ts";
 
 const SAVE = "保存する";
 const SAVED = "保存した。次の取り込みで使う";

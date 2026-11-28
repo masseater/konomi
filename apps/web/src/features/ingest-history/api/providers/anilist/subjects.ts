@@ -9,7 +9,7 @@ import {
   textTagsOf,
 } from "#/features/ingest-history/api/providers/subject-in";
 
-import type { AniListEntry, AniListMedia } from "./schemas";
+import type { AniListEntry, AniListMedia } from "./schemas.ts";
 
 const MS_PER_SECOND = 1000;
 const LIKED_SCORE = 80;

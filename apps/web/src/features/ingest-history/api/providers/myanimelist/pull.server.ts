@@ -8,10 +8,10 @@ import {
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { API, FIELD, LIMIT, LISTS } from "./api";
-import { UserList } from "./schemas";
-import { entryObservationsOf } from "./subjects";
-import type { MalList } from "./subjects";
+import { API, FIELD, LIMIT, LISTS } from "./api.ts";
+import { UserList } from "./schemas.ts";
+import { entryObservationsOf } from "./subjects.ts";
+import type { MalList } from "./subjects.ts";
 
 const FIELDS = "list_status,genres,start_season";
 

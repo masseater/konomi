@@ -23,7 +23,7 @@ import {
   verification,
 } from "#/shared/db/index.server";
 
-import { rejectSecondOwner } from "./owner-guard.server";
+import { rejectSecondOwner } from "./owner-guard.server.ts";
 
 const AUTH_SCHEMA = {
   account,

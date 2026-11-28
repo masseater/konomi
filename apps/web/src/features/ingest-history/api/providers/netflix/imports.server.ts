@@ -6,11 +6,11 @@ import {
 } from "#/features/ingest-history/api/providers/file-import.server";
 import type { ImportFormat } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { datesToEpochs } from "./dates";
-import { Activity, History } from "./schemas";
-import { activityObservationsOf, historyDatesOf, historyObservationsOf } from "./subjects";
-import { textOf } from "./titles";
+import { FIELD } from "./api.ts";
+import { datesToEpochs } from "./dates.ts";
+import { Activity, History } from "./schemas.ts";
+import { activityObservationsOf, historyDatesOf, historyObservationsOf } from "./subjects.ts";
+import { textOf } from "./titles.ts";
 
 const UNREADABLE_DATES =
   "日付の書き方を読み取れない。データの書き出しの ViewingActivity.csv を使う";

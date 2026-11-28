@@ -10,7 +10,7 @@ import {
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
-import type { TwilogLog } from "./schemas";
+import type { TwilogLog } from "./schemas.ts";
 
 const X_ORIGIN = "https://x.com";
 

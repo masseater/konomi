@@ -8,7 +8,7 @@ import {
   followedCreatorsAt,
 } from "#/features/ingest-history/api/providers/observe";
 
-import { WEB } from "./api";
+import { WEB } from "./api.ts";
 
 type User = Pick<PixivUser, "id" | "name">;
 type Work = Readonly<{

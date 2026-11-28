@@ -7,9 +7,9 @@ import {
 } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { API, FIELD, LIMIT } from "./api";
-import { History, Ratings } from "./schemas";
-import { historyObservationsOf, ratingObservationsOf } from "./subjects";
+import { API, FIELD, LIMIT } from "./api.ts";
+import { History, Ratings } from "./schemas.ts";
+import { historyObservationsOf, ratingObservationsOf } from "./subjects.ts";
 
 const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
 

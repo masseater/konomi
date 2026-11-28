@@ -4,7 +4,7 @@ import type { Observation, SubjectInput } from "#/entities/signal";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 
-import type { HatenaBookmark } from "./schemas";
+import type { HatenaBookmark } from "./schemas.ts";
 
 const tagsOf = (subject: HatenaBookmark["dc:subject"]): readonly string[] =>
   pipe(

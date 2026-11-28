@@ -1,7 +1,7 @@
 import { Option } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { clockSecondsOf, likedVideoOf, playlistVideoOf } from "./subjects";
+import { clockSecondsOf, likedVideoOf, playlistVideoOf } from "./subjects.ts";
 
 const HOUR_MINUTE_SECOND = 3723;
 const FOUR_FIVE = 245;

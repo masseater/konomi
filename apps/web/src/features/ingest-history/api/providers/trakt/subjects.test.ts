@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { historyObservationsOf } from "./subjects";
+import { historyObservationsOf } from "./subjects.ts";
 
 const SHOW_ID = 1;
 const EPISODE_ID = 2;

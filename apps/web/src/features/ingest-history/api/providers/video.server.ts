@@ -1,12 +1,12 @@
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { filmarks } from "./filmarks/index.server";
-import { letterboxd } from "./letterboxd/index.server";
-import { netflix } from "./netflix/index.server";
-import { niconico } from "./niconico/index.server";
-import { primeVideo } from "./prime-video/index.server";
-import { trakt } from "./trakt/index.server";
-import { youtube } from "./youtube/index.server";
+import { filmarks } from "./filmarks/index.server.ts";
+import { letterboxd } from "./letterboxd/index.server.ts";
+import { netflix } from "./netflix/index.server.ts";
+import { niconico } from "./niconico/index.server.ts";
+import { primeVideo } from "./prime-video/index.server.ts";
+import { trakt } from "./trakt/index.server.ts";
+import { youtube } from "./youtube/index.server.ts";
 
 export const VIDEO_PROVIDERS = {
   filmarks,

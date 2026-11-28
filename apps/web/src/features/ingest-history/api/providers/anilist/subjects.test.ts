@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { entryObservationsOf } from "./subjects";
+import { entryObservationsOf } from "./subjects.ts";
 
 const MEDIA_ID = 54_705;
 const SEASON_YEAR = 2013;

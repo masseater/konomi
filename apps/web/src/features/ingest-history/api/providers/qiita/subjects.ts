@@ -5,7 +5,7 @@ import { personMapper } from "#/features/ingest-history/api/providers/creator-in
 import { fetchedObservationsOf, nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
-import type { QiitaItem } from "./schemas";
+import type { QiitaItem } from "./schemas.ts";
 
 const WEB = "https://qiita.com";
 

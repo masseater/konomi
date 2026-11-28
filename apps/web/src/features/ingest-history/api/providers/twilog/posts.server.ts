@@ -4,11 +4,11 @@ import type { Page } from "#/features/ingest-history/api/providers/paging.server
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import { ProviderUnavailable } from "#/features/ingest-history/model/provider-unavailable";
 
-import { RESOURCE, TOOL } from "./api";
-import type { TIMELINES } from "./api";
-import { callTool } from "./mcp.server";
-import { Posts } from "./schemas";
-import type { TwilogLog } from "./schemas";
+import { RESOURCE, TOOL } from "./api.ts";
+import type { TIMELINES } from "./api.ts";
+import { callTool } from "./mcp.server.ts";
+import { Posts } from "./schemas.ts";
+import type { TwilogLog } from "./schemas.ts";
 
 const NEXT = 1;
 const decodePosts = Schema.decodeEffect(Posts);

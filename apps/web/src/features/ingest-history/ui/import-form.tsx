@@ -8,7 +8,7 @@ import type { ProviderId } from "#/shared/config";
 import { Button } from "#/shared/ui/button";
 import { Input } from "#/shared/ui/input";
 
-import { useConnectionForm } from "./use-connection-form";
+import { useConnectionForm } from "./use-connection-form.ts";
 
 const FILE_FIELD = "file";
 const IMPORT = "取り込む";

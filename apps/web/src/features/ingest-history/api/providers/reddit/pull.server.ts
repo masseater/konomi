@@ -10,9 +10,9 @@ import type { Listing } from "#/features/ingest-history/api/providers/listing.se
 import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { API, LIMIT, USER_AGENT } from "./api";
-import { Listing as ListingBody, Me } from "./schemas";
-import { thingOf } from "./subjects";
+import { API, LIMIT, USER_AGENT } from "./api.ts";
+import { Listing as ListingBody, Me } from "./schemas.ts";
+import { thingOf } from "./subjects.ts";
 
 const listingOf = (user: string, path: string, kind: ListingKind): Listing => {
   const first = `${API}/user/${user}/${path}?limit=${LIMIT}&raw_json=1`;

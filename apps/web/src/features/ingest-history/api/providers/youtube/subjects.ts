@@ -7,7 +7,7 @@ import {
 } from "#/features/ingest-history/api/providers/creator-input";
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
-import type { YoutubePlaylistItem, YoutubeSubscription, YoutubeVideo } from "./schemas";
+import type { YoutubePlaylistItem, YoutubeSubscription, YoutubeVideo } from "./schemas.ts";
 
 const ORIGIN = "https://www.youtube.com";
 const MAX_TAGS = 10;

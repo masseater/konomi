@@ -10,9 +10,9 @@ import { observationsOf } from "#/features/ingest-history/api/providers/observe"
 import { urlAdvancing } from "#/features/ingest-history/api/providers/url-with";
 import type { SignalKind } from "#/shared/config";
 
-import { VideoPage } from "./schemas";
-import type { VideoEntry } from "./schemas";
-import { stampOf, videoSubjectOf } from "./subjects";
+import { VideoPage } from "./schemas.ts";
+import type { VideoEntry } from "./schemas.ts";
+import { stampOf, videoSubjectOf } from "./subjects.ts";
 
 const API_ORIGIN = "https://nvapi.nicovideo.jp";
 const PAGE_SIZE = 100;

@@ -4,7 +4,7 @@ import { Effect, Predicate, Schema } from "effect";
 
 import { connectionClient } from "#/features/ingest-history";
 
-import { authorizeMusicKit } from "./musickit";
+import { authorizeMusicKit } from "./musickit.ts";
 
 const TokenBody = Schema.Struct({ token: Schema.NonEmptyString });
 

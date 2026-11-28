@@ -6,9 +6,9 @@ import { flatMapEach, followedCreatorsAt } from "#/features/ingest-history/api/p
 import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { FollowingPage, MylistIndex, MylistPage } from "./schemas";
-import { personOf } from "./subjects";
-import { apiUrlOf, firstPageUrl, pullVideos, stampedVideosOf } from "./videos.server";
+import { FollowingPage, MylistIndex, MylistPage } from "./schemas.ts";
+import { personOf } from "./subjects.ts";
+import { apiUrlOf, firstPageUrl, pullVideos, stampedVideosOf } from "./videos.server.ts";
 
 const BACKFILL_PAGES = 10;
 export const SESSION_COOKIE = "user_session";

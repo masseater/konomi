@@ -1,8 +1,8 @@
 import { CLIENT_FIELDS, refreshAccess } from "#/features/ingest-history/api/providers/oauth.server";
 import type { Authorization, Provider } from "#/features/ingest-history/model/provider";
 
-import { HISTORY_FIELD } from "./api";
-import { pullYoutube } from "./pull.server";
+import { HISTORY_FIELD } from "./api.ts";
+import { pullYoutube } from "./pull.server.ts";
 
 const GOOGLE_OAUTH_ORIGIN = "https://oauth2.googleapis.com";
 

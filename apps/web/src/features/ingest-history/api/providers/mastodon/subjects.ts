@@ -9,7 +9,7 @@ import { nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
 import { plainTextOf, postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
-import type { MastodonAccount, MastodonStatus, MastodonTag } from "./schemas";
+import type { MastodonAccount, MastodonStatus, MastodonTag } from "./schemas.ts";
 
 const accountOf = (account: MastodonAccount): CreatorInput =>
   personInputOf({

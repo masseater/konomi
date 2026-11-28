@@ -4,8 +4,8 @@ import type { Observation, SubjectInput } from "#/entities/signal";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
 import { subjectIn, textTagsOf } from "#/features/ingest-history/api/providers/subject-in";
 
-import { WEB } from "./api";
-import type { AnnictEntry, AnnictRecord, AnnictWork } from "./schemas";
+import { WEB } from "./api.ts";
+import type { AnnictEntry, AnnictRecord, AnnictWork } from "./schemas.ts";
 
 const SEPARATOR = " ";
 const LIKED_RATINGS: ReadonlySet<string> = new Set(["GOOD", "GREAT"]);

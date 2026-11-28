@@ -1,1 +1,1 @@
-export { AppleMusicConnectPage } from "./ui/apple-music-connect-page";
+export { AppleMusicConnectPage } from "./ui/apple-music-connect-page.tsx";

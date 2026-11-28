@@ -9,9 +9,9 @@ import { epochOr } from "#/features/ingest-history/api/providers/observe";
 import type { Fetched, Observing } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { FIELD, LIMIT } from "./api";
-import { Favorites, Following, Me, Reactions, Request } from "./schemas";
-import { followedOf, notedAs } from "./subjects";
+import { FIELD, LIMIT } from "./api.ts";
+import { Favorites, Following, Me, Reactions, Request } from "./schemas.ts";
+import { followedOf, notedAs } from "./subjects.ts";
 
 type Reading = Readonly<{ origin: string; token: string; at: (text: string) => number }>;
 

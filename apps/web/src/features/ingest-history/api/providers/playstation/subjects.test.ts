@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { playedObservationsOf } from "./subjects";
+import { playedObservationsOf } from "./subjects.ts";
 
 const FETCHED_AT = 0;
 const CONCEPT = 10_002_694;

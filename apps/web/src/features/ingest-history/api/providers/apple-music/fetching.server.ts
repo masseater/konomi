@@ -7,10 +7,10 @@ import type { Headers } from "#/features/ingest-history/api/providers/http.serve
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-import { API, FIELD } from "./api";
-import { signDeveloperToken } from "./developer-token.server";
-import { Songs, Storefronts } from "./schemas";
-import type { AppleSong } from "./schemas";
+import { API, FIELD } from "./api.ts";
+import { signDeveloperToken } from "./developer-token.server.ts";
+import { Songs, Storefronts } from "./schemas.ts";
+import type { AppleSong } from "./schemas.ts";
 
 const API_ORIGIN = new URL(API).origin;
 

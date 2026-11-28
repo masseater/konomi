@@ -3,8 +3,8 @@ import { Array as Arr, Option, pipe } from "effect";
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
 
-import { LIKED, LIKED_RATING, WEB } from "./api";
-import type { LetterboxdEntry } from "./schemas";
+import { LIKED, LIKED_RATING, WEB } from "./api.ts";
+import type { LetterboxdEntry } from "./schemas.ts";
 
 const FILM_SLUG = /\/film\/(?<slug>[^/]+)\//u;
 

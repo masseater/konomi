@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { trackOf } from "./subjects";
+import { trackOf } from "./subjects.ts";
 
 describe("trackOf", () => {
   it("credits the uploader and puts the genre first in tags", () => {

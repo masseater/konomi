@@ -7,10 +7,10 @@ import { freshOf } from "#/features/ingest-history/api/providers/fresh";
 import { fetchedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-import { HISTORY_FIELD } from "./api";
-import { pullHistory } from "./history.server";
-import { videoSubjectOf } from "./subjects";
-import type { VideoParts } from "./subjects";
+import { HISTORY_FIELD } from "./api.ts";
+import { pullHistory } from "./history.server.ts";
+import { videoSubjectOf } from "./subjects.ts";
+import type { VideoParts } from "./subjects.ts";
 
 const KEPT_HISTORY = 50;
 

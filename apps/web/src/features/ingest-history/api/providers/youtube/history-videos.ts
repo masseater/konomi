@@ -3,8 +3,8 @@ import { Array as Arr, Match, Option, Schema, pipe } from "effect";
 import { nodesNamed, valuesNamed } from "#/features/ingest-history/api/providers/json-walk";
 import type { Named } from "#/features/ingest-history/api/providers/json-walk";
 
-import { channelOf, clockSecondsOf } from "./subjects";
-import type { VideoParts } from "./subjects";
+import { channelOf, clockSecondsOf } from "./subjects.ts";
+import type { VideoParts } from "./subjects.ts";
 
 const VIDEO_LOCKUP = "LOCKUP_CONTENT_TYPE_VIDEO";
 

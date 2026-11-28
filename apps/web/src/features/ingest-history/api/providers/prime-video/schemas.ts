@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { VIEWING_COLUMN } from "./api";
+import { VIEWING_COLUMN } from "./api.ts";
 
 const SessionViewing = Schema.Struct({
   [VIEWING_COLUMN.title]: Schema.String,

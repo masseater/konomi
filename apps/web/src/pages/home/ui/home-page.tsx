@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { SITE_DESCRIPTION, SITE_NAME } from "#/shared/config";
 
-import { OwnerArea } from "./owner-area";
+import { OwnerArea } from "./owner-area.tsx";
 
 const MCP_HINT = "MCP クライアントには、このサイトの /mcp を登録する";
 

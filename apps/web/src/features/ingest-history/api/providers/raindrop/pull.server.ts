@@ -4,9 +4,9 @@ import { bearerFieldOf } from "#/features/ingest-history/api/providers/credentia
 import { numberedListing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { ALL_COLLECTIONS, API, FIELD, LIMIT } from "./api";
-import { Raindrops } from "./schemas";
-import { raindropObservationsOf } from "./subjects";
+import { ALL_COLLECTIONS, API, FIELD, LIMIT } from "./api.ts";
+import { Raindrops } from "./schemas.ts";
+import { raindropObservationsOf } from "./subjects.ts";
 
 const raindrops = numberedListing({
   label: "raindrops",

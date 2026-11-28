@@ -1,1 +1,1 @@
-export { serveMcp } from "./api/endpoint.server";
+export { serveMcp } from "./api/endpoint.server.ts";

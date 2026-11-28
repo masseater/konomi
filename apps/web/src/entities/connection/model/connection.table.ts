@@ -2,7 +2,7 @@ import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 import { PROVIDER_IDS } from "#/shared/config";
 
-import { NEVER_SYNCED, SYNC_STATUSES } from "./sync-status";
+import { NEVER_SYNCED, SYNC_STATUSES } from "./sync-status.ts";
 
 export const connection = sqliteTable("connection", {
   provider: text({ enum: PROVIDER_IDS }).primaryKey(),

@@ -6,10 +6,10 @@ import { flatMapEach } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-import { FIELD, HEADERS, SHELVES, WEB } from "./api";
-import { ReadingLog } from "./schemas";
-import type { OpenLibraryEntry } from "./schemas";
-import { shelfObservationsOf } from "./subjects";
+import { FIELD, HEADERS, SHELVES, WEB } from "./api.ts";
+import { ReadingLog } from "./schemas.ts";
+import type { OpenLibraryEntry } from "./schemas.ts";
+import { shelfObservationsOf } from "./subjects.ts";
 
 const shelfOf =
   ({ user, pages }: Readonly<{ user: string; pages: number }>) =>

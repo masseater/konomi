@@ -9,9 +9,9 @@ import {
   subjectIn,
 } from "#/features/ingest-history/api/providers/subject-in";
 
-import { WEB } from "./api";
-import type { LISTS } from "./api";
-import type { MalEntry } from "./schemas";
+import { WEB } from "./api.ts";
+import type { LISTS } from "./api.ts";
+import type { MalEntry } from "./schemas.ts";
 
 export type MalList = (typeof LISTS)[number];
 

@@ -13,8 +13,8 @@ import {
   requireFields,
   withFields,
   withoutFields,
-} from "./credential-field";
-import { postForm } from "./http.server";
+} from "./credential-field.ts";
+import { postForm } from "./http.server.ts";
 
 export const OAUTH_FIELD = {
   clientId: "clientId",
