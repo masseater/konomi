@@ -1,15 +1,14 @@
-import { Array as Arr, Effect, pipe } from "effect";
+import { Effect } from "effect";
 
-import type { Observation } from "#/entities/signal";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { followedCreatorsAt } from "#/features/ingest-history/api/providers/observe";
+import { flatMapEach, followedCreatorsAt } from "#/features/ingest-history/api/providers/observe";
 import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { FollowingPage, MylistIndex, MylistPage } from "./schemas";
-import { personOf, stampOf, videoSubjectOf } from "./subjects";
-import { apiUrlOf, firstPageUrl, pullVideos } from "./videos.server";
+import { personOf } from "./subjects";
+import { apiUrlOf, firstPageUrl, pullVideos, stampedVideosOf } from "./videos.server";
 
 const BACKFILL_PAGES = 10;
 export const SESSION_COOKIE = "user_session";
@@ -23,33 +22,21 @@ const headersOf = (session: string): Readonly<Record<string, string>> => ({
 });
 
 const pullMylists = ({ headers, fetchedAt }: Fetching): Observing =>
-  Effect.gen(function* mylists() {
-    const { data } = yield* fetchJson({
-      url: apiUrlOf("/v1/users/me/mylists"),
-      headers,
-      schema: MylistIndex,
-    });
-    const collected: Observation[] = [];
-    for (const { id, name } of data.mylists) {
-      const listed = yield* fetchJson({
-        url: firstPageUrl(`/v1/users/me/mylists/${id}`),
-        headers,
-        schema: MylistPage,
-      });
-      collected.push(
-        ...pipe(
-          listed.data.mylist.items,
-          Arr.map((entry): Observation => ({
-            kind: "collected",
-            subject: videoSubjectOf(entry),
-            occurredAtMs: stampOf({ entry, fallback: fetchedAt }),
-            context: name,
-          })),
+  fetchJson({ url: apiUrlOf("/v1/users/me/mylists"), headers, schema: MylistIndex }).pipe(
+    Effect.flatMap(({ data }) =>
+      flatMapEach(data.mylists, ({ id, name }) =>
+        fetchJson({
+          url: firstPageUrl(`/v1/users/me/mylists/${id}`),
+          headers,
+          schema: MylistPage,
+        }).pipe(
+          Effect.map(({ data: { mylist } }) =>
+            stampedVideosOf({ kind: "collected", fetchedAt, context: name })(mylist.items),
+          ),
         ),
-      );
-    }
-    return collected;
-  });
+      ),
+    ),
+  );
 
 const pullFollowing = ({ headers, fetchedAt }: Fetching): Observing =>
   fetchJson({

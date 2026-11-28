@@ -154,9 +154,11 @@ export const observationsOf =
   <Item>({
     subjectOf,
     occurredAtOf,
+    context,
   }: Readonly<{
     subjectOf: (item: Item) => SubjectInput;
     occurredAtOf: (item: Item) => number;
+    context?: string | undefined;
   }>) =>
   (items: readonly Item[]): readonly Observation[] =>
     pipe(
@@ -165,6 +167,7 @@ export const observationsOf =
         kind,
         subject: subjectOf(item),
         occurredAtMs: occurredAtOf(item),
+        ...contextOf(Option.fromUndefinedOr(context)),
       })),
     );
 

@@ -1,5 +1,6 @@
 import { Match, Option } from "effect";
 
+import type { Observation } from "#/entities/signal";
 import {
   pagedListing,
   pulledListings,
@@ -10,6 +11,7 @@ import { urlAdvancing } from "#/features/ingest-history/api/providers/url-with";
 import type { SignalKind } from "#/shared/config";
 
 import { VideoPage } from "./schemas";
+import type { VideoEntry } from "./schemas";
 import { stampOf, videoSubjectOf } from "./subjects";
 
 const API_ORIGIN = "https://nvapi.nicovideo.jp";
@@ -23,6 +25,19 @@ const pageUrl = (path: string, page: number): string =>
 
 export const firstPageUrl = (path: string): string => pageUrl(path, FIRST_PAGE);
 
+export const stampedVideosOf = ({
+  kind,
+  fetchedAt,
+  context,
+}: Readonly<{ kind: SignalKind; fetchedAt: number; context?: string | undefined }>): ((
+  entries: readonly VideoEntry[],
+) => readonly Observation[]) =>
+  observationsOf(kind)({
+    subjectOf: videoSubjectOf,
+    occurredAtOf: (entry) => stampOf({ entry, fallback: fetchedAt }),
+    context,
+  });
+
 const videoListing = ({ path, kind }: Readonly<{ path: string; kind: SignalKind }>): Listing =>
   pagedListing({
     first: pageUrl(path, FIRST_PAGE),
@@ -34,11 +49,7 @@ const videoListing = ({ path, kind }: Readonly<{ path: string; kind: SignalKind 
         Match.orElse(() => Option.none<string>()),
       ),
     }),
-    observe: (fetchedAt) =>
-      observationsOf(kind)({
-        subjectOf: videoSubjectOf,
-        occurredAtOf: (entry) => stampOf({ entry, fallback: fetchedAt }),
-      }),
+    observe: (fetchedAt) => stampedVideosOf({ kind, fetchedAt }),
   });
 
 export const pullVideos = pulledListings([
