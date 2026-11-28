@@ -105,39 +105,6 @@ export const listEntriesOf =
     ];
   };
 
-export const libraryObservationsOf =
-  <Game>(
-    entryOf: (game: Game) => Option.Option<
-      Readonly<{
-        subject: SubjectInput;
-        collectedAtMs: number;
-        lastPlayedAtMs: Option.Option<number>;
-      }>
-    >,
-  ) =>
-  (games: readonly Game[]): readonly Observation[] =>
-    pipe(
-      games,
-      Arr.flatMap((game) =>
-        pipe(
-          entryOf(game),
-          Option.toArray,
-          Arr.flatMap(({ subject, collectedAtMs, lastPlayedAtMs }): readonly Observation[] => [
-            { kind: "collected", subject, occurredAtMs: collectedAtMs },
-            ...pipe(
-              lastPlayedAtMs,
-              Option.map((occurredAtMs): Observation => ({
-                kind: "consumed",
-                subject,
-                occurredAtMs,
-              })),
-              Option.toArray,
-            ),
-          ]),
-        ),
-      ),
-    );
-
 export const datedObservationsOf =
   <Entry>({
     kind,
@@ -199,6 +166,16 @@ export const observationsOf =
         subject: subjectOf(item),
         occurredAtMs: occurredAtOf(item),
       })),
+    );
+
+export const presentObservationsOf =
+  (kind: SignalKind) =>
+  <Item>(pick: (item: Item) => Option.Option<Omit<Observation, "kind">>) =>
+  (items: readonly Item[]): readonly Observation[] =>
+    pipe(
+      items,
+      Arr.map((item) => Option.map(pick(item), (found): Observation => ({ kind, ...found }))),
+      Arr.getSomes,
     );
 
 const KEEP_ALL = (): boolean => true;

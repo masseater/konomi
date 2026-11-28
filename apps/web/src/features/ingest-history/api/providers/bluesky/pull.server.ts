@@ -1,5 +1,6 @@
 import { Effect, Option, pipe } from "effect";
 
+import { bearerOf } from "#/features/ingest-history/api/providers/credential-field";
 import {
   jsonListing,
   pulledListings,
@@ -52,7 +53,7 @@ export const pullBluesky = pullOf({
     signIn(credential).pipe(
       Effect.flatMap(({ accessJwt, did }) =>
         pulledListings([likesOf(did), followsOf(did)])({
-          headers: { Authorization: `Bearer ${accessJwt}` },
+          headers: bearerOf(accessJwt),
           pages,
           fetchedAt,
         }),

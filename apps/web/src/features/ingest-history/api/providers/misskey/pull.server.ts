@@ -2,7 +2,7 @@ import { Array as Arr, Clock, Effect, Option, pipe } from "effect";
 import type { Schema } from "effect";
 
 import type { Observation } from "#/entities/signal";
-import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { bearerOf, requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
@@ -24,7 +24,7 @@ const call =
   ): Fetched<Item> =>
     postJson({
       url: `${origin}/api/${path}`,
-      headers: { Authorization: `Bearer ${token}` },
+      headers: bearerOf(token),
       payload: Request,
       body: {
         limit: LIMIT,

@@ -97,3 +97,13 @@ export const withoutFields: {
   method: credential.method,
   fields: Arr.reduce(names, credential.fields, (fields, name) => Rec.remove(fields, name)),
 }));
+
+export const bearerOf = (token: string): Fields => ({ Authorization: `Bearer ${token}` });
+
+export const optionalBearerOf = (token: Option.Option<string>): Fields =>
+  Option.match(token, { onNone: () => ({}), onSome: bearerOf });
+
+export const bearerFieldOf =
+  (name: string) =>
+  (credential: Credential): Effect.Effect<Fields, CredentialRejected> =>
+    requireField(credential, name).pipe(Effect.map(bearerOf));

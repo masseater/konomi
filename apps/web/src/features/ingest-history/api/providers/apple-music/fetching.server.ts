@@ -1,10 +1,9 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
-import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { bearerOf, requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
-import { bearerOf } from "#/features/ingest-history/api/providers/oauth.server";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 

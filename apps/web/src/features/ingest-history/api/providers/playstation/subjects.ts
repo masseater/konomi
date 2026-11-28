@@ -2,7 +2,8 @@ import { Option } from "effect";
 import type { UserPlayedGamesResponse } from "psn-api";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
-import { epochOr, libraryObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import { libraryObservationsOf } from "#/features/ingest-history/api/providers/library-observations";
+import { epochOr } from "#/features/ingest-history/api/providers/observe";
 
 import { STORE } from "./api";
 
