@@ -2,7 +2,10 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { collectedFrom, sourceOf } from "#/features/ingest-history/api/providers/listing.server";
-import { collectedListsOf } from "#/features/ingest-history/api/providers/observe";
+import {
+  collectedListsOf,
+  datedObservationsOf,
+} from "#/features/ingest-history/api/providers/observe";
 import type { Fetched, Fetching } from "#/features/ingest-history/api/providers/observe";
 
 import { API, LIMIT } from "./api.ts";
@@ -37,7 +40,6 @@ const ownedOf = ({ headers }: Fetching): Fetched<readonly SpotifyPlaylist[]> =>
 
 export const pullPlaylists = collectedListsOf({
   listsOf: ownedOf,
-  nameOf: ({ name }) => name,
   entriesOf: ({ headers }, { id }) =>
     collectedFrom(
       sourceOf({
@@ -47,6 +49,11 @@ export const pullPlaylists = collectedListsOf({
         next: FOLLOW_NEXT,
       }),
     )(headers),
-  subjectOf: entryTrackOf,
-  occurredAtOf: ({ added_at: addedAt }) => addedAt,
+  observe: ({ name }) =>
+    datedObservationsOf({
+      kind: "collected",
+      subjectOf: entryTrackOf,
+      occurredAtOf: ({ added_at: addedAt }) => addedAt,
+      contextOf: () => Option.some(name),
+    }),
 });

@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe, Function as Fn } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorMapper } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorFrom, linkedBy } from "#/features/ingest-history/api/providers/creator-input";
 import { textOr } from "#/features/ingest-history/api/providers/non-blank";
 import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
@@ -11,7 +11,9 @@ import type { QiitaItem } from "./schemas.ts";
 
 const WEB = "https://qiita.com";
 
-const personOf = creatorMapper({ provider: "qiita", idPrefix: "user:", urlBase: `${WEB}/` });
+const personOf = creatorFrom({ provider: "qiita" })(
+  linkedBy({ idPrefix: "user:", urlBase: `${WEB}/` }),
+);
 
 const authorOf = (author: QiitaItem["user"]): CreatorInput =>
   personOf({ id: author.id, name: textOr(author.id)(author.name) });

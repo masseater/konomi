@@ -1,10 +1,15 @@
+import { Option } from "effect";
+
 import { collectedFrom, sourceOf } from "#/features/ingest-history/api/providers/listing.server";
-import { collectedListsOf } from "#/features/ingest-history/api/providers/observe";
+import {
+  collectedListsOf,
+  datedObservationsOf,
+} from "#/features/ingest-history/api/providers/observe";
 
 import { API, LIMIT } from "./api.ts";
 import { TOKEN_NEXT } from "./page.ts";
 import { PlaylistItems, Playlists } from "./schemas.ts";
-import { playlistVideoOf } from "./subjects.ts";
+import { videoOf } from "./subjects.ts";
 
 export const pullPlaylists = collectedListsOf({
   listsOf: ({ headers }) =>
@@ -16,7 +21,6 @@ export const pullPlaylists = collectedListsOf({
         next: TOKEN_NEXT,
       }),
     )(headers),
-  nameOf: ({ snippet }) => snippet.title,
   entriesOf: ({ headers }, { id }) =>
     collectedFrom(
       sourceOf({
@@ -26,6 +30,11 @@ export const pullPlaylists = collectedListsOf({
         next: TOKEN_NEXT,
       }),
     )(headers),
-  subjectOf: playlistVideoOf,
-  occurredAtOf: (item) => item.snippet.publishedAt,
+  observe: ({ snippet }) =>
+    datedObservationsOf({
+      kind: "collected",
+      subjectOf: videoOf,
+      occurredAtOf: (item) => item.snippet.publishedAt,
+      contextOf: () => Option.some(snippet.title),
+    }),
 });

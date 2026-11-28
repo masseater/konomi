@@ -5,6 +5,7 @@ import type { WithSubqueryWithSelection } from "drizzle-orm/sqlite-core";
 import { Array as Arr, Effect, Function as Fn, Option, String as Str, pipe } from "effect";
 
 import { credit, signal, subject, subjectTag } from "#/entities/signal/model/signal.table";
+import type { Link, SubjectInfo } from "#/entities/signal/model/taste";
 import type { ProviderId, SignalKind, SubjectType } from "#/shared/config";
 import { db } from "#/shared/db/index.server";
 
@@ -98,30 +99,24 @@ export const among =
   (column) =>
     inArray(column, [...keys]);
 
+export type CreditLink = Link & Readonly<{ creator: SubjectInfo }>;
+
 export const relationsOf = (
   match: KeyMatch,
-): Effect.Effect<
-  Readonly<{
-    credits: readonly Readonly<{
-      subjectKey: string;
-      key: string;
-      title: string;
-      url: string;
-      type: SubjectType;
-    }>[];
-    tags: readonly Readonly<{ subjectKey: string; tag: string }>[];
-  }>
-> =>
+): Effect.Effect<Readonly<{ credits: readonly CreditLink[]; tags: readonly Link[] }>> =>
   Effect.all(
     {
       credits: Effect.promise(() =>
         db
           .select({
             subjectKey: credit.subjectKey,
-            key: creator.key,
-            title: creator.title,
-            url: creator.url,
-            type: creator.type,
+            target: creator.key,
+            creator: {
+              key: creator.key,
+              title: creator.title,
+              url: creator.url,
+              type: creator.type,
+            },
           })
           .from(credit)
           .innerJoin(creator, eq(creator.key, credit.creatorKey))
@@ -129,13 +124,39 @@ export const relationsOf = (
       ),
       tags: Effect.promise(() =>
         db
-          .select({ subjectKey: subjectTag.subjectKey, tag: subjectTag.tag })
+          .select({ subjectKey: subjectTag.subjectKey, target: subjectTag.tag })
           .from(subjectTag)
           .where(match(subjectTag.subjectKey)),
       ),
     },
     { concurrency: 1 },
   );
+
+const TERNARY = 3;
+
+export const relatedTo: {
+  <Row extends Readonly<{ subjectKey: string }>, Out>(
+    key: string,
+    pick: (row: Row) => Out,
+  ): (rows: readonly Row[]) => readonly Out[];
+  <Row extends Readonly<{ subjectKey: string }>, Out>(
+    rows: readonly Row[],
+    key: string,
+    pick: (row: Row) => Out,
+  ): readonly Out[];
+} = Fn.dual(
+  TERNARY,
+  <Row extends Readonly<{ subjectKey: string }>, Out>(
+    rows: readonly Row[],
+    key: string,
+    pick: (row: Row) => Out,
+  ): readonly Out[] =>
+    pipe(
+      rows,
+      Arr.filter(({ subjectKey }) => subjectKey === key),
+      Arr.map(pick),
+    ),
+);
 
 const FILTERED = {
   id: signal.id,
@@ -217,24 +238,9 @@ export const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundS
       pipe(
         rows,
         Arr.map((row): FoundSignal => ({
-          key: row.key,
-          kind: row.kind,
-          context: row.context,
-          occurredAtMs: row.occurredAtMs,
-          provider: row.provider,
-          type: row.type,
-          title: row.title,
-          url: row.url,
-          credits: pipe(
-            credits,
-            Arr.filter(({ subjectKey }) => subjectKey === row.key),
-            Arr.map(({ key, title, url, type }) => ({ key, title, url, type })),
-          ),
-          tags: pipe(
-            tags,
-            Arr.filter(({ subjectKey }) => subjectKey === row.key),
-            Arr.map(({ tag }) => tag),
-          ),
+          ...row,
+          credits: relatedTo(credits, row.key, ({ creator: found }) => found),
+          tags: relatedTo(tags, row.key, ({ target }) => target),
         })),
       ),
     ),

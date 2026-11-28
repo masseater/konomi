@@ -1,7 +1,7 @@
 import { Option } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { clockSecondsOf, likedVideoOf, playlistVideoOf } from "./subjects.ts";
+import { clockSecondsOf, videoOf } from "./subjects.ts";
 
 const HOUR_MINUTE_SECOND = 3723;
 const FOUR_FIVE = 245;
@@ -14,10 +14,10 @@ describe("durations", () => {
   });
 });
 
-describe("likedVideoOf", () => {
+describe("videoOf from a liked video", () => {
   it("credits the channel and keeps tags", () => {
     expect(
-      likedVideoOf({
+      videoOf({
         id: "dQw4w9WgXcQ",
         snippet: {
           title: "曲",
@@ -28,32 +28,34 @@ describe("likedVideoOf", () => {
         },
         contentDetails: { duration: "PT3M33S" },
       }),
-    ).toStrictEqual({
-      provider: "youtube",
-      externalId: "dQw4w9WgXcQ",
-      type: "video",
-      title: "曲",
-      url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      durationSec: 213,
-      publishedAtMs: 1_256_453_853_000,
-      credits: [
-        {
-          provider: "youtube",
-          externalId: "UC1",
-          type: "channel",
-          title: "チャンネル",
-          url: "https://www.youtube.com/channel/UC1",
-        },
-      ],
-      tags: ["ボカロ"],
-    });
+    ).toStrictEqual(
+      Option.some({
+        provider: "youtube",
+        externalId: "dQw4w9WgXcQ",
+        type: "video",
+        title: "曲",
+        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        durationSec: 213,
+        publishedAtMs: 1_256_453_853_000,
+        credits: [
+          {
+            provider: "youtube",
+            externalId: "UC1",
+            type: "channel",
+            title: "チャンネル",
+            url: "https://www.youtube.com/channel/UC1",
+          },
+        ],
+        tags: ["ボカロ"],
+      }),
+    );
   });
 });
 
-describe("playlistVideoOf", () => {
+describe("videoOf from a playlist item", () => {
   it("skips deleted and private videos that have no owner", () => {
     expect(
-      playlistVideoOf({ snippet: { title: "Deleted video", resourceId: { videoId: "x1" } } }),
+      videoOf({ snippet: { title: "Deleted video", resourceId: { videoId: "x1" } } }),
     ).toStrictEqual(Option.none());
   });
 });

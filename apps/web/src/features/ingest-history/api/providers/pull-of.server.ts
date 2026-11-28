@@ -27,15 +27,6 @@ const observedState = ({
     ),
 });
 
-const pulling =
-  <State>(provider: string, { state, pull }: StatefulPull<State>) =>
-  ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
-    Effect.gen(function* pullWithCursorState() {
-      const fetchedAt = yield* Clock.currentTimeMillis;
-      const pulled = yield* pull({ credential, state: state.read(cursor), fetchedAt });
-      return { observations: pulled.observations, cursor: yield* state.write(pulled.state) };
-    }).pipe(Effect.withSpan(`${provider}.pull`));
-
 const isObserved = <State>(config: StatefulPull<State> | ObservedPull): config is ObservedPull =>
   Predicate.hasProperty(config, "observe");
 
@@ -45,8 +36,16 @@ export const pullOf = <State = string>({
 }: Readonly<{ provider: string }> & (StatefulPull<State> | ObservedPull)): ((
   input: PullInput,
 ) => Effect.Effect<Pulled, ProviderError>) => {
+  const pulling =
+    <Kept>({ state, pull }: StatefulPull<Kept>) =>
+    ({ credential, cursor }: PullInput): Effect.Effect<Pulled, ProviderError> =>
+      Effect.gen(function* pullWithCursorState() {
+        const fetchedAt = yield* Clock.currentTimeMillis;
+        const pulled = yield* pull({ credential, state: state.read(cursor), fetchedAt });
+        return { observations: pulled.observations, cursor: yield* state.write(pulled.state) };
+      }).pipe(Effect.withSpan(`${provider}.pull`));
   if (isObserved(config)) {
-    return pulling(provider, observedState(config));
+    return pulling(observedState(config));
   }
-  return pulling(provider, config);
+  return pulling(config);
 };

@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorFrom } from "#/features/ingest-history/api/providers/creator-input";
 import { observationsOf } from "#/features/ingest-history/api/providers/observe";
 import { durationOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
@@ -12,28 +12,25 @@ import type { ListenBrainzListen, ListenBrainzLoved, ListenBrainzTrack } from ".
 
 const MS_PER_SECOND = 1000;
 
-const listenbrainz = creatorIn("listenbrainz");
-
 const searchUrlFor = (type: string, query: string): string =>
   urlWith(`${MUSICBRAINZ}/search`, { query, type });
 
-const artistOf = ({
-  name,
-  mbid,
-}: Readonly<{ name: string; mbid: Option.Option<string> }>): CreatorInput =>
-  listenbrainz({
-    externalId: pipe(
-      mbid,
-      Option.match({ onNone: () => `artist-name:${name}`, onSome: (id) => `artist:${id}` }),
-    ),
-    title: name,
-    url: pipe(
-      mbid,
-      Option.match({
-        onNone: () => searchUrlFor("artist", name),
-        onSome: (id) => `${MUSICBRAINZ}/artist/${id}`,
-      }),
-    ),
+const artistOf: (artist: Readonly<{ name: string; mbid: Option.Option<string> }>) => CreatorInput =
+  creatorFrom({ provider: "listenbrainz" })({
+    externalId: ({ name, mbid }) =>
+      pipe(
+        mbid,
+        Option.match({ onNone: () => `artist-name:${name}`, onSome: (id) => `artist:${id}` }),
+      ),
+    title: ({ name }) => name,
+    url: ({ name, mbid }) =>
+      pipe(
+        mbid,
+        Option.match({
+          onNone: () => searchUrlFor("artist", name),
+          onSome: (id) => `${MUSICBRAINZ}/artist/${id}`,
+        }),
+      ),
   });
 
 const artistsOf = (track: ListenBrainzTrack): readonly CreatorInput[] =>

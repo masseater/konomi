@@ -1,9 +1,8 @@
 import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorMapper } from "#/features/ingest-history/api/providers/creator-input";
-import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
-import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
+import { creatorFrom, linkedBy } from "#/features/ingest-history/api/providers/creator-input";
+import { videoIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import type { VideoEntry } from "./schemas.ts";
 
@@ -11,14 +10,13 @@ const WATCH_URL = "https://www.nicovideo.jp/watch/";
 const USER_URL = "https://www.nicovideo.jp/user/";
 const CHANNEL_URL = "https://ch.nicovideo.jp/";
 
-export const personOf = creatorMapper({ provider: "niconico", idPrefix: "", urlBase: USER_URL });
+export const personOf = creatorFrom({ provider: "niconico" })(
+  linkedBy({ idPrefix: "", urlBase: USER_URL }),
+);
 
-const channelOf = creatorMapper({
-  type: "channel",
-  provider: "niconico",
-  idPrefix: "",
-  urlBase: CHANNEL_URL,
-});
+const channelOf = creatorFrom({ provider: "niconico", type: "channel" })(
+  linkedBy({ idPrefix: "", urlBase: CHANNEL_URL }),
+);
 
 const ownerOf = ({ video }: VideoEntry): readonly CreatorInput[] => {
   const owner = Option.fromNullishOr(video.owner);
@@ -47,14 +45,14 @@ const ownerOf = ({ video }: VideoEntry): readonly CreatorInput[] => {
   );
 };
 
+const nicoVideoOf = videoIn({ provider: "niconico", watchUrl: WATCH_URL });
+
 export const videoSubjectOf = (entry: VideoEntry): SubjectInput =>
-  subjectIn("niconico")({
-    externalId: entry.video.id,
-    type: "video",
+  nicoVideoOf({
+    id: entry.video.id,
     title: entry.video.title,
-    url: `${WATCH_URL}${entry.video.id}`,
-    ...durationOf(Option.fromNullishOr(entry.video.duration), "seconds"),
-    ...publishedOf(Option.fromNullishOr(entry.video.registeredAt)),
+    durationSec: Option.fromNullishOr(entry.video.duration),
+    publishedAt: Option.fromNullishOr(entry.video.registeredAt),
     credits: ownerOf(entry),
   });
 

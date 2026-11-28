@@ -1,26 +1,28 @@
 import { Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
+import {
+  creatorFrom,
+  withoutRelations,
+} from "#/features/ingest-history/api/providers/creator-input";
 import { textOr } from "#/features/ingest-history/api/providers/non-blank";
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import type { MisskeyNote, MisskeyUser } from "./schemas.ts";
 
-const accountOf =
-  (origin: string) =>
-  (user: MisskeyUser): CreatorInput => {
-    const acct = pipe(
-      Option.fromNullishOr(user.host),
-      Option.map((host) => `${user.username}@${host}`),
-      Option.getOrElse(() => user.username),
-    );
-    return creatorIn("misskey")({
-      externalId: `${origin}/users/${user.id}`,
-      title: textOr(acct)(user.name),
-      url: `${origin}/@${acct}`,
-    });
-  };
+const acctOf = ({ username, host }: MisskeyUser): string =>
+  pipe(
+    Option.fromNullishOr(host),
+    Option.map((name) => `${username}@${name}`),
+    Option.getOrElse(() => username),
+  );
+
+const accountOf = (origin: string): ((user: MisskeyUser) => CreatorInput) =>
+  creatorFrom({ provider: "misskey" })({
+    externalId: ({ id }) => `${origin}/users/${id}`,
+    title: (user) => textOr(acctOf(user))(user.name),
+    url: (user) => `${origin}/@${acctOf(user)}`,
+  });
 
 export const followedOf =
   (origin: string) =>

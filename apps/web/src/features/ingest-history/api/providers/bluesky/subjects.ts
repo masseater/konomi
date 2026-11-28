@@ -1,7 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorIn, withRelations } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorFrom, withRelations } from "#/features/ingest-history/api/providers/creator-input";
 import { textOr } from "#/features/ingest-history/api/providers/non-blank";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
@@ -10,12 +10,11 @@ import type { BlueskyPost, BlueskyProfile } from "./schemas.ts";
 
 const PATH_SEPARATOR = "/";
 
-const personOf = (profile: BlueskyProfile): CreatorInput =>
-  creatorIn("bluesky")({
-    externalId: profile.did,
-    title: textOr(profile.handle)(profile.displayName),
-    url: `${WEB}/profile/${profile.handle}`,
-  });
+const personOf: (profile: BlueskyProfile) => CreatorInput = creatorFrom({ provider: "bluesky" })({
+  externalId: ({ did }) => did,
+  title: ({ handle, displayName }) => textOr(handle)(displayName),
+  url: ({ handle }) => `${WEB}/profile/${handle}`,
+});
 
 export const followedOf = (profile: BlueskyProfile): SubjectInput =>
   withRelations({ credits: [], tags: [] })(personOf(profile));

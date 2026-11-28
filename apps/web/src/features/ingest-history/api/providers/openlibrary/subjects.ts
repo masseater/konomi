@@ -1,7 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
-import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorFrom } from "#/features/ingest-history/api/providers/creator-input";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
 import { orEmpty, subjectIn, textTagsOf } from "#/features/ingest-history/api/providers/subject-in";
 import type { SignalKind } from "#/shared/config";
@@ -9,13 +9,16 @@ import type { SignalKind } from "#/shared/config";
 import { WEB } from "./api.ts";
 import type { OpenLibraryEntry } from "./schemas.ts";
 
+const authorOf: (author: readonly [string, string]) => CreatorInput = creatorFrom({
+  provider: "openlibrary",
+})({
+  externalId: ([key]) => key,
+  title: ([, title]) => title,
+  url: ([key]) => `${WEB}${key}`,
+});
+
 const authorsOf = (work: OpenLibraryEntry["work"]): readonly CreatorInput[] =>
-  pipe(
-    Arr.zip(orEmpty(work.author_keys), orEmpty(work.author_names)),
-    Arr.map(([key, title]) =>
-      creatorIn("openlibrary")({ externalId: key, title, url: `${WEB}${key}` }),
-    ),
-  );
+  pipe(Arr.zip(orEmpty(work.author_keys), orEmpty(work.author_names)), Arr.map(authorOf));
 
 const bookOf = (work: OpenLibraryEntry["work"]): SubjectInput =>
   subjectIn("openlibrary")({

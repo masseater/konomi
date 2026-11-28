@@ -1,7 +1,7 @@
 import { Option } from "effect";
 
 import type { CreatorInput, ListingKind, SubjectInput } from "#/entities/signal";
-import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorFrom } from "#/features/ingest-history/api/providers/creator-input";
 import { textOr } from "#/features/ingest-history/api/providers/non-blank";
 import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Observer } from "#/features/ingest-history/api/providers/observe";
@@ -11,12 +11,11 @@ import type { TwilogLog } from "./schemas.ts";
 
 const X_ORIGIN = "https://x.com";
 
-const authorOf = (log: TwilogLog): CreatorInput =>
-  creatorIn("twilog")({
-    externalId: `@${log.authorId}`,
-    title: textOr(log.authorId)(log.authorName),
-    url: `${X_ORIGIN}/${log.authorId}`,
-  });
+const authorOf: (log: TwilogLog) => CreatorInput = creatorFrom({ provider: "twilog" })({
+  externalId: ({ authorId }) => `@${authorId}`,
+  title: ({ authorId, authorName }) => textOr(authorId)(authorName),
+  url: ({ authorId }) => `${X_ORIGIN}/${authorId}`,
+});
 
 const postOf = (log: TwilogLog): SubjectInput =>
   subjectIn("twilog")({

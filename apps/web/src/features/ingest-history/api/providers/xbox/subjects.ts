@@ -1,7 +1,10 @@
 import { Array as Arr, Option, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
-import { creatorIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
+import type { CreatorInput, Observation } from "#/entities/signal";
+import {
+  creatorFrom,
+  withoutRelations,
+} from "#/features/ingest-history/api/providers/creator-input";
 
 import { GAME, WEB } from "./api.ts";
 import type { XboxPerson, XboxTitle } from "./schemas.ts";
@@ -45,20 +48,20 @@ export const playedObservationsOf = (titles: readonly XboxTitle[]): readonly Obs
     ),
   );
 
+const friendOf: (person: XboxPerson) => CreatorInput = creatorFrom({ provider: "xbox" })({
+  externalId: ({ xuid }) => `user:${xuid}`,
+  title: ({ gamertag }) => gamertag,
+  url: ({ gamertag }) => `${WEB}/play/user/${encodeURIComponent(gamertag)}`,
+});
+
 export const friendObservationsOf =
   (fetchedAt: number) =>
   (people: readonly XboxPerson[]): readonly Observation[] =>
     pipe(
       people,
-      Arr.map(({ xuid, gamertag }) => ({
+      Arr.map((person) => ({
         kind: "followed" as const,
         occurredAtMs: fetchedAt,
-        subject: withoutRelations(
-          creatorIn("xbox")({
-            externalId: `user:${xuid}`,
-            title: gamertag,
-            url: `${WEB}/play/user/${encodeURIComponent(gamertag)}`,
-          }),
-        ),
+        subject: withoutRelations(friendOf(person)),
       })),
     );

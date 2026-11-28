@@ -1,7 +1,10 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
+import {
+  creatorFrom,
+  withoutRelations,
+} from "#/features/ingest-history/api/providers/creator-input";
 import { publishedOf, durationOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
@@ -9,12 +12,11 @@ import type { SoundcloudPlaylist, SoundcloudTrack, SoundcloudUser } from "./sche
 
 const TAG = /"(?<quoted>[^"]+)"|(?<bare>\S+)/gu;
 
-const userOf = (user: SoundcloudUser): CreatorInput =>
-  creatorIn("soundcloud")({
-    externalId: String(user.id),
-    title: user.username,
-    url: user.permalink_url,
-  });
+const userOf: (user: SoundcloudUser) => CreatorInput = creatorFrom({ provider: "soundcloud" })({
+  externalId: ({ id }) => String(id),
+  title: ({ username }) => username,
+  url: ({ permalink_url: url }) => url,
+});
 
 const creditsOf = (user: SoundcloudUser | null | undefined): readonly CreatorInput[] =>
   pipe(Option.fromNullishOr(user), Option.map(userOf), Option.toArray);

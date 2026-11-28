@@ -1,5 +1,3 @@
-import { Option } from "effect";
-
 import {
   listingOf,
   pulledListings,
@@ -10,7 +8,7 @@ import { datedObservationsOf } from "#/features/ingest-history/api/providers/obs
 import { API, LIMIT } from "./api.ts";
 import { TOKEN_NEXT } from "./page.ts";
 import { Subscriptions, Videos } from "./schemas.ts";
-import { likedVideoOf, subscribedChannelOf } from "./subjects.ts";
+import { subscribedChannelOf, videoOf } from "./subjects.ts";
 
 const pullLiked = listingOf({
   label: "liked",
@@ -23,7 +21,7 @@ const pullLiked = listingOf({
 })(
   datedObservationsOf({
     kind: "endorsed",
-    subjectOf: (video) => Option.some(likedVideoOf(video)),
+    subjectOf: videoOf,
   }),
 );
 

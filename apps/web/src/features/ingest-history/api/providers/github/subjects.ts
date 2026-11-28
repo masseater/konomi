@@ -1,7 +1,7 @@
 import { Option, Function as Fn } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorFrom } from "#/features/ingest-history/api/providers/creator-input";
 import {
   followedCreatorsAt,
   datedObservationsOf,
@@ -10,12 +10,11 @@ import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subj
 
 import type { GitHubAccount, GitHubStar } from "./schemas.ts";
 
-const accountOf = (account: GitHubAccount): CreatorInput =>
-  creatorIn("github")({
-    externalId: String(account.id),
-    title: account.login,
-    url: account.html_url,
-  });
+const accountOf: (account: GitHubAccount) => CreatorInput = creatorFrom({ provider: "github" })({
+  externalId: ({ id }) => String(id),
+  title: ({ login }) => login,
+  url: ({ html_url: url }) => url,
+});
 
 const repositoryOf = ({ repo }: GitHubStar): SubjectInput =>
   subjectIn("github")({
