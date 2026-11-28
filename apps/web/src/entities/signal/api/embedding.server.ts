@@ -8,7 +8,7 @@ import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "#/shared/config";
 import { digestHex } from "#/shared/crypto/index.server";
 import { db } from "#/shared/db/index.server";
 
-import { among, relationsOf } from "./query.server.ts";
+import { among, relatedTo, relationsOf } from "./query.server.ts";
 
 const EMBEDS_PER_RUN = 200;
 const EMBEDS_PER_CALL = 50;
@@ -89,17 +89,6 @@ const pendingSubjects: Effect.Effect<readonly Pending[]> = Effect.promise(() =>
     .limit(EMBEDS_PER_RUN),
 );
 
-const valuesFor = <Row extends Readonly<{ subjectKey: string }>>(
-  rows: readonly Row[],
-  key: string,
-  pick: (row: Row) => string,
-): readonly string[] =>
-  pipe(
-    rows,
-    Arr.filter(({ subjectKey }) => subjectKey === key),
-    Arr.map(pick),
-  );
-
 const describeAll = (pending: readonly Pending[]): Effect.Effect<readonly string[]> => {
   const keys = keysOf(pending);
   return relationsOf(among(keys)).pipe(
@@ -110,8 +99,8 @@ const describeAll = (pending: readonly Pending[]): Effect.Effect<readonly string
           pipe(
             [
               title,
-              ...valuesFor(credits, key, (found) => found.title),
-              ...valuesFor(tags, key, ({ tag }) => tag),
+              ...relatedTo(credits, key, ({ creator }) => creator.title),
+              ...relatedTo(tags, key, ({ target }) => target),
             ],
             Arr.join(LINE),
           ),

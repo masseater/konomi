@@ -1,15 +1,19 @@
 import { Effect, Function as Fn } from "effect";
 
 import { userClientOf } from "#/features/ingest-history/api/providers/credential-field";
-import { listingOf, pulledListings } from "#/features/ingest-history/api/providers/listing.server";
-import { numberedSource } from "#/features/ingest-history/api/providers/numbered-pages.server";
+import {
+  listingOf,
+  pulledListings,
+  sourceOf,
+} from "#/features/ingest-history/api/providers/listing.server";
+import type { Numbering } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, FIELD, LIMIT } from "./api.ts";
 import { History, Ratings } from "./schemas.ts";
 import { historyObservationsOf, ratingObservationsOf } from "./subjects.ts";
 
-const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
+const NUMBERING: Numbering = { param: "page", limit: LIMIT, start: 1 };
 
 export const pullTrakt = pullOf({
   provider: "trakt",
@@ -25,20 +29,20 @@ export const pullTrakt = pullOf({
       const listings = pulledListings([
         listingOf({
           label: "history",
-          source: numberedSource({
-            base: `${API}/users/${user}/history?limit=${LIMIT}`,
-            numbering: NUMBERING,
+          source: sourceOf({
+            first: `${API}/users/${user}/history?limit=${LIMIT}`,
+            next: { number: NUMBERING },
             schema: History,
-            itemsOf: Fn.identity,
+            items: Fn.identity,
           }),
         })(historyObservationsOf),
         listingOf({
           label: "ratings",
-          source: numberedSource({
-            base: `${API}/users/${user}/ratings?limit=${LIMIT}`,
-            numbering: NUMBERING,
+          source: sourceOf({
+            first: `${API}/users/${user}/ratings?limit=${LIMIT}`,
+            next: { number: NUMBERING },
             schema: Ratings,
-            itemsOf: Fn.identity,
+            items: Fn.identity,
           }),
         })(ratingObservationsOf),
       ]);

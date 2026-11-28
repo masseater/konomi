@@ -5,9 +5,10 @@ import {
   pulledListings,
   sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
-import { datedObservationsOf, pageOf } from "#/features/ingest-history/api/providers/observe";
+import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 
 import { API, LIMIT } from "./api.ts";
+import { FOLLOW_NEXT } from "./paging.ts";
 import { FollowedArtists, RecentlyPlayed, SavedTracks } from "./schemas.ts";
 import { followedArtistOf, trackOf } from "./subjects.ts";
 
@@ -16,7 +17,8 @@ const recent = listingOf({
   source: sourceOf({
     first: `${API}/me/player/recently-played?limit=${LIMIT}`,
     schema: RecentlyPlayed,
-  })((body) => pageOf(body)),
+    items: ({ items }) => items,
+  }),
 })(
   datedObservationsOf({
     kind: "consumed",
@@ -27,9 +29,12 @@ const recent = listingOf({
 
 const saved = listingOf({
   label: "saved",
-  source: sourceOf({ first: `${API}/me/tracks?limit=${LIMIT}`, schema: SavedTracks })((body) =>
-    pageOf(body),
-  ),
+  source: sourceOf({
+    first: `${API}/me/tracks?limit=${LIMIT}`,
+    schema: SavedTracks,
+    items: ({ items }) => items,
+    next: FOLLOW_NEXT,
+  }),
 })(
   datedObservationsOf({
     kind: "endorsed",
@@ -43,9 +48,8 @@ const followed = listingOf({
   source: sourceOf({
     first: `${API}/me/following?type=artist&limit=${LIMIT}`,
     schema: FollowedArtists,
-  })(({ artists }) => {
-    const { items, next } = pageOf(artists);
-    return { items: pipe(items, Arr.map(followedArtistOf), Arr.getSomes), next };
+    items: ({ artists }) => pipe(artists.items, Arr.map(followedArtistOf), Arr.getSomes),
+    next: { follow: ({ artists }) => Option.fromNullishOr(artists.next) },
   }),
 })(datedObservationsOf({ kind: "followed", subjectOf: (subject) => Option.some(subject) }));
 

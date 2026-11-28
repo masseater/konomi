@@ -1,8 +1,8 @@
-import { Effect, Option, pipe } from "effect";
-import type { Schema } from "effect";
+import { Option, pipe } from "effect";
+import type { Schema, Effect } from "effect";
 
 import type { Credential } from "#/entities/connection";
-import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
+import { requiredAs } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { listingOf, sourceOf } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
@@ -25,12 +25,14 @@ export const sessionOf = ({
   Session,
   ProviderError
 > =>
-  requireFields(credential, { token: FIELD.token, clientId: FIELD.clientId }).pipe(
-    Effect.map(({ token, clientId }) => ({
+  requiredAs(
+    credential,
+    { token: FIELD.token, clientId: FIELD.clientId },
+    ({ token, clientId }) => ({
       headers: { Authorization: `OAuth ${token}`, Origin: "https://soundcloud.com" },
       clientId,
       fetchedAt,
-    })),
+    }),
   );
 
 export const firstUrlOf = (path: string): string =>
@@ -69,9 +71,13 @@ export const collectionListing =
     const first = sign(firstUrlOf(path));
     return listingOf({
       label: path,
-      source: sourceOf({ first, schema })(({ collection, next_href: next }) => ({
-        items: collection,
-        next: pipe(Option.fromNullishOr(next), Option.map(sign)),
-      })),
+      source: sourceOf({
+        first,
+        schema,
+        items: ({ collection }) => collection,
+        next: {
+          follow: ({ next_href: next }) => pipe(Option.fromNullishOr(next), Option.map(sign)),
+        },
+      }),
     });
   };

@@ -1,5 +1,3 @@
-import { Option } from "effect";
-
 import {
   listingOf,
   pulledListings,
@@ -8,20 +6,22 @@ import {
 import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 
 import { API, LIMIT } from "./api.ts";
-import { tokenPaging } from "./page.ts";
+import { TOKEN_NEXT } from "./page.ts";
 import { Subscriptions, Videos } from "./schemas.ts";
-import { likedVideoOf, subscribedChannelOf } from "./subjects.ts";
+import { subscribedChannelOf, videoOf } from "./subjects.ts";
 
 const pullLiked = listingOf({
   label: "liked",
   source: sourceOf({
     first: `${API}/videos?myRating=like&part=snippet,contentDetails&maxResults=${LIMIT}`,
     schema: Videos,
-  })(tokenPaging()),
+    items: ({ items }) => items,
+    next: TOKEN_NEXT,
+  }),
 })(
   datedObservationsOf({
     kind: "endorsed",
-    subjectOf: (video) => Option.some(likedVideoOf(video)),
+    subjectOf: videoOf,
   }),
 );
 
@@ -30,7 +30,9 @@ const pullSubscriptions = listingOf({
   source: sourceOf({
     first: `${API}/subscriptions?mine=true&part=snippet&maxResults=${LIMIT}`,
     schema: Subscriptions,
-  })(tokenPaging()),
+    items: ({ items }) => items,
+    next: TOKEN_NEXT,
+  }),
 })(
   datedObservationsOf({
     kind: "followed",

@@ -1,9 +1,8 @@
-import { Array as Arr, Option, pipe } from "effect";
+import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
-import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
-import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
+import { orEmpty, videoIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import type { YoutubePlaylistItem, YoutubeSubscription, YoutubeVideo } from "./schemas.ts";
 
@@ -73,57 +72,58 @@ export const channelOf = ({
 }>): Option.Option<Channel> =>
   Option.all({ id: Option.fromNullishOr(id), title: Option.fromNullishOr(title) });
 
-export const videoSubjectOf = (parts: VideoParts): SubjectInput =>
-  subjectIn("youtube")({
-    externalId: parts.id,
-    type: "video",
-    title: parts.title,
-    url: `${ORIGIN}/watch?v=${parts.id}`,
-    ...durationOf(parts.durationSec, "seconds"),
-    ...publishedOf(parts.publishedAt),
-    credits: pipe(parts.channel, Option.map(channelCreatorOf), Option.toArray),
-    tags: pipe(parts.tags, Arr.take(MAX_TAGS)),
+const youtubeVideoOf = videoIn({ provider: "youtube", watchUrl: `${ORIGIN}/watch?v=` });
+
+export const videoSubjectOf = ({ channel, tags, ...parts }: VideoParts): SubjectInput =>
+  youtubeVideoOf({
+    ...parts,
+    credits: pipe(channel, Option.map(channelCreatorOf), Option.toArray),
+    tags: pipe(tags, Arr.take(MAX_TAGS)),
   });
 
-export const likedVideoOf = ({ id, snippet, contentDetails }: YoutubeVideo): SubjectInput =>
-  videoSubjectOf({
-    id,
-    title: snippet.title,
-    channel: channelOf({ id: snippet.channelId, title: snippet.channelTitle }),
-    durationSec: pipe(
-      Option.fromNullishOr(contentDetails),
-      Option.flatMap(({ duration }) => isoSecondsOf(duration)),
-    ),
-    publishedAt: Option.fromNullishOr(snippet.publishedAt),
-    tags: orEmpty(snippet.tags),
-  });
+const isVideo = (item: YoutubeVideo | YoutubePlaylistItem): item is YoutubeVideo => "id" in item;
 
-export const playlistVideoOf = ({
-  snippet,
-  contentDetails,
-}: YoutubePlaylistItem): Option.Option<SubjectInput> =>
-  pipe(
-    Option.all({
-      id: Option.fromNullishOr(snippet.resourceId.videoId),
-      channel: channelOf({
-        id: snippet.videoOwnerChannelId,
-        title: snippet.videoOwnerChannelTitle,
-      }),
-    }),
-    Option.map(({ id, channel }) =>
-      videoSubjectOf({
+const partsOf = (item: YoutubeVideo | YoutubePlaylistItem): Option.Option<VideoParts> =>
+  Match.value(item).pipe(
+    Match.when(isVideo, ({ id, snippet, contentDetails }) =>
+      Option.some({
         id,
         title: snippet.title,
-        channel: Option.some(channel),
-        durationSec: Option.none(),
-        publishedAt: pipe(
+        channel: channelOf({ id: snippet.channelId, title: snippet.channelTitle }),
+        durationSec: pipe(
           Option.fromNullishOr(contentDetails),
-          Option.flatMap(({ videoPublishedAt }) => Option.fromNullishOr(videoPublishedAt)),
+          Option.flatMap(({ duration }) => isoSecondsOf(duration)),
         ),
-        tags: [],
+        publishedAt: Option.fromNullishOr(snippet.publishedAt),
+        tags: orEmpty(snippet.tags),
       }),
     ),
+    Match.orElse(({ snippet, contentDetails }) =>
+      pipe(
+        Option.all({
+          id: Option.fromNullishOr(snippet.resourceId.videoId),
+          channel: channelOf({
+            id: snippet.videoOwnerChannelId,
+            title: snippet.videoOwnerChannelTitle,
+          }),
+        }),
+        Option.map(({ id, channel }) => ({
+          id,
+          title: snippet.title,
+          channel: Option.some(channel),
+          durationSec: Option.none(),
+          publishedAt: pipe(
+            Option.fromNullishOr(contentDetails),
+            Option.flatMap(({ videoPublishedAt }) => Option.fromNullishOr(videoPublishedAt)),
+          ),
+          tags: [],
+        })),
+      ),
+    ),
   );
+
+export const videoOf = (item: YoutubeVideo | YoutubePlaylistItem): Option.Option<SubjectInput> =>
+  pipe(partsOf(item), Option.map(videoSubjectOf));
 
 export const subscribedChannelOf = ({
   snippet,

@@ -4,17 +4,17 @@ import {
   refreshAuthorization,
   startAuthorization,
 } from "@modelcontextprotocol/client";
-import { Effect, Option, Schema, pipe } from "effect";
+import { Effect, Match, Option, Schema, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import { fieldOf, requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { OAUTH_FIELD, grantedBy } from "#/features/ingest-history/api/providers/oauth.server";
-import type { Exchanging, Tokens } from "#/features/ingest-history/api/providers/oauth.server";
+import { OAUTH_FIELD } from "#/features/ingest-history/api/providers/oauth.server";
+import type { Grant, Tokens } from "#/features/ingest-history/api/providers/oauth.server";
 import { failureWhen } from "#/features/ingest-history/api/providers/provider-failure";
 import type { Discovery, ProviderError } from "#/features/ingest-history/model/provider";
 
-const VERIFIER_FIELD = "codeVerifier";
+export const VERIFIER_FIELD = "codeVerifier";
 const CLIENT_NAME = "konomi";
 
 const ClientMetadata = Schema.Struct({
@@ -109,52 +109,30 @@ export const authorizeDiscovered = ({
     Effect.withSpan("oauth.discovered.start"),
   );
 
-const viaSdk = (
-  credential: Credential,
-  step: string,
-  grant: (clientInformation: Readonly<{ client_id: string }>) => Promise<Tokens>,
-): Effect.Effect<Tokens, ProviderError> =>
-  requireField(credential, OAUTH_FIELD.clientId).pipe(
-    Effect.flatMap((clientId) => sdkCall(step, () => grant({ client_id: clientId }))),
-  );
-
-export const finishDiscovered = ({
-  discovery,
-  credential,
-  code,
-  redirectUri,
-}: Exchanging & Readonly<{ discovery: Discovery }>): Effect.Effect<Credential, ProviderError> =>
-  grantedBy({
-    credential,
-    secret: requireField(credential, VERIFIER_FIELD),
-    request: (codeVerifier) =>
-      viaSdk(credential, "トークンの受け取り", (clientInformation) =>
-        exchangeAuthorization(discovery.issuer, {
-          clientInformation,
-          authorizationCode: code,
-          codeVerifier,
-          redirectUri,
-          resource: new URL(discovery.resource),
-        }),
-      ),
-    transient: [OAUTH_FIELD.state, VERIFIER_FIELD],
-    span: "oauth.discovered.finish",
-  });
-
-export const refreshDiscovered =
+export const sdkTokens =
   (discovery: Discovery) =>
-  (credential: Credential): Effect.Effect<Credential, ProviderError> =>
-    grantedBy({
-      credential,
-      secret: requireField(credential, OAUTH_FIELD.refreshToken),
-      request: (refreshToken) =>
-        viaSdk(credential, "トークンの更新", (clientInformation) =>
-          refreshAuthorization(discovery.issuer, {
-            clientInformation,
-            refreshToken,
-            resource: new URL(discovery.resource),
-          }),
+  (credential: Credential, grant: Grant, secret: string): Effect.Effect<Tokens, ProviderError> =>
+    requireField(credential, OAUTH_FIELD.clientId).pipe(
+      Effect.flatMap((clientId) =>
+        sdkCall("トークンの受け取り", () =>
+          Match.value(grant).pipe(
+            Match.when({ kind: "refresh" }, () =>
+              refreshAuthorization(discovery.issuer, {
+                clientInformation: { client_id: clientId },
+                refreshToken: secret,
+                resource: new URL(discovery.resource),
+              }),
+            ),
+            Match.orElse(({ code, redirectUri }) =>
+              exchangeAuthorization(discovery.issuer, {
+                clientInformation: { client_id: clientId },
+                authorizationCode: code,
+                codeVerifier: secret,
+                redirectUri,
+                resource: new URL(discovery.resource),
+              }),
+            ),
+          ),
         ),
-      transient: [OAUTH_FIELD.state, VERIFIER_FIELD],
-      span: "oauth.discovered.refresh",
-    });
+      ),
+    );

@@ -1,30 +1,39 @@
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 
-export const creatorIn =
-  (provider: CreatorInput["provider"]) =>
-  (creator: Readonly<{ externalId: string; title: string; url: string }>): CreatorInput => ({
+export const creatorFrom =
+  ({
     provider,
-    type: "person",
-    ...creator,
+    type = "person",
+  }: Readonly<{ provider: CreatorInput["provider"]; type?: CreatorInput["type"] }>) =>
+  <Raw>({
+    externalId,
+    title,
+    url,
+  }: Readonly<{
+    externalId: (raw: Raw) => string;
+    title: (raw: Raw) => string;
+    url: (raw: Raw) => string;
+  }>) =>
+  (raw: Raw): CreatorInput => ({
+    provider,
+    type,
+    externalId: externalId(raw),
+    title: title(raw),
+    url: url(raw),
   });
 
-export const creatorMapper = ({
-  type = "person",
-  provider,
+export const linkedBy = ({
   idPrefix,
   urlBase,
-}: Readonly<{
-  type?: CreatorInput["type"];
-  provider: CreatorInput["provider"];
-  idPrefix: string;
-  urlBase: string;
-}>): ((raw: Readonly<{ id: string | number; name: string }>) => CreatorInput) => {
-  const person = creatorIn(provider);
-  return ({ id, name }) => ({
-    ...person({ externalId: `${idPrefix}${id}`, title: name, url: `${urlBase}${id}` }),
-    type,
-  });
-};
+}: Readonly<{ idPrefix: string; urlBase: string }>): Readonly<{
+  externalId: (raw: Readonly<{ id: string | number; name: string }>) => string;
+  title: (raw: Readonly<{ id: string | number; name: string }>) => string;
+  url: (raw: Readonly<{ id: string | number; name: string }>) => string;
+}> => ({
+  externalId: ({ id }) => `${idPrefix}${id}`,
+  title: ({ name }) => name,
+  url: ({ id }) => `${urlBase}${id}`,
+});
 
 export const withRelations =
   (relations: Pick<SubjectInput, "credits" | "tags">) =>

@@ -32,10 +32,14 @@ export const headersOf = (credential: Credential): Effect.Effect<Headers, Provid
 const absoluteOf = (path: string): string => new URL(path, API_ORIGIN).toString();
 
 export const songsFrom = (first: string): Sourcing<AppleSong> =>
-  sourceOf({ first, schema: Songs })(({ data, next }) => ({
-    items: data,
-    next: pipe(Option.fromNullishOr(next), Option.map(absoluteOf)),
-  }));
+  sourceOf({
+    first,
+    schema: Songs,
+    items: ({ data }) => data,
+    next: {
+      follow: ({ next }) => pipe(Option.fromNullishOr(next), Option.map(absoluteOf)),
+    },
+  });
 
 export const storefrontOf =
   (headers: Headers) =>

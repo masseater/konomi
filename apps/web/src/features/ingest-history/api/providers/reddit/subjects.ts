@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorMapper } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorFrom, linkedBy } from "#/features/ingest-history/api/providers/creator-input";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import { WEB } from "./api.ts";
@@ -9,7 +9,9 @@ import type { RedditThing } from "./schemas.ts";
 
 const MS_PER_SECOND = 1000;
 
-const personOf = creatorMapper({ provider: "reddit", idPrefix: "u/", urlBase: `${WEB}/user/` });
+const personOf = creatorFrom({ provider: "reddit" })(
+  linkedBy({ idPrefix: "u/", urlBase: `${WEB}/user/` }),
+);
 
 const authorOf = (author: string): CreatorInput => personOf({ id: author, name: author });
 

@@ -3,7 +3,6 @@ import { Effect, Option } from "effect";
 import type { ListingKind } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import {
-  cursorPageOf,
   listingOf,
   pulledListings,
   sourceOf,
@@ -21,13 +20,9 @@ const savedListingOf = (user: string, path: string, kind: ListingKind): Listing 
   const source = sourceOf({
     first: `${API}/user/${user}/${path}?limit=${LIMIT}&raw_json=1`,
     schema: ListingBody,
-  })(
-    cursorPageOf({
-      param: "after",
-      itemsOf: ({ data }) => data.children,
-      cursorOf: ({ data }) => Option.fromNullishOr(data.after),
-    }),
-  );
+    items: ({ data }) => data.children,
+    next: { cursor: "after", cursorOf: ({ data }) => Option.fromNullishOr(data.after) },
+  });
   return listingOf({ label: path, source })(
     datedObservationsOf({ kind, subjectOf: (thing) => Option.some(thingOf(thing)) }),
   );

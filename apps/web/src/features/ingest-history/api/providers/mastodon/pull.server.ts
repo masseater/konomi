@@ -4,8 +4,9 @@ import { bearerFieldOf } from "#/features/ingest-history/api/providers/credentia
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
 import {
-  flatListing,
+  listingOf,
   pulledListings,
+  sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
@@ -26,20 +27,29 @@ export const pullMastodon = pullOf({
         schema: Verified,
       });
       const listings = pulledListings([
-        flatListing({
+        listingOf({
           label: "favourites",
-          first: `${origin}/api/v1/favourites?limit=${LIMIT}`,
-          schema: Statuses,
+          source: sourceOf({
+            first: `${origin}/api/v1/favourites?limit=${LIMIT}`,
+            schema: Statuses,
+            items: (items) => items,
+          }),
         })(statusObservationsOf("endorsed")),
-        flatListing({
+        listingOf({
           label: "bookmarks",
-          first: `${origin}/api/v1/bookmarks?limit=${LIMIT}`,
-          schema: Statuses,
+          source: sourceOf({
+            first: `${origin}/api/v1/bookmarks?limit=${LIMIT}`,
+            schema: Statuses,
+            items: (items) => items,
+          }),
         })(statusObservationsOf("collected")),
-        flatListing({
+        listingOf({
           label: "following",
-          first: `${origin}/api/v1/accounts/${id}/following?limit=${LIMIT}`,
-          schema: Accounts,
+          source: sourceOf({
+            first: `${origin}/api/v1/accounts/${id}/following?limit=${LIMIT}`,
+            schema: Accounts,
+            items: (items) => items,
+          }),
         })(followObservationsOf),
       ]);
       return yield* listings({ headers, pages, fetchedAt });

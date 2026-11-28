@@ -40,13 +40,20 @@ export const stampedVideosOf = ({
 const videoListing = ({ path, kind }: Readonly<{ path: string; kind: SignalKind }>): Listing =>
   listingOf({
     label: path,
-    source: sourceOf({ first: pageUrl(path, FIRST_PAGE), schema: VideoPage })(({ data }, url) => ({
-      items: data.items,
-      next: Match.value(data.hasNext === true).pipe(
-        Match.when(true, () => Option.some(urlAdvancing(url, { param: "page", step: FIRST_PAGE }))),
-        Match.orElse(() => Option.none<string>()),
-      ),
-    })),
+    source: sourceOf({
+      first: pageUrl(path, FIRST_PAGE),
+      schema: VideoPage,
+      items: ({ data }) => data.items,
+      next: {
+        follow: ({ data }, url) =>
+          Match.value(data.hasNext === true).pipe(
+            Match.when(true, () =>
+              Option.some(urlAdvancing(url, { param: "page", step: FIRST_PAGE })),
+            ),
+            Match.orElse(() => Option.none<string>()),
+          ),
+      },
+    }),
   })(stampedVideosOf({ kind }));
 
 export const pullVideos = pulledListings([

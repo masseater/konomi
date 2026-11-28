@@ -1,4 +1,4 @@
-import { refreshDiscovered } from "#/features/ingest-history/api/providers/discovered-oauth.server";
+import { grantFor } from "#/features/ingest-history/api/providers/grant.server";
 import type { Authorization, Provider } from "#/features/ingest-history/model/provider";
 
 import { ORIGIN, RESOURCE } from "./api.ts";
@@ -33,5 +33,5 @@ export const twilog: Provider = {
     },
   ],
   pull: pullTwilog,
-  renew: refreshDiscovered(DISCOVERY),
+  renew: grantFor({ authorization: AUTHORIZATION, grant: { kind: "refresh" } }),
 };

@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorFrom } from "#/features/ingest-history/api/providers/creator-input";
 import {
   durationOf,
   publishedOf,
@@ -17,14 +17,12 @@ const GENERIC_GENRES: ReadonlySet<string> = new Set(["Music", "ミュージッ�
 
 export type Song = Readonly<{ song: AppleSong; storefront: string }>;
 
-const artistOf = ({
-  name,
-  storefront,
-}: Readonly<{ name: string; storefront: string }>): CreatorInput =>
-  creatorIn("apple-music")({
-    externalId: `artist:${name}`,
-    title: name,
-    url: `${WEB_ORIGIN}/${storefront}/search?term=${encodeURIComponent(name)}`,
+const artistOf: (artist: Readonly<{ name: string; storefront: string }>) => CreatorInput =
+  creatorFrom({ provider: "apple-music" })({
+    externalId: ({ name }) => `artist:${name}`,
+    title: ({ name }) => name,
+    url: ({ name, storefront }) =>
+      `${WEB_ORIGIN}/${storefront}/search?term=${encodeURIComponent(name)}`,
   });
 
 const typeOf = subjectTypeOf({ "music-videos": "video", "library-music-videos": "video" }, "track");

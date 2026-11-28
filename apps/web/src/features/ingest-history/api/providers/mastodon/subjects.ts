@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, ListingKind, SubjectInput } from "#/entities/signal";
-import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorFrom } from "#/features/ingest-history/api/providers/creator-input";
 import { textOr } from "#/features/ingest-history/api/providers/non-blank";
 import {
   datedObservationsOf,
@@ -13,12 +13,13 @@ import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subj
 
 import type { MastodonAccount, MastodonStatus } from "./schemas.ts";
 
-const accountOf = (account: MastodonAccount): CreatorInput =>
-  creatorIn("mastodon")({
-    externalId: account.url,
-    title: textOr(account.acct)(account.display_name),
-    url: account.url,
-  });
+const accountOf: (account: MastodonAccount) => CreatorInput = creatorFrom({
+  provider: "mastodon",
+})({
+  externalId: ({ url }) => url,
+  title: ({ acct, display_name: displayName }) => textOr(acct)(displayName),
+  url: ({ url }) => url,
+});
 
 export const followObservationsOf = followedCreatorsAt(accountOf);
 

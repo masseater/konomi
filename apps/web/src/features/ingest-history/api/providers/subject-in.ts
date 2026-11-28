@@ -1,8 +1,8 @@
 import { Match, Option, pipe } from "effect";
 
-import type { SubjectInput } from "#/entities/signal";
+import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
-import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
+import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
 export const subjectIn =
   (provider: SubjectInput["provider"]) =>
@@ -43,3 +43,27 @@ export const seriesOrBook = (anime: boolean): "series" | "book" =>
     Match.when(true, () => "series" as const),
     Match.orElse(() => "book" as const),
   );
+
+export const videoIn =
+  ({ provider, watchUrl }: Readonly<{ provider: SubjectInput["provider"]; watchUrl: string }>) =>
+  ({
+    id,
+    durationSec,
+    publishedAt,
+    ...rest
+  }: Readonly<{
+    id: string;
+    title: string;
+    durationSec: Option.Option<number>;
+    publishedAt: Option.Option<string>;
+    credits: readonly CreatorInput[];
+    tags?: readonly string[];
+  }>): SubjectInput =>
+    subjectIn(provider)({
+      externalId: id,
+      type: "video",
+      url: `${watchUrl}${id}`,
+      ...durationOf(durationSec, "seconds"),
+      ...publishedOf(publishedAt),
+      ...rest,
+    });

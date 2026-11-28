@@ -3,7 +3,6 @@ import { Array as Arr, Effect, Function as Fn, Match, Option, Predicate, pipe } 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
 import { withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
 import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
-import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import type { SignalKind } from "#/shared/config";
 
@@ -16,8 +15,6 @@ export type Fetching = Readonly<{ headers: Readonly<Record<string, string>>; fet
 export type Observer<Item> = (
   fetchedAt: number,
 ) => (items: readonly Item[]) => readonly Observation[];
-
-type Observed = readonly [SubjectInput, number];
 
 export const epochOr =
   (fallback: number) =>
@@ -33,67 +30,6 @@ const contextOf = (context: Option.Option<string>): Readonly<{ context?: string 
     Option.map((name) => ({ context: name })),
     Option.getOrElse(() => ({})),
   );
-
-const observed =
-  ({ kind, context }: Readonly<{ kind: SignalKind; context: Option.Option<string> }>) =>
-  ([subject, occurredAtMs]: Observed): Observation => ({
-    kind,
-    subject,
-    occurredAtMs,
-    ...contextOf(context),
-  });
-
-export const listEntriesOf =
-  <Entry>({
-    subjectOf,
-    occurredAtOf,
-    statusOf,
-    labels,
-    scoreOf,
-    likedFrom,
-    completedStatus,
-  }: Readonly<{
-    subjectOf: (entry: Entry) => SubjectInput;
-    occurredAtOf: (entry: Entry) => Option.Option<number>;
-    statusOf: (entry: Entry) => string | null | undefined;
-    labels: Readonly<Record<string, string>>;
-    scoreOf: (entry: Entry) => number | null | undefined;
-    likedFrom: number;
-    completedStatus: string;
-  }>) =>
-  (fetchedAt: number) =>
-  (entry: Entry): readonly Observation[] => {
-    const subject = subjectOf(entry);
-    const occurredAtMs = Option.getOrElse(occurredAtOf(entry), () => fetchedAt);
-    const status = statusOf(entry);
-    const context = pipe(
-      Option.fromNullishOr(status),
-      Option.flatMap((name) => Option.fromUndefinedOr(labels[name])),
-    );
-    const liked = Option.exists(
-      Option.fromNullishOr(scoreOf(entry)),
-      (value) => value >= likedFrom,
-    );
-    return [
-      observed({ kind: "collected", context })([subject, occurredAtMs]),
-      ...pipe(
-        [
-          { kind: "endorsed", applies: liked },
-          { kind: "consumed", applies: status === completedStatus },
-        ] as const,
-        Arr.filter(({ applies }) => applies),
-        Arr.map(({ kind }) => observed({ kind, context: Option.none() })([subject, occurredAtMs])),
-      ),
-    ];
-  };
-
-export const pageOf = <Item>({
-  items,
-  next,
-}: Readonly<{ items: readonly Item[]; next?: string | null | undefined }>): Page<Item> => ({
-  items,
-  next: Option.fromNullishOr(next),
-});
 
 export const observationsOf =
   (kind: SignalKind) =>
@@ -169,26 +105,66 @@ export const flatMapEach: {
 export const collectedListsOf =
   <List, Entry>({
     listsOf,
-    nameOf,
     entriesOf,
-    subjectOf,
-    occurredAtOf,
+    observe,
   }: Readonly<{
     listsOf: (fetching: Fetching) => Fetched<readonly List[]>;
-    nameOf: (list: List) => string;
     entriesOf: (fetching: Fetching, list: List) => Fetched<readonly Entry[]>;
-    subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
-    occurredAtOf: (entry: Entry) => string | null | undefined;
+    observe: (list: List) => Observer<Entry>;
   }>): ((fetching: Fetching) => Observing) =>
-  (fetching) => {
-    const pullList = (list: List): Observing => {
-      const observe = datedObservationsOf({
-        kind: "collected",
-        subjectOf,
-        occurredAtOf,
-        contextOf: () => Option.some(nameOf(list)),
-      })(fetching.fetchedAt);
-      return entriesOf(fetching, list).pipe(Effect.map(observe));
-    };
-    return listsOf(fetching).pipe(Effect.flatMap(flatMapEach(pullList)));
-  };
+  (fetching) =>
+    listsOf(fetching).pipe(
+      Effect.flatMap(
+        flatMapEach((list: List) =>
+          entriesOf(fetching, list).pipe(Effect.map(observe(list)(fetching.fetchedAt))),
+        ),
+      ),
+    );
+
+export const listEntriesOf = <Entry>({
+  subjectOf,
+  occurredAtOf,
+  statusOf,
+  labels,
+  scoreOf,
+  likedFrom,
+  completedStatus,
+}: Readonly<{
+  subjectOf: (entry: Entry) => SubjectInput;
+  occurredAtOf: (entry: Entry) => Option.Option<number>;
+  statusOf: (entry: Entry) => string | null | undefined;
+  labels: Readonly<Record<string, string>>;
+  scoreOf: (entry: Entry) => number | null | undefined;
+  likedFrom: number;
+  completedStatus: string;
+}>): ((fetchedAt: number) => (entry: Entry) => readonly Observation[]) => {
+  const isLiked = (entry: Entry): boolean =>
+    Option.exists(Option.fromNullishOr(scoreOf(entry)), (value) => value >= likedFrom);
+  const isCompleted = (entry: Entry): boolean => statusOf(entry) === completedStatus;
+  const labelOf = (entry: Entry): Option.Option<string> =>
+    pipe(
+      Option.fromNullishOr(statusOf(entry)),
+      Option.flatMap((name) => Option.fromUndefinedOr(labels[name])),
+    );
+  const rules = [
+    { kind: "collected", applies: Predicate.isNotNullish, labelled: true },
+    { kind: "endorsed", applies: isLiked, labelled: false },
+    { kind: "consumed", applies: isCompleted, labelled: false },
+  ] as const;
+  return (fetchedAt) => (entry) =>
+    pipe(
+      rules,
+      Arr.flatMap(({ kind, applies, labelled }) =>
+        pipe(
+          [entry],
+          Arr.filter(applies),
+          datedObservationsOf({
+            kind,
+            subjectOf: (found: Entry) => Option.some(subjectOf(found)),
+            occurredAtOf: (found: Entry) => Option.getOrUndefined(occurredAtOf(found)),
+            contextOf: (found: Entry) => Option.filter(labelOf(found), () => labelled),
+          })(fetchedAt),
+        ),
+      ),
+    );
+};

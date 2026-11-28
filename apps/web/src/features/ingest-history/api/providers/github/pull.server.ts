@@ -1,8 +1,12 @@
 import { Effect, Function as Fn } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
-import { listingOf, pulledListings } from "#/features/ingest-history/api/providers/listing.server";
-import { numberedSource } from "#/features/ingest-history/api/providers/numbered-pages.server";
+import {
+  listingOf,
+  pulledListings,
+  sourceOf,
+} from "#/features/ingest-history/api/providers/listing.server";
+import type { Numbering } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, FIELD, LIMIT } from "./api.ts";
@@ -10,7 +14,7 @@ import { headersOf } from "./headers.ts";
 import { Accounts, Stars } from "./schemas.ts";
 import { followObservationsOf, starObservationsOf } from "./subjects.ts";
 
-const NUMBERING = { param: "page", limit: LIMIT, start: 1 } as const;
+const NUMBERING: Numbering = { param: "page", limit: LIMIT, start: 1 };
 
 export const pullGitHub = pullOf({
   provider: "github",
@@ -22,20 +26,20 @@ export const pullGitHub = pullOf({
       const listings = pulledListings([
         listingOf({
           label: "starred",
-          source: numberedSource({
-            base: `${API}/users/${user}/starred?per_page=${LIMIT}`,
-            numbering: NUMBERING,
+          source: sourceOf({
+            first: `${API}/users/${user}/starred?per_page=${LIMIT}`,
+            next: { number: NUMBERING },
             schema: Stars,
-            itemsOf: Fn.identity,
+            items: Fn.identity,
           }),
         })(starObservationsOf),
         listingOf({
           label: "following",
-          source: numberedSource({
-            base: `${API}/users/${user}/following?per_page=${LIMIT}`,
-            numbering: NUMBERING,
+          source: sourceOf({
+            first: `${API}/users/${user}/following?per_page=${LIMIT}`,
+            next: { number: NUMBERING },
             schema: Accounts,
-            itemsOf: Fn.identity,
+            items: Fn.identity,
           }),
         })(followObservationsOf),
       ]);

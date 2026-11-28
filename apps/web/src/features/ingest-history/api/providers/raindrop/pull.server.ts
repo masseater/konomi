@@ -1,8 +1,7 @@
 import { Effect } from "effect";
 
 import { bearerFieldOf } from "#/features/ingest-history/api/providers/credential-field";
-import { listingOf } from "#/features/ingest-history/api/providers/listing.server";
-import { numberedSource } from "#/features/ingest-history/api/providers/numbered-pages.server";
+import { listingOf, sourceOf } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { ALL_COLLECTIONS, API, FIELD, LIMIT } from "./api.ts";
@@ -11,11 +10,11 @@ import { raindropObservationsOf } from "./subjects.ts";
 
 const raindrops = listingOf({
   label: "raindrops",
-  source: numberedSource({
-    base: `${API}/raindrops/${ALL_COLLECTIONS}?perpage=${LIMIT}&sort=-created`,
-    numbering: { param: "page", limit: LIMIT, start: 0 },
+  source: sourceOf({
+    first: `${API}/raindrops/${ALL_COLLECTIONS}?perpage=${LIMIT}&sort=-created`,
+    next: { number: { param: "page", limit: LIMIT, start: 0 } },
     schema: Raindrops,
-    itemsOf: ({ items }) => items,
+    items: ({ items }) => items,
   }),
 })(raindropObservationsOf);
 

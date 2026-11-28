@@ -1,7 +1,7 @@
 import { Array as Arr, Match, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorIn, withRelations } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorFrom, withRelations } from "#/features/ingest-history/api/providers/creator-input";
 import { publishedOf, durationOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SubjectType } from "#/shared/config";
@@ -18,17 +18,18 @@ const urlOf = (external: SpotifyUrls, path: string): string =>
     Option.getOrElse(() => `${OPEN_URL}/${path}`),
   );
 
-const creatorOf =
-  (artist: SpotifyArtistRef) =>
-  (id: string): CreatorInput =>
-    creatorIn("spotify")({
-      externalId: id,
-      title: artist.name,
-      url: urlOf(artist.external_urls, `artist/${id}`),
-    });
+const creatorOf: (named: Readonly<{ artist: SpotifyArtistRef; id: string }>) => CreatorInput =
+  creatorFrom({ provider: "spotify" })({
+    externalId: ({ id }) => id,
+    title: ({ artist }) => artist.name,
+    url: ({ artist, id }) => urlOf(artist.external_urls, `artist/${id}`),
+  });
 
 const artistOf = (artist: SpotifyArtistRef): Option.Option<CreatorInput> =>
-  pipe(Option.fromNullishOr(artist.id), Option.map(creatorOf(artist)));
+  pipe(
+    Option.fromNullishOr(artist.id),
+    Option.map((id) => creatorOf({ artist, id })),
+  );
 
 const releasedAtOf = (track: SpotifyTrack): Readonly<{ publishedAtMs?: number }> =>
   publishedOf(
@@ -66,5 +67,5 @@ export const trackOf = (track: SpotifyTrack): Option.Option<SubjectInput> =>
 
 export const followedArtistOf = (artist: SpotifyArtist): Option.Option<SubjectInput> => {
   const relate = withRelations({ credits: [], tags: orEmpty(artist.genres) });
-  return pipe(Option.fromNullishOr(artist.id), Option.map(creatorOf(artist)), Option.map(relate));
+  return pipe(artistOf(artist), Option.map(relate));
 };

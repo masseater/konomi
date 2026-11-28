@@ -11,7 +11,7 @@ import { CredentialRejected } from "#/features/ingest-history/model/credential-r
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import type { ProviderId } from "#/shared/config";
 
-import { exchangeFor, startFor } from "./authorization-flows.server.ts";
+import { grantFor, startFor } from "./providers/grant.server.ts";
 import { PROVIDERS } from "./providers/index.server.ts";
 import { stateMatches } from "./providers/oauth.server.ts";
 import type { Authorizing } from "./providers/oauth.server.ts";
@@ -70,7 +70,10 @@ export const finishAuthorization = ({
       return yield* rejected("許可の画面から戻った値が合わない。やり直す");
     }
     const redirectUri = redirectUriOf(provider);
-    const authorized = yield* exchangeFor({ authorization, credential, code, redirectUri });
+    const authorized = yield* grantFor({
+      authorization,
+      grant: { kind: "code", code, redirectUri },
+    })(credential);
     yield* replaceCredential({ provider, credential: authorized });
     return HOME;
   }).pipe(Effect.withSpan("connect.finish", { attributes: { provider } }));

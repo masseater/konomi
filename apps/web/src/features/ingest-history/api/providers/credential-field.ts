@@ -13,6 +13,8 @@ import { CredentialRejected } from "#/features/ingest-history/model/credential-r
 
 const BINARY = 2;
 
+const TERNARY = 3;
+
 export const fieldOf: {
   (name: string): (credential: Credential) => Option.Option<string>;
   (credential: Credential, name: string): Option.Option<string>;
@@ -59,6 +61,26 @@ export const requireFields: {
     ).pipe(Effect.map(Rec.fromEntries)),
 );
 
+export const requiredAs: {
+  <Key extends string, Out>(
+    names: Readonly<Record<Key, string>>,
+    build: (values: Record<Key, string>) => Out,
+  ): (credential: Credential) => Effect.Effect<Out, CredentialRejected>;
+  <Key extends string, Out>(
+    credential: Credential,
+    names: Readonly<Record<Key, string>>,
+    build: (values: Record<Key, string>) => Out,
+  ): Effect.Effect<Out, CredentialRejected>;
+} = Fn.dual(
+  TERNARY,
+  <Key extends string, Out>(
+    credential: Credential,
+    names: Readonly<Record<Key, string>>,
+    build: (values: Record<Key, string>) => Out,
+  ): Effect.Effect<Out, CredentialRejected> =>
+    requireFields(credential, names).pipe(Effect.map(build)),
+);
+
 export type UserClientFields = Readonly<{ user: string; clientId: string }>;
 
 export const userClientOf: {
@@ -75,9 +97,10 @@ export const userClientOf: {
     credential: Credential,
     fields: UserClientFields,
   ): Effect.Effect<UserClientFields, CredentialRejected> =>
-    requireFields(credential, fields).pipe(
-      Effect.map(({ user, clientId }) => ({ user: encodeURIComponent(user), clientId })),
-    ),
+    requiredAs(credential, fields, ({ user, clientId }) => ({
+      user: encodeURIComponent(user),
+      clientId,
+    })),
 );
 
 export type Fields = Readonly<Record<string, string>>;
@@ -107,3 +130,19 @@ export const bearerFieldOf =
   (name: string) =>
   (credential: Credential): Effect.Effect<Fields, CredentialRejected> =>
     requireField(credential, name).pipe(Effect.map(bearerOf));
+
+export const renewedField =
+  <Failure>({
+    field,
+    span,
+    create,
+  }: Readonly<{
+    field: string;
+    span: string;
+    create: (credential: Credential) => Effect.Effect<string, Failure>;
+  }>) =>
+  (credential: Credential): Effect.Effect<Credential, Failure> =>
+    create(credential).pipe(
+      Effect.map((value) => withFields(credential, { [field]: value })),
+      Effect.withSpan(span),
+    );
