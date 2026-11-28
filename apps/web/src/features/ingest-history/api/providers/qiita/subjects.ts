@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe, Function as Fn } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorMapper } from "#/features/ingest-history/api/providers/creator-input";
 import { datedObservationsOf, nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
@@ -10,7 +10,7 @@ import type { QiitaItem } from "./schemas.ts";
 
 const WEB = "https://qiita.com";
 
-const personOf = personMapper({ provider: "qiita", idPrefix: "user:", urlBase: `${WEB}/` });
+const personOf = creatorMapper({ provider: "qiita", idPrefix: "user:", urlBase: `${WEB}/` });
 
 const authorOf = (author: QiitaItem["user"]): CreatorInput =>
   personOf({ id: author.id, name: nonEmptyOr(author.id)(author.name) });

@@ -2,10 +2,7 @@ import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { personIn } from "#/features/ingest-history/api/providers/creator-input";
-import {
-  durationFromMs,
-  publishedOf,
-} from "#/features/ingest-history/api/providers/subject-fields";
+import { publishedOf, durationOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SubjectType } from "#/shared/config";
 
@@ -69,7 +66,7 @@ const subjectOf = ({
       Option.fromNullishOr(attributes.url),
       Option.getOrElse(() => `${WEB_ORIGIN}/${storefront}/song/${externalId}`),
     ),
-    ...durationFromMs(Option.fromNullishOr(attributes.durationInMillis)),
+    ...durationOf(Option.fromNullishOr(attributes.durationInMillis), "millis"),
     ...published,
     credits,
     tags: pipe(

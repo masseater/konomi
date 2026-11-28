@@ -1,7 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe, Function as Fn } from "effect";
 
 import type { SubjectInput } from "#/entities/signal";
-import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorMapper } from "#/features/ingest-history/api/providers/creator-input";
 import {
   datedObservationsOf,
   followedCreatorsAt,
@@ -17,7 +17,7 @@ export type WorkKind = "world" | "avatar";
 
 const TYPE_OF: Readonly<Record<WorkKind, SubjectType>> = { world: "world", avatar: "item" };
 
-const personOf = personMapper({ provider: "vrchat", idPrefix: "user:", urlBase: `${WEB}/user/` });
+const personOf = creatorMapper({ provider: "vrchat", idPrefix: "user:", urlBase: `${WEB}/user/` });
 
 const authorTagsOf = (tags: readonly string[] | undefined): readonly string[] =>
   pipe(

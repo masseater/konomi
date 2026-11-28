@@ -1,6 +1,5 @@
 import { Array as Arr, Match, Option, String as Str, pipe } from "effect";
 
-import type { SubjectInput } from "#/entities/signal";
 import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
 import { cellOf } from "#/features/ingest-history/api/providers/export-cell";
 import { observationsOf } from "#/features/ingest-history/api/providers/observe";
@@ -110,18 +109,16 @@ const watchedLongEnough = (row: ViewingRow, startedAtMs: number): boolean =>
 const searchUrlOf = (query: string): string =>
   `${STORE_SEARCH}?k=${encodeURIComponent(query)}&i=instant-video`;
 
-const titleSubjectOf = (title: string): SubjectInput =>
-  splitTitleSubjectOf({
-    provider: "prime-video",
-    title,
-    separator: SEPARATOR,
-    isSeries: (parts) =>
-      pipe(
-        Arr.drop(parts, SERIES_NAME_PARTS),
-        Arr.some((part) => SEASON.test(part)),
-      ),
-    searchUrlOf,
-  });
+const titleSubjectOf = splitTitleSubjectOf({
+  provider: "prime-video",
+  separator: SEPARATOR,
+  isSeries: (parts) =>
+    pipe(
+      Arr.drop(parts, SERIES_NAME_PARTS),
+      Arr.some((part) => SEASON.test(part)),
+    ),
+  searchUrlOf,
+});
 
 export const viewingObservationsOf = observationsOf("consumed")((row: ViewingRow) =>
   Option.all({

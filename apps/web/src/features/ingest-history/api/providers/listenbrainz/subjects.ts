@@ -3,7 +3,7 @@ import { Array as Arr, Option, pipe } from "effect";
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { personIn } from "#/features/ingest-history/api/providers/creator-input";
 import { observationsOf } from "#/features/ingest-history/api/providers/observe";
-import { durationFromMs } from "#/features/ingest-history/api/providers/subject-fields";
+import { durationOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 
@@ -79,7 +79,7 @@ const trackOf =
         Option.map((found) => `${MUSICBRAINZ}/recording/${found}`),
         Option.getOrElse(() => searchUrlOf(track)),
       ),
-      ...durationFromMs(duration),
+      ...durationOf(duration, "millis"),
       credits: artistsOf(track),
       tags: Option.toArray(Option.fromNullishOr(track.release_name)),
     });

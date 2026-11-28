@@ -2,7 +2,7 @@ import type { PixivUser } from "@book000/pixivts";
 import { Array as Arr, Function as Fn, Option, pipe } from "effect";
 
 import type { SubjectInput } from "#/entities/signal";
-import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorMapper } from "#/features/ingest-history/api/providers/creator-input";
 import {
   datedObservationsOf,
   followedCreatorsAt,
@@ -20,7 +20,7 @@ type Work = Readonly<{
   createDate: string;
 }>;
 
-const creatorOf = personMapper({ provider: "pixiv", idPrefix: "user:", urlBase: `${WEB}/users/` });
+const creatorOf = creatorMapper({ provider: "pixiv", idPrefix: "user:", urlBase: `${WEB}/users/` });
 
 const workOf =
   ({ kind, url }: Readonly<{ kind: "artwork" | "book"; url: (id: number) => string }>) =>

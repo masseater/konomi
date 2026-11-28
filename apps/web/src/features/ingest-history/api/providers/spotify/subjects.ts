@@ -2,10 +2,7 @@ import { Array as Arr, Match, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { personIn, withRelations } from "#/features/ingest-history/api/providers/creator-input";
-import {
-  durationFromMs,
-  publishedOf,
-} from "#/features/ingest-history/api/providers/subject-fields";
+import { publishedOf, durationOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SubjectType } from "#/shared/config";
 
@@ -60,7 +57,7 @@ export const trackOf = (track: SpotifyTrack): Option.Option<SubjectInput> =>
         type,
         title: track.name,
         url: urlOf(track.external_urls, `${type}/${id}`),
-        ...durationFromMs(Option.fromNullishOr(track.duration_ms)),
+        ...durationOf(Option.fromNullishOr(track.duration_ms), "millis"),
         ...releasedAtOf(track),
         credits: creditsOf(track),
       });

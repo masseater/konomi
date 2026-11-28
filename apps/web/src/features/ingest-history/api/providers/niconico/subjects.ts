@@ -1,7 +1,7 @@
 import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { creatorMapper, personMapper } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorMapper } from "#/features/ingest-history/api/providers/creator-input";
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
@@ -11,9 +11,10 @@ const WATCH_URL = "https://www.nicovideo.jp/watch/";
 const USER_URL = "https://www.nicovideo.jp/user/";
 const CHANNEL_URL = "https://ch.nicovideo.jp/";
 
-export const personOf = personMapper({ provider: "niconico", idPrefix: "", urlBase: USER_URL });
+export const personOf = creatorMapper({ provider: "niconico", idPrefix: "", urlBase: USER_URL });
 
-const channelOf = creatorMapper("channel")({
+const channelOf = creatorMapper({
+  type: "channel",
   provider: "niconico",
   idPrefix: "",
   urlBase: CHANNEL_URL,
@@ -52,7 +53,7 @@ export const videoSubjectOf = (entry: VideoEntry): SubjectInput =>
     type: "video",
     title: entry.video.title,
     url: `${WATCH_URL}${entry.video.id}`,
-    ...durationOf(Option.fromNullishOr(entry.video.duration)),
+    ...durationOf(Option.fromNullishOr(entry.video.duration), "seconds"),
     ...publishedOf(Option.fromNullishOr(entry.video.registeredAt)),
     credits: ownerOf(entry),
   });
