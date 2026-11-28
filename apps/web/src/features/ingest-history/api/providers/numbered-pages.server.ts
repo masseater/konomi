@@ -1,12 +1,10 @@
-import { Effect, Option, pipe } from "effect";
+import { Option, pipe } from "effect";
 import type { Schema } from "effect";
 
-import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import type { Headers } from "#/features/ingest-history/api/providers/http.server";
-import { collectPages } from "#/features/ingest-history/api/providers/paging.server";
+import { jsonSource } from "#/features/ingest-history/api/providers/listing.server";
+import type { Sourcing } from "#/features/ingest-history/api/providers/listing.server";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import { urlAdvancing, urlWith } from "#/features/ingest-history/api/providers/url-with";
-import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 const NEXT = 1;
 
@@ -30,41 +28,25 @@ const numberedPageOf =
     ),
   });
 
-export const collectNumbered = <Item>({
+export const numberedPaging = <Body, Item>({
   base,
   numbering,
-  pages,
-  fetchItems,
-}: Readonly<{
-  base: string;
-  numbering: Numbering;
-  pages: number;
-  fetchItems: (url: string) => Effect.Effect<readonly Item[], ProviderError>;
-}>): Effect.Effect<readonly Item[], ProviderError> =>
-  collectPages({
-    first: urlWith(base, { [numbering.param]: String(numbering.start) }),
-    pages,
-    fetchPage: (url) => fetchItems(url).pipe(Effect.map(numberedPageOf({ url, ...numbering }))),
-  });
-
-export const collectNumberedPages = <Body, Item>({
-  base,
-  numbering,
-  headers,
-  pages,
-  schema,
   itemsOf,
 }: Readonly<{
   base: string;
   numbering: Numbering;
-  headers: Headers;
-  pages: number;
+  itemsOf: (body: Body) => readonly Item[];
+}>): Readonly<{ first: string; pageOf: (body: Body, url: string) => Page<Item> }> => ({
+  first: urlWith(base, { [numbering.param]: String(numbering.start) }),
+  pageOf: (body, url) => numberedPageOf({ url, ...numbering })(itemsOf(body)),
+});
+
+export const numberedSource = <Body, Item>({
+  schema,
+  ...paging
+}: Readonly<{
+  base: string;
+  numbering: Numbering;
   schema: Schema.Decoder<Body>;
   itemsOf: (body: Body) => readonly Item[];
-}>): Effect.Effect<readonly Item[], ProviderError> =>
-  collectNumbered({
-    base,
-    numbering,
-    pages,
-    fetchItems: (url) => fetchJson({ url, headers, schema }).pipe(Effect.map(itemsOf)),
-  });
+}>): Sourcing<Item> => jsonSource({ schema, ...numberedPaging(paging) });

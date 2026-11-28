@@ -8,7 +8,7 @@ const YEAR = 2008;
 describe("shelfObservationsOf", () => {
   it("records the book with its authors at the logged date", () => {
     expect(
-      shelfObservationsOf({ kind: "consumed", context: "読んだ", fetchedAt: FETCHED_AT })([
+      shelfObservationsOf({ kind: "consumed", context: "読んだ" })(FETCHED_AT)([
         {
           work: {
             title: "Hold Me Tight",

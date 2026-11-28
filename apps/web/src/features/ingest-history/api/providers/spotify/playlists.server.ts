@@ -1,9 +1,9 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
+import { collectedFrom, jsonSource } from "#/features/ingest-history/api/providers/listing.server";
 import { collectedListsOf, pageOf } from "#/features/ingest-history/api/providers/observe";
 import type { Fetched, Fetching } from "#/features/ingest-history/api/providers/observe";
-import { pagesFor, collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
 
 import { API, LIMIT } from "./api.ts";
 import { Me, PlaylistItems, Playlists } from "./schemas.ts";
@@ -20,13 +20,13 @@ const entryTrackOf = (entry: SpotifyPlaylistEntry): ReturnType<typeof trackOf> =
 const ownedOf = ({ headers }: Fetching): Fetched<readonly SpotifyPlaylist[]> =>
   Effect.gen(function* owned() {
     const me = yield* fetchJson({ url: `${API}/me`, headers, schema: Me });
-    const playlists = yield* collectJsonPages({
-      first: `${API}/me/playlists?limit=${LIMIT}`,
-      headers,
-      pages: pagesFor(false),
-      schema: Playlists,
-      pageOf,
-    });
+    const playlists = yield* collectedFrom(
+      jsonSource({
+        first: `${API}/me/playlists?limit=${LIMIT}`,
+        schema: Playlists,
+        pageOf,
+      }),
+    )(headers);
     return pipe(
       playlists,
       Arr.filter(({ owner }) => owner.id === me.id),
@@ -37,13 +37,13 @@ export const pullPlaylists = collectedListsOf({
   listsOf: ownedOf,
   nameOf: ({ name }) => name,
   entriesOf: ({ headers }, { id }) =>
-    collectJsonPages({
-      first: `${API}/playlists/${id}/items?limit=${LIMIT}`,
-      headers,
-      pages: pagesFor(false),
-      schema: PlaylistItems,
-      pageOf,
-    }),
+    collectedFrom(
+      jsonSource({
+        first: `${API}/playlists/${id}/items?limit=${LIMIT}`,
+        schema: PlaylistItems,
+        pageOf,
+      }),
+    )(headers),
   subjectOf: entryTrackOf,
   occurredAtOf: ({ added_at: addedAt }) => addedAt,
 });

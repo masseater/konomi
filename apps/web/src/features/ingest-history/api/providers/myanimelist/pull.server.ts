@@ -2,7 +2,8 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { userClientOf } from "#/features/ingest-history/api/providers/credential-field";
 import {
-  pagedListing,
+  jsonSource,
+  listingOf,
   pulledListings,
 } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
@@ -16,18 +17,20 @@ import type { MalList } from "./subjects.ts";
 const FIELDS = "list_status,genres,start_season";
 
 const listOf = (user: string, list: MalList): Listing =>
-  pagedListing({
-    first: `${API}/users/${user}/${list}list?fields=${FIELDS}&limit=${LIMIT}&nsfw=true&sort=list_updated_at`,
-    schema: UserList,
-    pageOf: ({ data, paging }) => ({
-      items: data,
-      next: pipe(
-        Option.fromNullishOr(paging),
-        Option.flatMap(({ next }) => Option.fromNullishOr(next)),
-      ),
+  listingOf({
+    label: `${list}list`,
+    source: jsonSource({
+      first: `${API}/users/${user}/${list}list?fields=${FIELDS}&limit=${LIMIT}&nsfw=true&sort=list_updated_at`,
+      schema: UserList,
+      pageOf: ({ data, paging }) => ({
+        items: data,
+        next: pipe(
+          Option.fromNullishOr(paging),
+          Option.flatMap(({ next }) => Option.fromNullishOr(next)),
+        ),
+      }),
     }),
-    observe: (fetchedAt) => Arr.flatMap(entryObservationsOf({ list, fetchedAt })),
-  });
+  })((fetchedAt) => Arr.flatMap(entryObservationsOf({ list, fetchedAt })));
 
 export const pullMyAnimeList = pullOf({
   provider: "myanimelist",

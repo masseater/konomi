@@ -1,11 +1,16 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
+import type { Schema } from "effect";
 
 import { bearerFieldOf } from "#/features/ingest-history/api/providers/credential-field";
+import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import {
-  graphListing,
+  listingOf,
   pulledListings,
+  sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
+import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pageOf } from "#/features/ingest-history/api/providers/observe";
+import type { Observer } from "#/features/ingest-history/api/providers/observe";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
@@ -51,25 +56,48 @@ const graphPageOf = <Item>({ nodes, pageInfo }: Paged<Item>): Page<Item> =>
 const afterOf = (cursor: string): string | null =>
   Option.getOrNull(Option.liftPredicate(cursor, (value: string) => value !== START));
 
-const records = graphListing({
-  url: API,
-  first: START,
-  payload: Query,
-  bodyAt: (after) => ({ query: RECORDS, variables: { after: afterOf(after) } }),
-  schema: RecordsResponse,
-  pageFrom: ({ data }) => graphPageOf(data.viewer.records),
-  observe: (fetchedAt) => Arr.flatMap(recordObservationsOf(fetchedAt)),
-});
+const viewerListing =
+  <Response, Item>({
+    label,
+    query,
+    schema,
+    connectionOf,
+  }: Readonly<{
+    label: string;
+    query: string;
+    schema: Schema.Decoder<Response>;
+    connectionOf: (response: Response) => Paged<Item>;
+  }>) =>
+  (observe: Observer<Item>): Listing =>
+    listingOf({
+      label,
+      source: sourceOf({
+        first: START,
+        fetchBody: (after, headers) =>
+          postJson({
+            url: API,
+            headers,
+            payload: Query,
+            body: { query, variables: { after: afterOf(after) } },
+            schema,
+          }),
+        pageOf: (response) => graphPageOf(connectionOf(response)),
+      }),
+    })(observe);
 
-const entries = graphListing({
-  url: API,
-  first: START,
-  payload: Query,
-  bodyAt: (after) => ({ query: ENTRIES, variables: { after: afterOf(after) } }),
+const records = viewerListing({
+  label: "records",
+  query: RECORDS,
+  schema: RecordsResponse,
+  connectionOf: ({ data }) => data.viewer.records,
+})((fetchedAt) => Arr.flatMap(recordObservationsOf(fetchedAt)));
+
+const entries = viewerListing({
+  label: "entries",
+  query: ENTRIES,
   schema: EntriesResponse,
-  pageFrom: ({ data }) => graphPageOf(data.viewer.libraryEntries),
-  observe: (fetchedAt) => Arr.flatMap(entryObservationsOf(fetchedAt)),
-});
+  connectionOf: ({ data }) => data.viewer.libraryEntries,
+})((fetchedAt) => Arr.flatMap(entryObservationsOf(fetchedAt)));
 
 export const pullAnnict = pullOf({
   provider: "annict",

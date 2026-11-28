@@ -1,8 +1,5 @@
 import { Effect, Match, Option } from "effect";
-import type { Schema } from "effect";
 
-import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 export type Page<Item> = Readonly<{ items: readonly Item[]; next: Option.Option<string> }>;
@@ -38,24 +35,4 @@ export const collectPages = <Item, Env = never>({
       ({ next } = page);
     }
     return collected;
-  });
-
-export const collectJsonPages = <Item, Body extends Schema.Top>({
-  first,
-  headers,
-  pages,
-  schema,
-  pageOf,
-}: Readonly<{
-  first: string;
-  headers: Headers;
-  pages: number;
-  schema: Body;
-  pageOf: (body: Body["Type"], url: string) => Page<Item>;
-}>): Effect.Effect<readonly Item[], ProviderError, Body["DecodingServices"]> =>
-  collectPages({
-    first,
-    pages,
-    fetchPage: (url) =>
-      fetchJson({ url, headers, schema }).pipe(Effect.map((body) => pageOf(body, url))),
   });

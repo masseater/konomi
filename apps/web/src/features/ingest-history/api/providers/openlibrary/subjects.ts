@@ -36,11 +36,8 @@ const isoOf = (logged: string | null | undefined): string | undefined =>
   );
 
 export const shelfObservationsOf =
-  ({
-    kind,
-    context,
-    fetchedAt,
-  }: Readonly<{ kind: SignalKind; context: string; fetchedAt: number }>) =>
+  ({ kind, context }: Readonly<{ kind: SignalKind; context: string }>) =>
+  (fetchedAt: number) =>
   (entries: readonly OpenLibraryEntry[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
     return pipe(

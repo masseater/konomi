@@ -2,7 +2,8 @@ import { Effect } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchFeed } from "#/features/ingest-history/api/providers/feed.server";
-import { collectNumbered } from "#/features/ingest-history/api/providers/numbered-pages.server";
+import { listingOf, sourceOf } from "#/features/ingest-history/api/providers/listing.server";
+import { numberedPaging } from "#/features/ingest-history/api/providers/numbered-pages.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import { orEmpty } from "#/features/ingest-history/api/providers/subject-in";
 
@@ -18,15 +19,19 @@ export const pullHatena = pullOf({
   observe: ({ credential, pages, fetchedAt }) =>
     Effect.gen(function* hatena() {
       const user = yield* requireField(credential, FIELD.user);
-      const bookmarks = yield* collectNumbered({
+      const { first, pageOf } = numberedPaging({
         base: `${WEB}/${encodeURIComponent(user)}/bookmark.rss`,
         numbering: NUMBERING,
-        pages,
-        fetchItems: (url) =>
-          fetchFeed({ url, headers: HEADERS, schema: BookmarkFeed }).pipe(
-            Effect.map((feed) => orEmpty(feed["rdf:RDF"].item)),
-          ),
+        itemsOf: (feed: typeof BookmarkFeed.Type) => orEmpty(feed["rdf:RDF"].item),
       });
-      return hatenaObservationsOf(fetchedAt)(bookmarks);
+      const bookmarks = listingOf({
+        label: "bookmarks",
+        source: sourceOf({
+          first,
+          fetchBody: (url, headers) => fetchFeed({ url, headers, schema: BookmarkFeed }),
+          pageOf,
+        }),
+      })(hatenaObservationsOf);
+      return yield* bookmarks({ headers: HEADERS, pages, fetchedAt });
     }),
 });

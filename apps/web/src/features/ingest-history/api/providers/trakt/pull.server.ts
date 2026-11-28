@@ -1,10 +1,8 @@
 import { Effect, Function as Fn } from "effect";
 
 import { userClientOf } from "#/features/ingest-history/api/providers/credential-field";
-import {
-  numberedListing,
-  pulledListings,
-} from "#/features/ingest-history/api/providers/listing.server";
+import { listingOf, pulledListings } from "#/features/ingest-history/api/providers/listing.server";
+import { numberedSource } from "#/features/ingest-history/api/providers/numbered-pages.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, FIELD, LIMIT } from "./api.ts";
@@ -25,22 +23,24 @@ export const pullTrakt = pullOf({
         "trakt-api-key": clientId,
       };
       const listings = pulledListings([
-        numberedListing({
+        listingOf({
           label: "history",
-          base: `${API}/users/${user}/history?limit=${LIMIT}`,
-          numbering: NUMBERING,
-          schema: History,
-          itemsOf: Fn.identity,
-          observe: historyObservationsOf,
-        }),
-        numberedListing({
+          source: numberedSource({
+            base: `${API}/users/${user}/history?limit=${LIMIT}`,
+            numbering: NUMBERING,
+            schema: History,
+            itemsOf: Fn.identity,
+          }),
+        })(historyObservationsOf),
+        listingOf({
           label: "ratings",
-          base: `${API}/users/${user}/ratings?limit=${LIMIT}`,
-          numbering: NUMBERING,
-          schema: Ratings,
-          itemsOf: Fn.identity,
-          observe: ratingObservationsOf,
-        }),
+          source: numberedSource({
+            base: `${API}/users/${user}/ratings?limit=${LIMIT}`,
+            numbering: NUMBERING,
+            schema: Ratings,
+            itemsOf: Fn.identity,
+          }),
+        })(ratingObservationsOf),
       ]);
       return yield* listings({ headers, pages, fetchedAt });
     }),

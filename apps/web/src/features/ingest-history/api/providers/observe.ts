@@ -13,6 +13,10 @@ export type Observing = Fetched<readonly Observation[]>;
 
 export type Fetching = Readonly<{ headers: Readonly<Record<string, string>>; fetchedAt: number }>;
 
+export type Observer<Item> = (
+  fetchedAt: number,
+) => (items: readonly Item[]) => readonly Observation[];
+
 type Observed = readonly [SubjectInput, number];
 
 export const epochOr =
@@ -105,20 +109,21 @@ export const listEntriesOf =
     ];
   };
 
+const NO_DATE = (): string => "";
+
 export const datedObservationsOf =
   <Entry>({
     kind,
     listName,
-    fetchedAt,
     subjectOf,
-    occurredAtOf,
+    occurredAtOf = NO_DATE,
   }: Readonly<{
     kind: SignalKind;
     listName?: string;
-    fetchedAt: number;
     subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
-    occurredAtOf: (entry: Entry) => string | null | undefined;
+    occurredAtOf?: (entry: Entry) => string | null | undefined;
   }>) =>
+  (fetchedAt: number) =>
   (entries: readonly Entry[]): readonly Observation[] => {
     const observe = observeAt({
       kind,
@@ -255,10 +260,9 @@ export const collectedListsOf =
       const observe = datedObservationsOf({
         kind: "collected",
         listName: nameOf(list),
-        fetchedAt: fetching.fetchedAt,
         subjectOf,
         occurredAtOf,
-      });
+      })(fetching.fetchedAt);
       return entriesOf(fetching, list).pipe(Effect.map(observe));
     };
     return listsOf(fetching).pipe(Effect.flatMap(flatMapEach(pullList)));

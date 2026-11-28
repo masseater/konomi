@@ -1,11 +1,9 @@
 import { Effect } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
-import {
-  numberedListing,
-  pulledListings,
-} from "#/features/ingest-history/api/providers/listing.server";
+import { listingOf, pulledListings } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
+import { numberedSource } from "#/features/ingest-history/api/providers/numbered-pages.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, FIELD, HEADERS, LIMIT } from "./api.ts";
@@ -16,24 +14,26 @@ import type { WorkKind } from "./subjects.ts";
 const NUMBERING = { param: "offset", limit: LIMIT, start: 0, step: LIMIT } as const;
 
 const favorites = (kind: WorkKind): Listing =>
-  numberedListing({
+  listingOf({
     label: `${kind}-favorites`,
-    base: `${API}/${kind}s/favorites?n=${LIMIT}`,
-    numbering: NUMBERING,
-    schema: Works,
-    itemsOf: (works) => works,
-    observe: (fetchedAt) => favoriteObservationsOf({ kind, fetchedAt }),
-  });
+    source: numberedSource({
+      base: `${API}/${kind}s/favorites?n=${LIMIT}`,
+      numbering: NUMBERING,
+      schema: Works,
+      itemsOf: (works) => works,
+    }),
+  })((fetchedAt) => favoriteObservationsOf({ kind, fetchedAt }));
 
 const friends = (offline: boolean): Listing =>
-  numberedListing({
+  listingOf({
     label: `friends-offline-${String(offline)}`,
-    base: `${API}/auth/user/friends?n=${LIMIT}&offline=${String(offline)}`,
-    numbering: NUMBERING,
-    schema: Friends,
-    itemsOf: (people) => people,
-    observe: friendObservationsOf,
-  });
+    source: numberedSource({
+      base: `${API}/auth/user/friends?n=${LIMIT}&offline=${String(offline)}`,
+      numbering: NUMBERING,
+      schema: Friends,
+      itemsOf: (people) => people,
+    }),
+  })(friendObservationsOf);
 
 const listings = pulledListings([
   favorites("world"),

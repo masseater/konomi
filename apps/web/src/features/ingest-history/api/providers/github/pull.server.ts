@@ -1,10 +1,8 @@
 import { Effect, Function as Fn } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
-import {
-  numberedListing,
-  pulledListings,
-} from "#/features/ingest-history/api/providers/listing.server";
+import { listingOf, pulledListings } from "#/features/ingest-history/api/providers/listing.server";
+import { numberedSource } from "#/features/ingest-history/api/providers/numbered-pages.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, FIELD, LIMIT } from "./api.ts";
@@ -22,22 +20,24 @@ export const pullGitHub = pullOf({
       const name = yield* requireField(credential, FIELD.user);
       const user = encodeURIComponent(name);
       const listings = pulledListings([
-        numberedListing({
+        listingOf({
           label: "starred",
-          base: `${API}/users/${user}/starred?per_page=${LIMIT}`,
-          numbering: NUMBERING,
-          schema: Stars,
-          itemsOf: Fn.identity,
-          observe: starObservationsOf,
-        }),
-        numberedListing({
+          source: numberedSource({
+            base: `${API}/users/${user}/starred?per_page=${LIMIT}`,
+            numbering: NUMBERING,
+            schema: Stars,
+            itemsOf: Fn.identity,
+          }),
+        })(starObservationsOf),
+        listingOf({
           label: "following",
-          base: `${API}/users/${user}/following?per_page=${LIMIT}`,
-          numbering: NUMBERING,
-          schema: Accounts,
-          itemsOf: Fn.identity,
-          observe: followObservationsOf,
-        }),
+          source: numberedSource({
+            base: `${API}/users/${user}/following?per_page=${LIMIT}`,
+            numbering: NUMBERING,
+            schema: Accounts,
+            itemsOf: Fn.identity,
+          }),
+        })(followObservationsOf),
       ]);
       return yield* listings({ headers: headersOf(credential), pages, fetchedAt });
     }),

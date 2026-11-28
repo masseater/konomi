@@ -4,7 +4,7 @@ import { cursorStateOf, scheduleOf } from "#/features/ingest-history/api/provide
 import { pullWithState } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { LIBRARY_INTERVAL_MS } from "./api.ts";
-import { fetchSongs, headersOf, storefrontOf } from "./fetching.server.ts";
+import { headersOf, storefrontOf } from "./fetching.server.ts";
 import { pullLibrary, pullRecent } from "./listening.server.ts";
 import type { Listening } from "./listening.server.ts";
 import { Cursor } from "./schemas.ts";
@@ -18,7 +18,7 @@ export const pullAppleMusic = pullWithState({
     Effect.gen(function* appleMusic() {
       const headers = yield* headersOf(credential);
       const storefront = yield* storefrontOf(headers)(state.storefront);
-      const listening: Listening = { fetch: fetchSongs(headers), storefront, fetchedAt };
+      const listening: Listening = { headers, storefront, fetchedAt };
       const schedule = scheduleOf({
         at: state.libraryAtMs,
         now: fetchedAt,

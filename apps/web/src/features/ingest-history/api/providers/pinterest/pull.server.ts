@@ -1,6 +1,6 @@
-import { Effect, Option, pipe } from "effect";
+import { Effect, Option } from "effect";
 
-import { pagedListing } from "#/features/ingest-history/api/providers/listing.server";
+import { cursorSource, listingOf } from "#/features/ingest-history/api/providers/listing.server";
 import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
@@ -10,18 +10,16 @@ import { pinObservationsOf } from "./subjects.ts";
 
 const FIRST = `${API}/pins?page_size=${LIMIT}`;
 
-const pins = pagedListing({
-  first: FIRST,
-  schema: Pins,
-  pageOf: ({ items, bookmark }) => ({
-    items,
-    next: pipe(
-      Option.fromNullishOr(bookmark),
-      Option.map((value) => `${FIRST}&bookmark=${encodeURIComponent(value)}`),
-    ),
+const pins = listingOf({
+  label: "pins",
+  source: cursorSource({
+    first: FIRST,
+    param: "bookmark",
+    schema: Pins,
+    itemsOf: ({ items }) => items,
+    cursorOf: ({ bookmark }) => Option.fromNullishOr(bookmark),
   }),
-  observe: pinObservationsOf,
-});
+})(pinObservationsOf);
 
 export const pullPinterest = pullOf({
   provider: "pinterest",
