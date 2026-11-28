@@ -22,7 +22,6 @@ const INGEST_SCHEDULE = "17 * * * *";
 const DEFAULT_DOMAIN = "konomi.masseater.dev";
 
 const web = Effect.gen(function* web() {
-  yield* D1.Database("DB", { migrations: "./drizzle" }).pipe(RemovalPolicy.destroy());
   const DB = yield* D1.Database("DBJapan", {
     migrations: "./drizzle",
     primaryLocationHint: JAPAN_DATABASE_HINT,
