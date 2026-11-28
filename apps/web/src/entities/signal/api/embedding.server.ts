@@ -1,3 +1,4 @@
+import { runWorkersAi } from "@r_masseater/workers-tracing/workers-ai";
 import { env } from "cloudflare:workers";
 import { eq, isNull } from "drizzle-orm";
 import { Array as Arr, Effect, Option, Schedule, Schema, String as Str, pipe } from "effect";
@@ -7,7 +8,7 @@ import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "#/shared/config";
 import { digestHex } from "#/shared/crypto/index.server";
 import { db } from "#/shared/db/index.server";
 
-import { among, creditsOf, tagsOf } from "./query.server";
+import { among, creditsOf, tagsOf } from "./query.server.ts";
 
 const EMBEDS_PER_RUN = 200;
 const EMBEDS_PER_CALL = 50;
@@ -47,15 +48,18 @@ const noEmbeddings = (): EmbeddingFailed =>
 export const embedTexts = (
   texts: readonly string[],
 ): Effect.Effect<readonly (readonly number[])[], EmbeddingFailed> =>
-  Effect.tryPromise({
-    try: () =>
+  runWorkersAi({
+    operation: "embeddings",
+    model: EMBEDDING_MODEL,
+    caller: "konomi.signal-embed",
+    call: (options) =>
       env.AI.run(
         EMBEDDING_MODEL,
         { text: pipe(texts, Arr.map(clip)), truncate_inputs: true },
-        { gateway: { id: "default", metadata: { caller: "konomi.signal-embed" } } },
+        options,
       ),
-    catch: failedBy,
   }).pipe(
+    Effect.mapError(failedBy),
     Effect.flatMap((output) => {
       if ("data" in output) {
         return Effect.fromOption(Option.fromUndefinedOr(output.data)).pipe(

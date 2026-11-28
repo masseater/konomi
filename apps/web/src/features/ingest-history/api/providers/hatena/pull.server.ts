@@ -5,9 +5,9 @@ import { fetchFeed, itemsOf } from "#/features/ingest-history/api/providers/feed
 import { collectNumbered } from "#/features/ingest-history/api/providers/numbered-pages.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { FIELD, HEADERS, PAGE_SIZE, WEB } from "./api";
-import { BookmarkFeed } from "./schemas";
-import { hatenaObservationsOf } from "./subjects";
+import { FIELD, HEADERS, PAGE_SIZE, WEB } from "./api.ts";
+import { BookmarkFeed } from "./schemas.ts";
+import { hatenaObservationsOf } from "./subjects.ts";
 
 const NUMBERING = { param: "page", limit: PAGE_SIZE, start: 1 } as const;
 

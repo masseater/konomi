@@ -1,7 +1,7 @@
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { kindle } from "./kindle/index.server";
-import { openlibrary } from "./openlibrary/index.server";
+import { kindle } from "./kindle/index.server.ts";
+import { openlibrary } from "./openlibrary/index.server.ts";
 
 export const READING_PROVIDERS = {
   kindle,

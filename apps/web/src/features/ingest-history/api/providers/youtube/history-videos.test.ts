@@ -1,7 +1,7 @@
 import { Option } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { historyVideosOf } from "./history-videos";
+import { historyVideosOf } from "./history-videos.ts";
 
 const LOCKUP_SECONDS = 201;
 const RENDERER_SECONDS = 600;

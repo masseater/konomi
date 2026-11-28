@@ -2,9 +2,9 @@ import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
 
-import { ACTIVITY_COLUMN, AUTOPLAYED, HISTORY_COLUMN, MIN_WATCHED_SEC } from "./api";
-import type { ActivityRow, HistoryRow } from "./schemas";
-import { isBlank, textOf, netflixSubjectOf } from "./titles";
+import { ACTIVITY_COLUMN, AUTOPLAYED, HISTORY_COLUMN, MIN_WATCHED_SEC } from "./api.ts";
+import type { ActivityRow, HistoryRow } from "./schemas.ts";
+import { isBlank, textOf, netflixSubjectOf } from "./titles.ts";
 
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;

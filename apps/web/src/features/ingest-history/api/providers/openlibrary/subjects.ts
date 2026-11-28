@@ -6,8 +6,8 @@ import { epochOr } from "#/features/ingest-history/api/providers/observe";
 import { orEmpty, subjectIn, textTagsOf } from "#/features/ingest-history/api/providers/subject-in";
 import type { SignalKind } from "#/shared/config";
 
-import { WEB } from "./api";
-import type { OpenLibraryEntry } from "./schemas";
+import { WEB } from "./api.ts";
+import type { OpenLibraryEntry } from "./schemas.ts";
 
 const authorsOf = (work: OpenLibraryEntry["work"]): readonly CreatorInput[] =>
   pipe(

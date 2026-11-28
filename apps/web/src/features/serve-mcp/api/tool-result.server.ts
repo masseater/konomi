@@ -3,7 +3,7 @@ import { Effect, Schema } from "effect";
 
 import { runRequest } from "#/shared/observability/index.server";
 
-import { ToolError } from "./tool-error";
+import { ToolError } from "./tool-error.ts";
 
 const encodeJson = Schema.encodeEffect(Schema.fromJsonString(Schema.Unknown));
 

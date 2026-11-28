@@ -2,8 +2,8 @@ import { Effect } from "effect";
 
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { pullFilmarks } from "./pull.server";
+import { FIELD } from "./api.ts";
+import { pullFilmarks } from "./pull.server.ts";
 
 export const filmarks: Provider = {
   id: "filmarks",

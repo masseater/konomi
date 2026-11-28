@@ -1,1 +1,1 @@
-export { MCP_URL } from "./site.server";
+export { MCP_URL } from "./site.server.ts";

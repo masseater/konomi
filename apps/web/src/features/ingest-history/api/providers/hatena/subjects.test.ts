@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { hatenaObservationsOf } from "./subjects";
+import { hatenaObservationsOf } from "./subjects.ts";
 
 const FETCHED_AT = 0;
 const BOOKMARKED_AT = 1_703_858_944_000;

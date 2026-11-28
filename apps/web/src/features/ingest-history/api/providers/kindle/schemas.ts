@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { LIBRARY_COLUMN, SESSION_COLUMN } from "./api";
+import { LIBRARY_COLUMN, SESSION_COLUMN } from "./api.ts";
 
 export const Library = Schema.Struct({
   [LIBRARY_COLUMN.asin]: Schema.String,

@@ -9,9 +9,9 @@ import { fetchedObservationsOf } from "#/features/ingest-history/api/providers/o
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { FIELD, LIMIT } from "./api";
-import { Accounts, Statuses, Verified } from "./schemas";
-import { followedOf, statusOf } from "./subjects";
+import { FIELD, LIMIT } from "./api.ts";
+import { Accounts, Statuses, Verified } from "./schemas.ts";
+import { followedOf, statusOf } from "./subjects.ts";
 
 type Reading = Readonly<{ origin: string; headers: Headers; fetchedAt: number }>;
 

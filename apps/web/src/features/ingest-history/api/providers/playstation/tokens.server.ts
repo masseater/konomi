@@ -15,7 +15,7 @@ import {
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
+import { FIELD } from "./api.ts";
 
 const MS_PER_SECOND = 1000;
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { freshOf } from "./fresh";
+import { freshOf } from "./fresh.ts";
 
 describe("freshOf", () => {
   it("returns what came before the previous head", () => {

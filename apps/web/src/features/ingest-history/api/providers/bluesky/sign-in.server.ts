@@ -5,8 +5,8 @@ import { requireFields } from "#/features/ingest-history/api/providers/credentia
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-import { FIELD, SERVICE } from "./api";
-import { Login, Session } from "./schemas";
+import { FIELD, SERVICE } from "./api.ts";
+import { Login, Session } from "./schemas.ts";
 
 export const signIn = (credential: Credential): Effect.Effect<typeof Session.Type, ProviderError> =>
   requireFields(credential, { identifier: FIELD.identifier, password: FIELD.appPassword }).pipe(

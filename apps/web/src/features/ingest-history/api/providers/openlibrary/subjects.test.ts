@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { shelfObservationsOf } from "./subjects";
+import { shelfObservationsOf } from "./subjects.ts";
 
 const FETCHED_AT = 0;
 const YEAR = 2008;

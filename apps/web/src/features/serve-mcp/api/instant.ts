@@ -1,6 +1,6 @@
 import { DateTime, Effect, Option, pipe } from "effect";
 
-import { ToolError } from "./tool-error";
+import { ToolError } from "./tool-error.ts";
 
 const epochMillisOf = (text: string): Effect.Effect<number, ToolError> =>
   Effect.fromOption(DateTime.make(text)).pipe(

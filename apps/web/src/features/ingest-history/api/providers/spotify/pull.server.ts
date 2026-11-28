@@ -4,8 +4,8 @@ import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.s
 import type { Fetching } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { pullFollowed, pullRecent, pullSaved } from "./library.server";
-import { pullPlaylists } from "./playlists.server";
+import { pullFollowed, pullRecent, pullSaved } from "./library.server.ts";
+import { pullPlaylists } from "./playlists.server.ts";
 
 export const pullSpotify = pullOf({
   provider: "spotify",

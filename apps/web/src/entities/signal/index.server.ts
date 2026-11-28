@@ -1,8 +1,8 @@
-export type { KindCount, SignalFilter } from "./api/query.server";
-export { countByKind, existingSubjectKeys, findSignals } from "./api/query.server";
-export { recordObservations } from "./api/record.server";
-export { tasteProfile } from "./api/taste.server";
-export type { Taste } from "./model/taste";
-export { embedPendingSubjects } from "./api/embedding.server";
-export type { SimilarQuery, SimilarSubject } from "./api/similar.server";
-export { findSimilar } from "./api/similar.server";
+export type { KindCount, SignalFilter } from "./api/query.server.ts";
+export { countByKind, existingSubjectKeys, findSignals } from "./api/query.server.ts";
+export { recordObservations } from "./api/record.server.ts";
+export { tasteProfile } from "./api/taste.server.ts";
+export type { Taste } from "./model/taste.ts";
+export { embedPendingSubjects } from "./api/embedding.server.ts";
+export type { SimilarQuery, SimilarSubject } from "./api/similar.server.ts";
+export { findSimilar } from "./api/similar.server.ts";

@@ -7,8 +7,8 @@ import { tasteOf } from "#/entities/signal/model/taste";
 import type { Link, SignalBucket, SubjectInfo, Taste } from "#/entities/signal/model/taste";
 import { db } from "#/shared/db/index.server";
 
-import { conditionsOf, creditsOf, tagsOf } from "./query.server";
-import type { KeyMatch, SignalFilter } from "./query.server";
+import { conditionsOf, creditsOf, tagsOf } from "./query.server.ts";
+import type { KeyMatch, SignalFilter } from "./query.server.ts";
 
 type BucketRow = SignalBucket & SubjectInfo;
 

@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 
 import { answerConsent, clientNameQuery } from "#/pages/mcp-consent/api/consent";
 
-import { ConsentActions } from "./consent-actions";
+import { ConsentActions } from "./consent-actions.tsx";
 
 export const ConsentForm = ({ clientId }: Readonly<{ clientId: string }>): ReactNode => {
   const client = useQuery(clientNameQuery(clientId));

@@ -2,8 +2,8 @@ import { Effect } from "effect";
 
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { pullVocaDb } from "./pull.server";
+import { FIELD } from "./api.ts";
+import { pullVocaDb } from "./pull.server.ts";
 
 export const vocadb: Provider = {
   id: "vocadb",

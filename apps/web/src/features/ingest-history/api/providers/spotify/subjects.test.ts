@@ -1,7 +1,7 @@
 import { Option } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { followedArtistOf, trackOf } from "./subjects";
+import { followedArtistOf, trackOf } from "./subjects.ts";
 
 describe("trackOf", () => {
   it("credits each artist and keeps a full release date", () => {

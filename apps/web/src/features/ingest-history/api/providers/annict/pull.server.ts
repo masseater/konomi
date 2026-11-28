@@ -9,9 +9,9 @@ import { pageOf } from "#/features/ingest-history/api/providers/observe";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { API, FIELD } from "./api";
-import { EntriesResponse, Query, RecordsResponse } from "./schemas";
-import { entryObservationsOf, recordObservationsOf } from "./subjects";
+import { API, FIELD } from "./api.ts";
+import { EntriesResponse, Query, RecordsResponse } from "./schemas.ts";
+import { entryObservationsOf, recordObservationsOf } from "./subjects.ts";
 
 const START = "";
 

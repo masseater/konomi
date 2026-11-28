@@ -2,7 +2,7 @@ import { useSearch } from "@tanstack/react-router";
 import { Option } from "effect";
 import type { ReactNode } from "react";
 
-import { ConsentForm } from "./consent-form";
+import { ConsentForm } from "./consent-form.tsx";
 
 export const ConsentPage = (): ReactNode => {
   const { client_id: clientId } = useSearch({ from: "/mcp_/consent" });

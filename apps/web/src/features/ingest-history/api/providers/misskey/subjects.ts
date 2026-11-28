@@ -10,7 +10,7 @@ import { postTitleOf } from "#/features/ingest-history/api/providers/post-title"
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 import type { SignalKind } from "#/shared/config";
 
-import type { MisskeyNote, MisskeyUser } from "./schemas";
+import type { MisskeyNote, MisskeyUser } from "./schemas.ts";
 
 const accountOf =
   (origin: string) =>

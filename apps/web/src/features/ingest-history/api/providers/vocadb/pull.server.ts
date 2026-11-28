@@ -7,9 +7,9 @@ import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-import { API, FIELD, LIMIT } from "./api";
-import { RatedSongs, Users } from "./schemas";
-import { ratedObservationsOf } from "./subjects";
+import { API, FIELD, LIMIT } from "./api.ts";
+import { RatedSongs, Users } from "./schemas.ts";
+import { ratedObservationsOf } from "./subjects.ts";
 
 const FIRST = 0;
 const HEADERS = { Accept: "application/json" } as const;

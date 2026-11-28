@@ -1,8 +1,8 @@
 import { Array as Arr, Option, pipe } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { clipCardsOf, markCardsOf } from "./cards";
-import { clipObservationOf, markObservationsOf } from "./subjects";
+import { clipCardsOf, markCardsOf } from "./cards.ts";
+import { clipObservationOf, markObservationsOf } from "./subjects.ts";
 
 const FETCHED_AT = 0;
 const RATED = 4.3;

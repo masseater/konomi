@@ -5,10 +5,10 @@ import { replaceCredential } from "#/entities/connection/index.server";
 import type { Discovery, ProviderError } from "#/features/ingest-history/model/provider";
 import type { ProviderId } from "#/shared/config";
 
-import { requireField, withFields } from "./providers/credential-field";
-import { finishDiscovered, startDiscovered } from "./providers/discovered-oauth.server";
-import { OAUTH_FIELD, authorizeUrlOf, exchangeCode, newState } from "./providers/oauth.server";
-import type { Authorizing, Exchanging, Redirecting } from "./providers/oauth.server";
+import { requireField, withFields } from "./providers/credential-field.ts";
+import { finishDiscovered, startDiscovered } from "./providers/discovered-oauth.server.ts";
+import { OAUTH_FIELD, authorizeUrlOf, exchangeCode, newState } from "./providers/oauth.server.ts";
+import type { Authorizing, Exchanging, Redirecting } from "./providers/oauth.server.ts";
 
 export type Starting = Authorizing & Redirecting & Readonly<{ provider: ProviderId }>;
 

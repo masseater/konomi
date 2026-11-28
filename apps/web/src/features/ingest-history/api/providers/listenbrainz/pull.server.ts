@@ -9,9 +9,9 @@ import type { Listing } from "#/features/ingest-history/api/providers/listing.se
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 
-import { API, HEADERS, FIELD, LIMIT, LOVED } from "./api";
-import { Feedback, Listens } from "./schemas";
-import { listenObservationsOf, lovedObservationsOf } from "./subjects";
+import { API, HEADERS, FIELD, LIMIT, LOVED } from "./api.ts";
+import { Feedback, Listens } from "./schemas.ts";
+import { listenObservationsOf, lovedObservationsOf } from "./subjects.ts";
 
 const OFFSET = "offset";
 

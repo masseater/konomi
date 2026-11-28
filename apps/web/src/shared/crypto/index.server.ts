@@ -1,2 +1,2 @@
-export { openSecret, sealSecret } from "./sealed-secret.server";
-export { digestHex } from "./digest.server";
+export { openSecret, sealSecret } from "./sealed-secret.server.ts";
+export { digestHex } from "./digest.server.ts";

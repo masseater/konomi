@@ -1,10 +1,10 @@
 import { collectedListsOf } from "#/features/ingest-history/api/providers/observe";
 import { pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 
-import { API, LIMIT } from "./api";
-import { collectTokenPages } from "./page";
-import { PlaylistItems, Playlists } from "./schemas";
-import { playlistVideoOf } from "./subjects";
+import { API, LIMIT } from "./api.ts";
+import { collectTokenPages } from "./page.ts";
+import { PlaylistItems, Playlists } from "./schemas.ts";
+import { playlistVideoOf } from "./subjects.ts";
 
 export const pullPlaylists = collectedListsOf({
   listsOf: ({ headers }) =>

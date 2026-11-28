@@ -5,9 +5,9 @@ import { jsonListing } from "#/features/ingest-history/api/providers/listing.ser
 import { datedObservationsOf, pageOf } from "#/features/ingest-history/api/providers/observe";
 import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 
-import { API, LIMIT } from "./api";
-import { FollowedArtists, RecentlyPlayed, SavedTracks } from "./schemas";
-import { followedArtistOf, trackOf } from "./subjects";
+import { API, LIMIT } from "./api.ts";
+import { FollowedArtists, RecentlyPlayed, SavedTracks } from "./schemas.ts";
+import { followedArtistOf, trackOf } from "./subjects.ts";
 
 export const pullRecent = ({ headers, fetchedAt }: Fetching): Observing =>
   fetchJson({

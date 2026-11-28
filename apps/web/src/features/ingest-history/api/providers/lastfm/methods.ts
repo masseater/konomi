@@ -6,9 +6,9 @@ import type { Page } from "#/features/ingest-history/api/providers/paging.server
 import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 import type { ProviderError, PullInput } from "#/features/ingest-history/model/provider";
 
-import { API, FIELD, LIMIT } from "./api";
-import type { LastfmTrack, LastfmTrackPage } from "./schemas";
-import { tracksOf } from "./subjects";
+import { API, FIELD, LIMIT } from "./api.ts";
+import type { LastfmTrack, LastfmTrackPage } from "./schemas.ts";
+import { tracksOf } from "./subjects.ts";
 
 const NEXT_PAGE = 1;
 

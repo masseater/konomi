@@ -1,8 +1,8 @@
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { pullPlaystation } from "./pull.server";
-import { renewPlaystation } from "./tokens.server";
+import { FIELD } from "./api.ts";
+import { pullPlaystation } from "./pull.server.ts";
+import { renewPlaystation } from "./tokens.server.ts";
 
 export const playstation: Provider = {
   id: "playstation",

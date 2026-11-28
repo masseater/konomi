@@ -1,1 +1,1 @@
-export type { CreatorInput, ListingKind, Observation, SubjectInput } from "./model/observation";
+export type { CreatorInput, ListingKind, Observation, SubjectInput } from "./model/observation.ts";

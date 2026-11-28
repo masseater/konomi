@@ -6,15 +6,46 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { env } from "cloudflare:workers";
 
 import { MCP_URL } from "#/shared/config/index.server";
-import { authTables, db } from "#/shared/db/index.server";
+import {
+  account,
+  authRelations,
+  db,
+  jwks,
+  oauthAccessToken,
+  oauthClient,
+  oauthClientAssertion,
+  oauthClientResource,
+  oauthConsent,
+  oauthRefreshToken,
+  oauthResource,
+  session,
+  user,
+  verification,
+} from "#/shared/db/index.server";
 
-import { rejectSecondOwner } from "./owner-guard.server";
+import { rejectSecondOwner } from "./owner-guard.server.ts";
+
+const AUTH_SCHEMA = {
+  account,
+  authRelations,
+  jwks,
+  oauthAccessToken,
+  oauthClient,
+  oauthClientAssertion,
+  oauthClientResource,
+  oauthConsent,
+  oauthRefreshToken,
+  oauthResource,
+  session,
+  user,
+  verification,
+};
 
 export const auth = betterAuth({
   baseURL: env.SITE_ORIGIN,
   database: drizzleAdapter(db, {
     provider: "sqlite",
-    schema: authTables,
+    schema: AUTH_SCHEMA,
   }),
   databaseHooks: { user: { create: { before: rejectSecondOwner } } },
   disabledPaths: ["/token"],

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { signIn } from "#/pages/sign-in/api/sign-in";
 import { signUp } from "#/pages/sign-in/api/sign-up";
 
-import { AccountForm } from "./account-form";
+import { AccountForm } from "./account-form.tsx";
 
 const TITLE = "ログイン";
 const SIGN_UP_TITLE = "はじめて使うとき";

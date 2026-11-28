@@ -16,7 +16,7 @@ import { IMPORT_ROWS_PER_REQUEST } from "#/features/ingest-history/model/import-
 import type { ImportRow } from "#/features/ingest-history/model/provider";
 import type { ProviderId } from "#/shared/config";
 
-import { connectionClient } from "./queries";
+import { connectionClient } from "./queries.ts";
 
 export type ImportOutcome =
   | Readonly<{ status: "imported"; recorded: number }>

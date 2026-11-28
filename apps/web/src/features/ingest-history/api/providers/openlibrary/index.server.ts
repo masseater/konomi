@@ -2,8 +2,8 @@ import { Effect } from "effect";
 
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { pullOpenlibrary } from "./pull.server";
+import { FIELD } from "./api.ts";
+import { pullOpenlibrary } from "./pull.server.ts";
 
 export const openlibrary: Provider = {
   id: "openlibrary",

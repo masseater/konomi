@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import type { CredentialMethod } from "#/features/ingest-history/model/provider";
 import type { ProviderId } from "#/shared/config";
 
-import { AuthorizeLink } from "./authorize-link";
-import { AuthorizePageLink } from "./authorize-page-link";
+import { AuthorizeLink } from "./authorize-link.tsx";
+import { AuthorizePageLink } from "./authorize-page-link.tsx";
 
 export const MethodLinks = ({
   provider,

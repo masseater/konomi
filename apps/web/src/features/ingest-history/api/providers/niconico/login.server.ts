@@ -9,7 +9,7 @@ import { CredentialRejected } from "#/features/ingest-history/model/credential-r
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import { ProviderUnavailable } from "#/features/ingest-history/model/provider-unavailable";
 
-import { SESSION_COOKIE, SESSION_FIELD } from "./pull.server";
+import { SESSION_COOKIE, SESSION_FIELD } from "./pull.server.ts";
 
 const LOGIN_ORIGIN = "https://account.nicovideo.jp";
 const LOGIN_PAGE = `${LOGIN_ORIGIN}/login`;

@@ -5,8 +5,8 @@ import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
 import type { ProviderId } from "#/shared/config";
 
-import type { ImportRejected } from "./import-rejected";
-import type { ProviderError } from "./provider-error";
+import type { ImportRejected } from "./import-rejected.ts";
+import type { ProviderError } from "./provider-error.ts";
 
 export type CredentialField = Readonly<{
   name: string;
@@ -73,4 +73,4 @@ export const methodOf =
   (provider: Provider): Option.Option<CredentialMethod> =>
     Arr.findFirst(provider.methods, (method) => method.id === id);
 
-export type { ProviderError } from "./provider-error";
+export type { ProviderError } from "./provider-error.ts";

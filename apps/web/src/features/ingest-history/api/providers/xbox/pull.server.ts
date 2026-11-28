@@ -5,9 +5,9 @@ import { itemsOf } from "#/features/ingest-history/api/providers/feed.server";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { API, FIELD, HEADERS } from "./api";
-import { FriendsResponse, TitlesResponse } from "./schemas";
-import { friendObservationsOf, playedObservationsOf } from "./subjects";
+import { API, FIELD, HEADERS } from "./api.ts";
+import { FriendsResponse, TitlesResponse } from "./schemas.ts";
+import { friendObservationsOf, playedObservationsOf } from "./subjects.ts";
 
 export const pullXbox = pullOf({
   provider: "xbox",

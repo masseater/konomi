@@ -4,8 +4,8 @@ import type { SubjectInput } from "#/entities/signal";
 import { stampedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 
-import { WEB } from "./api";
-import type { PinterestPin } from "./schemas";
+import { WEB } from "./api.ts";
+import type { PinterestPin } from "./schemas.ts";
 
 const pinOf = (pin: PinterestPin): SubjectInput => {
   const url = `${WEB}/pin/${pin.id}`;

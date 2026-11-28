@@ -5,10 +5,10 @@ import {
   pulledListings,
 } from "#/features/ingest-history/api/providers/listing.server";
 
-import { API, LIMIT } from "./api";
-import { tokenPageOf } from "./page";
-import { Subscriptions, Videos } from "./schemas";
-import { likedVideoOf, subscribedChannelOf } from "./subjects";
+import { API, LIMIT } from "./api.ts";
+import { tokenPageOf } from "./page.ts";
+import { Subscriptions, Videos } from "./schemas.ts";
+import { likedVideoOf, subscribedChannelOf } from "./subjects.ts";
 
 const pullLiked = jsonListing({
   kind: "endorsed",

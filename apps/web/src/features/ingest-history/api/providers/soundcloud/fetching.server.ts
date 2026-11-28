@@ -10,7 +10,7 @@ import type { Listing } from "#/features/ingest-history/api/providers/listing.se
 import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-import { API, FIELD, LIMIT } from "./api";
+import { API, FIELD, LIMIT } from "./api.ts";
 
 export type Session = Readonly<{
   headers: Readonly<Record<string, string>>;

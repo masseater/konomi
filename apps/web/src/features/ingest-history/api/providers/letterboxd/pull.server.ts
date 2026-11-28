@@ -4,9 +4,9 @@ import { requireField } from "#/features/ingest-history/api/providers/credential
 import { fetchFeed, itemsOf } from "#/features/ingest-history/api/providers/feed.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { FIELD, HEADERS, WEB } from "./api";
-import { DiaryFeed } from "./schemas";
-import { letterboxdObservationsOf } from "./subjects";
+import { FIELD, HEADERS, WEB } from "./api.ts";
+import { DiaryFeed } from "./schemas.ts";
+import { letterboxdObservationsOf } from "./subjects.ts";
 
 export const pullLetterboxd = pullOf({
   provider: "letterboxd",

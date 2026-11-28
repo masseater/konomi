@@ -2,8 +2,8 @@ import { Effect } from "effect";
 
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { pullMisskey } from "./pull.server";
+import { FIELD } from "./api.ts";
+import { pullMisskey } from "./pull.server.ts";
 
 export const misskey: Provider = {
   id: "misskey",

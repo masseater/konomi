@@ -2,8 +2,8 @@ import { Effect } from "effect";
 
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { pullGitHub } from "./pull.server";
+import { FIELD } from "./api.ts";
+import { pullGitHub } from "./pull.server.ts";
 
 export const github: Provider = {
   id: "github",

@@ -4,12 +4,12 @@ import { Array as Arr, Clock, Effect, Option, Schema, pipe } from "effect";
 import { countByKind, existingSubjectKeys, findSimilar } from "#/entities/signal/index.server";
 import type { KindCount, SimilarQuery, SimilarSubject } from "#/entities/signal/index.server";
 
-import { optionalMillis } from "./instant";
-import { latestTasteNote, saveTasteNote } from "./taste-note.server";
-import type { TasteNote } from "./taste-note.server";
-import { ToolError } from "./tool-error";
-import { EmptyInput, NoteInput, SimilarInput } from "./tool-input";
-import { runTool } from "./tool-result.server";
+import { optionalMillis } from "./instant.ts";
+import { latestTasteNote, saveTasteNote } from "./taste-note.server.ts";
+import type { TasteNote } from "./taste-note.server.ts";
+import { ToolError } from "./tool-error.ts";
+import { EmptyInput, NoteInput, SimilarInput } from "./tool-input.ts";
+import { runTool } from "./tool-result.server.ts";
 
 const DEFAULT_LIMIT = 20;
 const NEVER = 0;

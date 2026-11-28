@@ -5,7 +5,7 @@ import { ImportRejected } from "#/features/ingest-history/model/import-rejected"
 import type { ImportFormat, ImportRow } from "#/features/ingest-history/model/provider";
 import type { ProviderId } from "#/shared/config";
 
-import { PROVIDERS } from "./providers/index.server";
+import { PROVIDERS } from "./providers/index.server.ts";
 
 export type ImportRequest = Readonly<{
   provider: ProviderId;

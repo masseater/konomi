@@ -4,8 +4,8 @@ import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import { digestHex } from "#/shared/crypto/index.server";
 
-import { historyVideosOf } from "./history-videos";
-import type { VideoParts } from "./subjects";
+import { historyVideosOf } from "./history-videos.ts";
+import type { VideoParts } from "./subjects.ts";
 
 const ORIGIN = "https://www.youtube.com";
 const BROWSE_URL = `${ORIGIN}/youtubei/v1/browse?prettyPrint=false`;

@@ -7,7 +7,7 @@ import {
   stampedObservationsOf,
 } from "#/features/ingest-history/api/providers/observe";
 
-import type { GitHubAccount, GitHubStar } from "./schemas";
+import type { GitHubAccount, GitHubStar } from "./schemas.ts";
 
 const accountOf = (account: GitHubAccount): CreatorInput =>
   personIn("github")({

@@ -1,7 +1,7 @@
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { renewNiconico } from "./login.server";
-import { pullNiconico } from "./pull.server";
+import { renewNiconico } from "./login.server.ts";
+import { pullNiconico } from "./pull.server.ts";
 
 export const niconico: Provider = {
   id: "niconico",

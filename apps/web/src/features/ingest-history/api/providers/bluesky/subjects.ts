@@ -6,8 +6,8 @@ import { nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
 import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 
-import { WEB } from "./api";
-import type { BlueskyPost, BlueskyProfile } from "./schemas";
+import { WEB } from "./api.ts";
+import type { BlueskyPost, BlueskyProfile } from "./schemas.ts";
 
 const PATH_SEPARATOR = "/";
 

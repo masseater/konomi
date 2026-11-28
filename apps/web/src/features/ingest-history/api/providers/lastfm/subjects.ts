@@ -3,7 +3,7 @@ import { Array as Arr, Option, pipe } from "effect";
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { personIn } from "#/features/ingest-history/api/providers/creator-input";
 
-import type { LastfmTrack } from "./schemas";
+import type { LastfmTrack } from "./schemas.ts";
 
 const ORIGIN = "https://www.last.fm";
 

@@ -3,8 +3,8 @@ import { Array as Arr, Match, Option, String as Str, pipe } from "effect";
 import type { Observation, SubjectInput } from "#/entities/signal";
 import type { SubjectType } from "#/shared/config";
 
-import { LIKED_SCORE, WANTED, WATCHED, WEB } from "./api";
-import type { Card } from "./cards";
+import { LIKED_SCORE, WANTED, WATCHED, WEB } from "./api.ts";
+import type { Card } from "./cards.ts";
 
 const PRODUCED_YEAR = /(?<year>\d{4})年製作/u;
 const SEPARATOR = "/";
