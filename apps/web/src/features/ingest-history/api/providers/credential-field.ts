@@ -107,3 +107,19 @@ export const bearerFieldOf =
   (name: string) =>
   (credential: Credential): Effect.Effect<Fields, CredentialRejected> =>
     requireField(credential, name).pipe(Effect.map(bearerOf));
+
+export const renewedField =
+  <Failure>({
+    field,
+    span,
+    create,
+  }: Readonly<{
+    field: string;
+    span: string;
+    create: (credential: Credential) => Effect.Effect<string, Failure>;
+  }>) =>
+  (credential: Credential): Effect.Effect<Credential, Failure> =>
+    create(credential).pipe(
+      Effect.map((value) => withFields(credential, { [field]: value })),
+      Effect.withSpan(span),
+    );

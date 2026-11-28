@@ -23,9 +23,6 @@ const fullPageNext =
       Option.map(() => urlWith(url, { [param.name]: param.value })),
     );
 
-const nextOffset = (url: string): string =>
-  String(Number(new URL(url).searchParams.get(OFFSET)) + LIMIT);
-
 export const pullListenbrainz = pullOf({
   provider: "listenbrainz",
   cursor: "backfilled",
@@ -39,31 +36,29 @@ export const pullListenbrainz = pullOf({
           source: sourceOf({
             first: `${API}/user/${user}/listens?count=${LIMIT}`,
             schema: Listens,
-          })(({ payload: { listens } }, url) => ({
-            items: listens,
-            next: pipe(
-              Arr.last(listens),
-              Option.flatMap(({ listened_at: listenedAt }) =>
-                fullPageNext({ url, items: listens })({
-                  name: "max_ts",
-                  value: String(listenedAt),
-                }),
-              ),
-            ),
-          })),
+            items: ({ payload: { listens } }) => listens,
+            next: {
+              follow: ({ payload: { listens } }, url) =>
+                pipe(
+                  Arr.last(listens),
+                  Option.flatMap(({ listened_at: listenedAt }) =>
+                    fullPageNext({ url, items: listens })({
+                      name: "max_ts",
+                      value: String(listenedAt),
+                    }),
+                  ),
+                ),
+            },
+          }),
         })(() => listenObservationsOf),
         listingOf({
           label: "loved",
           source: sourceOf({
-            first: `${API}/feedback/user/${user}/get-feedback?score=${LOVED}&count=${LIMIT}&metadata=true&${OFFSET}=0`,
+            first: `${API}/feedback/user/${user}/get-feedback?score=${LOVED}&count=${LIMIT}&metadata=true`,
             schema: Feedback,
-          })(({ feedback }, url) => ({
-            items: feedback,
-            next: fullPageNext({ url, items: feedback })({
-              name: OFFSET,
-              value: nextOffset(url),
-            }),
-          })),
+            items: ({ feedback }) => feedback,
+            next: { number: { param: OFFSET, limit: LIMIT, start: 0, step: LIMIT } },
+          }),
         })(() => lovedObservationsOf),
       ]);
       return yield* listings({ headers: HEADERS, pages, fetchedAt });

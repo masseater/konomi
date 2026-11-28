@@ -1,13 +1,17 @@
-import { Effect, Option, pipe } from "effect";
+import { Effect, Option } from "effect";
 import type { Schema } from "effect";
 
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { flatMapEach } from "#/features/ingest-history/api/providers/observe";
 import type { Observer, Observing } from "#/features/ingest-history/api/providers/observe";
-import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
-import type { Page } from "#/features/ingest-history/api/providers/paging.server";
-import { urlWith } from "#/features/ingest-history/api/providers/url-with";
+import {
+  collectPages,
+  nextUrlOf,
+  pagesFor,
+  startUrlOf,
+} from "#/features/ingest-history/api/providers/paging.server";
+import type { Next, Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 export type Reading = Readonly<{ headers: Headers; pages: number; fetchedAt: number }>;
@@ -25,40 +29,31 @@ export type BodyFetch<Body> = (
   request: Readonly<{ url: string; headers: Headers; schema: Schema.Decoder<Body> }>,
 ) => Effect.Effect<Body, ProviderError>;
 
-export const sourceOf =
-  <Body>({
-    first,
-    schema,
-    fetch: load = fetchJson,
-  }: Readonly<{
-    first: string;
-    schema: Schema.Decoder<Body>;
-    fetch?: BodyFetch<Body> | undefined;
-  }>) =>
-  <Item>(pageOf: (body: Body, cursor: string) => Page<Item>): Sourcing<Item> =>
-  (headers) => ({
-    first,
+export const sourceOf = <Body, Item>({
+  first,
+  schema,
+  fetch: load = fetchJson,
+  items: itemsOf,
+  next,
+}: Readonly<{
+  first: string;
+  schema: Schema.Decoder<Body>;
+  fetch?: BodyFetch<Body> | undefined;
+  items: (body: Body) => readonly Item[];
+  next?: Next<Body> | undefined;
+}>): Sourcing<Item> => {
+  const strategy = Option.fromUndefinedOr(next);
+  return (headers) => ({
+    first: startUrlOf({ first, next: strategy }),
     fetchPage: (cursor) =>
-      load({ url: cursor, headers, schema }).pipe(Effect.map((body) => pageOf(body, cursor))),
+      load({ url: cursor, headers, schema }).pipe(
+        Effect.map((body) => {
+          const items = itemsOf(body);
+          return { items, next: nextUrlOf({ next: strategy, body, count: items.length, cursor }) };
+        }),
+      ),
   });
-
-export const cursorPageOf =
-  <Body, Item>({
-    param,
-    itemsOf,
-    cursorOf,
-  }: Readonly<{
-    param: string;
-    itemsOf: (body: Body) => readonly Item[];
-    cursorOf: (body: Body) => Option.Option<string>;
-  }>) =>
-  (body: Body, url: string): Page<Item> => ({
-    items: itemsOf(body),
-    next: pipe(
-      cursorOf(body),
-      Option.map((cursor) => urlWith(url, { [param]: cursor })),
-    ),
-  });
+};
 
 export const collectedFrom =
   <Item>(source: Sourcing<Item>) =>
@@ -78,21 +73,3 @@ export const pulledListings =
   (listings: readonly Listing[]) =>
   (reading: Reading): Observing =>
     flatMapEach(listings, (listing) => listing(reading));
-
-export const flatListing =
-  <Item>({
-    label,
-    first,
-    schema,
-    fetch,
-  }: Readonly<{
-    label: string;
-    first: string;
-    schema: Schema.Decoder<readonly Item[]>;
-    fetch?: BodyFetch<readonly Item[]> | undefined;
-  }>) =>
-  (observe: Observer<Item>): Listing =>
-    listingOf({
-      label,
-      source: sourceOf({ first, schema, fetch })((items) => ({ items, next: Option.none() })),
-    })(observe);

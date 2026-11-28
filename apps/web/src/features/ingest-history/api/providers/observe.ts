@@ -3,7 +3,6 @@ import { Array as Arr, Effect, Function as Fn, Match, Option, Predicate, pipe } 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
 import { withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
 import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
-import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import type { SignalKind } from "#/shared/config";
 
@@ -86,14 +85,6 @@ export const listEntriesOf =
       ),
     ];
   };
-
-export const pageOf = <Item>({
-  items,
-  next,
-}: Readonly<{ items: readonly Item[]; next?: string | null | undefined }>): Page<Item> => ({
-  items,
-  next: Option.fromNullishOr(next),
-});
 
 export const observationsOf =
   (kind: SignalKind) =>

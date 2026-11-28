@@ -69,9 +69,13 @@ export const collectionListing =
     const first = sign(firstUrlOf(path));
     return listingOf({
       label: path,
-      source: sourceOf({ first, schema })(({ collection, next_href: next }) => ({
-        items: collection,
-        next: pipe(Option.fromNullishOr(next), Option.map(sign)),
-      })),
+      source: sourceOf({
+        first,
+        schema,
+        items: ({ collection }) => collection,
+        next: {
+          follow: ({ next_href: next }) => pipe(Option.fromNullishOr(next), Option.map(sign)),
+        },
+      }),
     });
   };

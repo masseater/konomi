@@ -1,4 +1,5 @@
-import { CLIENT_FIELDS, refreshAccess } from "#/features/ingest-history/api/providers/oauth.server";
+import { grantFor } from "#/features/ingest-history/api/providers/grant.server";
+import { CLIENT_FIELDS } from "#/features/ingest-history/api/providers/oauth.server";
 import type { Authorization, Provider } from "#/features/ingest-history/model/provider";
 
 import { HISTORY_FIELD } from "./api.ts";
@@ -31,5 +32,5 @@ export const youtube: Provider = {
     },
   ],
   pull: pullYoutube,
-  renew: refreshAccess(AUTHORIZATION),
+  renew: grantFor({ authorization: AUTHORIZATION, grant: { kind: "refresh" } }),
 };

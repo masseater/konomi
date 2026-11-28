@@ -2,11 +2,7 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import {
-  cursorPageOf,
-  listingOf,
-  sourceOf,
-} from "#/features/ingest-history/api/providers/listing.server";
+import { listingOf, sourceOf } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
@@ -20,17 +16,16 @@ const followedBy = (userId: string): Listing => {
   const source = sourceOf({
     first: `${API}/channels/followed?user_id=${userId}&first=${LIMIT}`,
     schema: FollowedChannels,
-  })(
-    cursorPageOf({
-      param: "after",
-      itemsOf: ({ data }) => data,
+    items: ({ data }) => data,
+    next: {
+      cursor: "after",
       cursorOf: ({ pagination }) =>
         pipe(
           Option.fromNullishOr(pagination),
           Option.flatMapNullishOr(({ cursor }) => cursor),
         ),
-    }),
-  );
+    },
+  });
   return listingOf({ label: "followed", source })(
     datedObservationsOf({
       kind: "followed",

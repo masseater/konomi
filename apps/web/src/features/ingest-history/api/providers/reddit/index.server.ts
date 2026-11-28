@@ -1,4 +1,5 @@
-import { CLIENT_FIELDS, refreshAccess } from "#/features/ingest-history/api/providers/oauth.server";
+import { grantFor } from "#/features/ingest-history/api/providers/grant.server";
+import { CLIENT_FIELDS } from "#/features/ingest-history/api/providers/oauth.server";
 import type { Authorization, Provider } from "#/features/ingest-history/model/provider";
 
 import { WEB } from "./api.ts";
@@ -26,5 +27,5 @@ export const reddit: Provider = {
     },
   ],
   pull: pullReddit,
-  renew: refreshAccess(AUTHORIZATION),
+  renew: grantFor({ authorization: AUTHORIZATION, grant: { kind: "refresh" } }),
 };

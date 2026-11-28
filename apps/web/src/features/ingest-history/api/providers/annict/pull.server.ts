@@ -9,9 +9,7 @@ import {
   sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
-import { pageOf } from "#/features/ingest-history/api/providers/observe";
 import type { Observer } from "#/features/ingest-history/api/providers/observe";
-import type { Page } from "#/features/ingest-history/api/providers/paging.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, FIELD } from "./api.ts";
@@ -43,16 +41,6 @@ type Paged<Item> = Readonly<{
   pageInfo: Readonly<{ hasNextPage: boolean; endCursor?: string | null | undefined }>;
 }>;
 
-const graphPageOf = <Item>({ nodes, pageInfo }: Paged<Item>): Page<Item> =>
-  pageOf({
-    items: nodes,
-    next: pipe(
-      Option.liftPredicate(pageInfo, ({ hasNextPage }) => hasNextPage),
-      Option.flatMap(({ endCursor }) => Option.fromNullishOr(endCursor)),
-      Option.getOrUndefined,
-    ),
-  });
-
 const afterOf = (cursor: string): string | null =>
   Option.getOrNull(Option.liftPredicate(cursor, (value: string) => value !== START));
 
@@ -81,7 +69,18 @@ const viewerListing =
             schema: decoder,
             post: { payload: Query, value: { query, variables: { after: afterOf(after) } } },
           }),
-      })((response) => graphPageOf(connectionOf(response))),
+        items: (response) => connectionOf(response).nodes,
+        next: {
+          follow: (response) =>
+            pipe(
+              Option.liftPredicate(
+                connectionOf(response).pageInfo,
+                ({ hasNextPage }) => hasNextPage,
+              ),
+              Option.flatMap(({ endCursor }) => Option.fromNullishOr(endCursor)),
+            ),
+        },
+      }),
     })(observe);
 
 const records = viewerListing({

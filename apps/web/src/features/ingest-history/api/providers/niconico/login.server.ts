@@ -2,7 +2,7 @@ import { Clock, Effect, Option, String as Str, pipe } from "effect";
 import { Secret, TOTP } from "otpauth";
 
 import type { Credential } from "#/entities/connection";
-import { fieldOf, withFields } from "#/features/ingest-history/api/providers/credential-field";
+import { fieldOf, renewedField } from "#/features/ingest-history/api/providers/credential-field";
 import { browse } from "#/features/ingest-history/api/providers/http.server";
 import type { Browser } from "#/features/ingest-history/api/providers/http.server";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
@@ -85,9 +85,9 @@ const signIn =
       );
     });
 
-export const renewNiconico = (credential: Credential): Effect.Effect<Credential, ProviderError> =>
-  loginOf(credential).pipe(
-    Effect.flatMap((login) => browse(signIn(login))),
-    Effect.map((session) => withFields(credential, { [SESSION_FIELD]: session })),
-    Effect.withSpan("niconico.renew"),
-  );
+export const renewNiconico = renewedField({
+  field: SESSION_FIELD,
+  span: "niconico.renew",
+  create: (credential: Credential) =>
+    loginOf(credential).pipe(Effect.flatMap((login) => browse(signIn(login)))),
+});

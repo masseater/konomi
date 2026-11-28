@@ -1,17 +1,15 @@
-import { Effect } from "effect";
-
-import type { Credential } from "#/entities/connection";
-import { withFields } from "#/features/ingest-history/api/providers/credential-field";
-import type { Provider, ProviderError } from "#/features/ingest-history/model/provider";
+import { renewedField } from "#/features/ingest-history/api/providers/credential-field";
+import type { Provider } from "#/features/ingest-history/model/provider";
 
 import { FIELD } from "./api.ts";
 import { scrapeClientId } from "./client-id.server.ts";
 import { pullSoundcloud } from "./pull.server.ts";
 
-const renewClientId = (credential: Credential): Effect.Effect<Credential, ProviderError> =>
-  scrapeClientId.pipe(
-    Effect.map((clientId) => withFields(credential, { [FIELD.clientId]: clientId })),
-  );
+const renewClientId = renewedField({
+  field: FIELD.clientId,
+  span: "soundcloud.renew",
+  create: () => scrapeClientId,
+});
 
 export const soundcloud: Provider = {
   id: "soundcloud",

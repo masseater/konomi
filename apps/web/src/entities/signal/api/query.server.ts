@@ -168,40 +168,37 @@ const BINARY = 2;
 
 export const overFiltered: {
   <Row>(
-    build: (filtered: Filtered) => PromiseLike<readonly Row[]>,
+    build: (filtered: Filtered, filter: SignalFilter) => PromiseLike<readonly Row[]>,
   ): (filter: SignalFilter) => Effect.Effect<readonly Row[]>;
   <Row>(
     filter: SignalFilter,
-    build: (filtered: Filtered) => PromiseLike<readonly Row[]>,
+    build: (filtered: Filtered, filter: SignalFilter) => PromiseLike<readonly Row[]>,
   ): Effect.Effect<readonly Row[]>;
 } = Fn.dual(
   BINARY,
   <Row>(
     filter: SignalFilter,
-    build: (filtered: Filtered) => PromiseLike<readonly Row[]>,
-  ): Effect.Effect<readonly Row[]> => Effect.promise(() => build(filteredSignals(filter))),
+    build: (filtered: Filtered, filter: SignalFilter) => PromiseLike<readonly Row[]>,
+  ): Effect.Effect<readonly Row[]> => Effect.promise(() => build(filteredSignals(filter), filter)),
 );
 
-type SignalRow = Omit<FoundSignal, "credits" | "tags">;
-
-const signalRows = (filter: SignalFilter): Effect.Effect<readonly SignalRow[]> =>
-  overFiltered(filter, (filtered) =>
-    db
-      .with(filtered)
-      .select({
-        key: filtered.key,
-        kind: filtered.kind,
-        context: filtered.context,
-        occurredAtMs: filtered.occurredAtMs,
-        provider: filtered.provider,
-        type: filtered.type,
-        title: filtered.title,
-        url: filtered.url,
-      })
-      .from(filtered)
-      .orderBy(desc(filtered.occurredAtMs))
-      .limit(filter.limit),
-  );
+const signalRows = overFiltered((filtered, { limit }) =>
+  db
+    .with(filtered)
+    .select({
+      key: filtered.key,
+      kind: filtered.kind,
+      context: filtered.context,
+      occurredAtMs: filtered.occurredAtMs,
+      provider: filtered.provider,
+      type: filtered.type,
+      title: filtered.title,
+      url: filtered.url,
+    })
+    .from(filtered)
+    .orderBy(desc(filtered.occurredAtMs))
+    .limit(limit),
+);
 
 export const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundSignal[]> =>
   signalRows(filter).pipe(

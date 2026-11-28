@@ -22,13 +22,15 @@ const listOf = (user: string, list: MalList): Listing =>
     source: sourceOf({
       first: `${API}/users/${user}/${list}list?fields=${FIELDS}&limit=${LIMIT}&nsfw=true&sort=list_updated_at`,
       schema: UserList,
-    })(({ data, paging }) => ({
-      items: data,
-      next: pipe(
-        Option.fromNullishOr(paging),
-        Option.flatMap(({ next }) => Option.fromNullishOr(next)),
-      ),
-    })),
+      items: ({ data }) => data,
+      next: {
+        follow: ({ paging }) =>
+          pipe(
+            Option.fromNullishOr(paging),
+            Option.flatMap(({ next }) => Option.fromNullishOr(next)),
+          ),
+      },
+    }),
   })((fetchedAt) => Arr.flatMap(entryObservationsOf({ list, fetchedAt })));
 
 export const pullMyAnimeList = pullOf({

@@ -1,4 +1,5 @@
-import { CLIENT_FIELDS, refreshAccess } from "#/features/ingest-history/api/providers/oauth.server";
+import { grantFor } from "#/features/ingest-history/api/providers/grant.server";
+import { CLIENT_FIELDS } from "#/features/ingest-history/api/providers/oauth.server";
 import type { Authorization, Provider } from "#/features/ingest-history/model/provider";
 
 import { pullPinterest } from "./pull.server.ts";
@@ -25,5 +26,5 @@ export const pinterest: Provider = {
     },
   ],
   pull: pullPinterest,
-  renew: refreshAccess(AUTHORIZATION),
+  renew: grantFor({ authorization: AUTHORIZATION, grant: { kind: "refresh" } }),
 };

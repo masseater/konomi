@@ -1,8 +1,11 @@
 import { Array as Arr, Effect, pipe } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
-import { listingOf, pulledListings } from "#/features/ingest-history/api/providers/listing.server";
-import { numberedSource } from "#/features/ingest-history/api/providers/numbered-pages.server";
+import {
+  listingOf,
+  pulledListings,
+  sourceOf,
+} from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { FIELD, HEADERS, SHELVES, WEB } from "./api.ts";
@@ -21,11 +24,11 @@ export const pullOpenlibrary = pullOf({
         Arr.map(({ shelf, kind, context }) =>
           listingOf({
             label: shelf,
-            source: numberedSource({
-              base: `${WEB}/people/${user}/books/${shelf}.json`,
-              numbering: { param: "page", limit: 1, start: 1 },
+            source: sourceOf({
+              first: `${WEB}/people/${user}/books/${shelf}.json`,
+              next: { number: { param: "page", limit: 1, start: 1 } },
               schema: ReadingLog,
-              itemsOf: ({ reading_log_entries: entries }) => entries,
+              items: ({ reading_log_entries: entries }) => entries,
             }),
           })(shelfObservationsOf({ kind, context })),
         ),

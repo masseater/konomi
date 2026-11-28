@@ -9,7 +9,6 @@ import type { Authorization, ProviderError } from "#/features/ingest-history/mod
 import {
   bearerFieldOf,
   fieldOf,
-  requireField,
   requireFields,
   withFields,
   withoutFields,
@@ -62,7 +61,7 @@ const tokenFieldsOf = ({
   ),
 });
 
-const withTokens: {
+export const withTokens: {
   (tokens: Tokens, transient: readonly string[]): (credential: Credential) => Credential;
   (credential: Credential, tokens: Tokens, transient: readonly string[]): Credential;
 } = Fn.dual(
@@ -75,99 +74,47 @@ export type Authorizing = Readonly<{ authorization: Authorization; credential: C
 
 export type Redirecting = Readonly<{ credential: Credential; redirectUri: string }>;
 
-export type Exchanging = Redirecting & Readonly<{ code: string }>;
+export type Grant =
+  | Readonly<{ kind: "refresh" }>
+  | Readonly<{ kind: "code"; code: string; redirectUri: string }>;
 
-type TokenRequest = Readonly<{
-  headers: Readonly<Record<string, string>>;
-  fields: Readonly<Record<string, string>>;
-}>;
-
-const clientAuthOf = (
-  authorization: Authorization,
-  credential: Credential,
-): Effect.Effect<TokenRequest, ProviderError> =>
-  Match.value(authorization.clientAuthentication).pipe(
-    Match.when("body", () =>
-      clientOf(credential).pipe(Effect.map((fields): TokenRequest => ({ headers: {}, fields }))),
-    ),
-    Match.orElse(() =>
-      clientOf(credential).pipe(
-        Effect.map(({ client_id, client_secret }): TokenRequest => ({
-          headers: { Authorization: `Basic ${Base64.encode(`${client_id}:${client_secret}`)}` },
-          fields: {},
-        })),
-      ),
-    ),
-  );
-
-export const grantedBy = ({
-  credential,
-  secret,
-  request,
-  transient,
-  span,
-}: Readonly<{
-  credential: Credential;
-  secret: Effect.Effect<string, ProviderError>;
-  request: (secret: string) => Effect.Effect<Tokens, ProviderError>;
-  transient: readonly string[];
-  span: string;
-}>): Effect.Effect<Credential, ProviderError> =>
-  secret.pipe(
-    Effect.flatMap(request),
-    Effect.map((tokens) => withTokens(credential, tokens, transient)),
-    Effect.withSpan(span),
-  );
-
-const requestTokens = (
-  authorization: Authorization,
-  credential: Credential,
-  fields: Readonly<Record<string, string>>,
-): Effect.Effect<Tokens, ProviderError> =>
-  clientAuthOf(authorization, credential).pipe(
-    Effect.flatMap((client) =>
-      fetchJson({
-        url: authorization.tokenUrl,
-        headers: client.headers,
-        schema: TokenResponse,
-        post: { form: { ...fields, ...client.fields } },
-      }),
-    ),
-  );
-
-export const refreshAccess =
+export const formTokens =
   (authorization: Authorization) =>
-  (credential: Credential): Effect.Effect<Credential, ProviderError> =>
-    grantedBy({
-      credential,
-      secret: requireField(credential, OAUTH_FIELD.refreshToken),
-      request: (refreshToken) =>
-        requestTokens(authorization, credential, {
-          grant_type: "refresh_token",
-          refresh_token: refreshToken,
+  (credential: Credential, grant: Grant, secret: string): Effect.Effect<Tokens, ProviderError> =>
+    clientOf(credential).pipe(
+      Effect.map(({ client_id, client_secret }) =>
+        Match.value(authorization.clientAuthentication).pipe(
+          Match.when("body", () => ({ headers: {}, fields: { client_id, client_secret } })),
+          Match.orElse(() => ({
+            headers: { Authorization: `Basic ${Base64.encode(`${client_id}:${client_secret}`)}` },
+            fields: {},
+          })),
+        ),
+      ),
+      Effect.flatMap((client) =>
+        fetchJson({
+          url: authorization.tokenUrl,
+          headers: client.headers,
+          schema: TokenResponse,
+          post: {
+            form: {
+              ...Match.value(grant).pipe(
+                Match.when({ kind: "refresh" }, () => ({
+                  grant_type: "refresh_token",
+                  refresh_token: secret,
+                })),
+                Match.orElse(({ redirectUri }) => ({
+                  grant_type: "authorization_code",
+                  code: secret,
+                  redirect_uri: redirectUri,
+                })),
+              ),
+              ...client.fields,
+            },
+          },
         }),
-      transient: [OAUTH_FIELD.state],
-      span: "oauth.refresh",
-    });
-
-export const exchangeCode = ({
-  authorization,
-  credential,
-  code,
-  redirectUri,
-}: Authorizing & Exchanging): Effect.Effect<Credential, ProviderError> =>
-  grantedBy({
-    credential,
-    secret: Effect.succeed(code),
-    request: (authorizationCode) =>
-      requestTokens(authorization, credential, {
-        grant_type: "authorization_code",
-        code: authorizationCode,
-        redirect_uri: redirectUri,
-      }),
-    transient: [OAUTH_FIELD.state],
-    span: "oauth.exchange",
-  });
+      ),
+    );
 
 export const newState = (): string =>
   Hex.encode(crypto.getRandomValues(new Uint8Array(STATE_BYTES)));

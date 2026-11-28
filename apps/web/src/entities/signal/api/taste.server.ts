@@ -3,31 +3,28 @@ import type { SQLWrapper } from "drizzle-orm";
 import { Array as Arr, DateTime, Effect, pipe } from "effect";
 
 import { tasteOf } from "#/entities/signal/model/taste";
-import type { Link, SignalBucket, SubjectInfo, Taste } from "#/entities/signal/model/taste";
+import type { Link, SubjectInfo, Taste } from "#/entities/signal/model/taste";
 import { db } from "#/shared/db/index.server";
 
 import { filteredSignals, overFiltered, relationsOf } from "./query.server.ts";
 import type { SignalFilter } from "./query.server.ts";
 
-type BucketRow = SignalBucket & SubjectInfo;
-
-const bucketsOf = (filter: SignalFilter): Effect.Effect<readonly BucketRow[]> =>
-  overFiltered(filter, (filtered) =>
-    db
-      .with(filtered)
-      .select({
-        subjectKey: filtered.key,
-        key: filtered.key,
-        title: filtered.title,
-        url: filtered.url,
-        type: filtered.type,
-        kind: filtered.kind,
-        signals: count(filtered.id),
-        atMs: filtered.occurredAtMs,
-      })
-      .from(filtered)
-      .groupBy(filtered.key, filtered.kind, filtered.occurredAtMs),
-  );
+const bucketsOf = overFiltered((filtered) =>
+  db
+    .with(filtered)
+    .select({
+      subjectKey: filtered.key,
+      key: filtered.key,
+      title: filtered.title,
+      url: filtered.url,
+      type: filtered.type,
+      kind: filtered.kind,
+      signals: count(filtered.id),
+      atMs: filtered.occurredAtMs,
+    })
+    .from(filtered)
+    .groupBy(filtered.key, filtered.kind, filtered.occurredAtMs),
+);
 
 const matchingSubjects = (filter: SignalFilter): SQLWrapper => {
   const filtered = filteredSignals(filter);

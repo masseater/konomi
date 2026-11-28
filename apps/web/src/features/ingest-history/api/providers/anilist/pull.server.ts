@@ -45,13 +45,15 @@ const mediaListOf = (user: string, type: (typeof MEDIA_TYPES)[number]): Listing 
             },
           },
         }),
-    })(({ data }) => ({
-      items: data.Page.mediaList,
-      next: pipe(
-        Option.liftPredicate(data.Page.pageInfo, ({ hasNextPage }) => hasNextPage),
-        Option.map(({ currentPage }) => String(currentPage + FIRST)),
-      ),
-    })),
+      items: ({ data }) => data.Page.mediaList,
+      next: {
+        follow: ({ data }) =>
+          pipe(
+            Option.liftPredicate(data.Page.pageInfo, ({ hasNextPage }) => hasNextPage),
+            Option.map(({ currentPage }) => String(currentPage + FIRST)),
+          ),
+      },
+    }),
   })((fetchedAt) => Arr.flatMap(entryObservationsOf(fetchedAt)));
 
 export const pullAniList = pullOf({
