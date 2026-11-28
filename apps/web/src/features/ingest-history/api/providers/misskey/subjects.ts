@@ -1,8 +1,9 @@
 import { Option, pipe } from "effect";
 
-import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { personIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
-import { nonEmptyOr, observationsOf } from "#/features/ingest-history/api/providers/observe";
+import { datedObservationsOf, nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
+import type { Observer } from "#/features/ingest-history/api/providers/observe";
 import { orEmpty, textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SignalKind } from "#/shared/config";
 
@@ -46,15 +47,11 @@ const noteOf =
 export const notedAs = ({
   kind,
   origin,
-  at,
-}: Readonly<{
-  kind: SignalKind;
-  origin: string;
-  at: (text: string) => number;
-}>): ((
-  items: readonly Readonly<{ createdAt: string; note: MisskeyNote }>[],
-) => readonly Observation[]) =>
-  observationsOf(kind)<Readonly<{ createdAt: string; note: MisskeyNote }>>({
-    subjectOf: ({ note }) => noteOf(origin)(note),
-    occurredAtOf: ({ createdAt }) => at(createdAt),
+}: Readonly<{ kind: SignalKind; origin: string }>): Observer<
+  Readonly<{ createdAt: string; note: MisskeyNote }>
+> =>
+  datedObservationsOf({
+    kind,
+    subjectOf: ({ note }) => Option.some(noteOf(origin)(note)),
+    occurredAtOf: ({ createdAt }) => createdAt,
   });

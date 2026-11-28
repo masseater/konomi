@@ -1,21 +1,26 @@
-import { Clock, Effect, Option, pipe } from "effect";
+import { Effect, Option, pipe } from "effect";
 import type { Schema } from "effect";
 
 import { bearerOf, requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
+import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
-import { epochOr, presentObservationsOf } from "#/features/ingest-history/api/providers/observe";
-import type { Fetched, Observing } from "#/features/ingest-history/api/providers/observe";
+import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
+import {
+  listingOf,
+  pulledListings,
+  sourceOf,
+} from "#/features/ingest-history/api/providers/listing.server";
+import { datedObservationsOf, pageOf } from "#/features/ingest-history/api/providers/observe";
+import type { Fetched, Observer } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { FIELD, LIMIT } from "./api.ts";
 import { Favorites, Following, Me, Reactions, Request } from "./schemas.ts";
 import { followedOf, notedAs } from "./subjects.ts";
 
-type Reading = Readonly<{ origin: string; token: string; at: (text: string) => number }>;
-
 const call =
-  ({ origin, token }: Reading) =>
+  (origin: string, headers: Headers) =>
   <Item>(
     path: string,
     schema: Schema.Decoder<Item>,
@@ -23,7 +28,7 @@ const call =
   ): Fetched<Item> =>
     postJson({
       url: `${origin}/api/${path}`,
-      headers: bearerOf(token),
+      headers,
       payload: Request,
       body: {
         limit: LIMIT,
@@ -36,45 +41,55 @@ const call =
       schema,
     });
 
-const notesOf = (reading: Reading): Observing =>
-  Effect.gen(function* notes() {
-    const api = call(reading);
-    const { id } = yield* api("i", Me, Option.none());
-    const favorites = yield* api("i/favorites", Favorites, Option.none());
-    const reactions = yield* api("users/reactions", Reactions, Option.some(id));
-    return [
-      ...notedAs({ kind: "collected", origin: reading.origin, at: reading.at })(favorites),
-      ...notedAs({ kind: "endorsed", origin: reading.origin, at: reading.at })(reactions),
-    ];
-  });
-
-const followingOf = (reading: Reading): Observing =>
-  Effect.gen(function* following() {
-    const api = call(reading);
-    const { id } = yield* api("i", Me, Option.none());
-    const followed = yield* api("users/following", Following, Option.some(id));
-    return presentObservationsOf("followed")(({ followee, createdAt }: (typeof followed)[number]) =>
-      pipe(
-        Option.fromNullishOr(followee),
-        Option.map((user) => ({
-          subject: followedOf(reading.origin)(user),
-          occurredAtMs: reading.at(createdAt),
-        })),
-      ),
-    )(followed);
-  });
+const listingAt =
+  <Item>({
+    origin,
+    path,
+    userId,
+    schema,
+  }: Readonly<{
+    origin: string;
+    path: string;
+    userId: Option.Option<string>;
+    schema: Schema.Decoder<readonly Item[]>;
+  }>) =>
+  (observe: Observer<Item>): Listing =>
+    listingOf({
+      label: path,
+      source: sourceOf({
+        first: path,
+        fetchBody: (_cursor, headers) => call(origin, headers)(path, schema, userId),
+        pageOf: (items) => pageOf({ items }),
+      }),
+    })(observe);
 
 export const pullMisskey = pullOf({
   provider: "misskey",
   cursor: "kept",
-  observe: ({ credential }) =>
+  observe: ({ credential, pages, fetchedAt }) =>
     Effect.gen(function* misskey() {
-      const now = yield* Clock.currentTimeMillis;
-      const reading: Reading = {
-        origin: yield* instanceOriginOf(FIELD.instance)(credential),
-        token: yield* requireField(credential, FIELD.accessToken),
-        at: epochOr(now),
-      };
-      return [...(yield* notesOf(reading)), ...(yield* followingOf(reading))];
+      const origin = yield* instanceOriginOf(FIELD.instance)(credential);
+      const token = yield* requireField(credential, FIELD.accessToken);
+      const headers = bearerOf(token);
+      const { id } = yield* call(origin, headers)("i", Me, Option.none());
+      const none = Option.none<string>();
+      const mine = Option.some(id);
+      const listings = pulledListings([
+        listingAt({ origin, path: "i/favorites", userId: none, schema: Favorites })(
+          notedAs({ kind: "collected", origin }),
+        ),
+        listingAt({ origin, path: "users/reactions", userId: mine, schema: Reactions })(
+          notedAs({ kind: "endorsed", origin }),
+        ),
+        listingAt({ origin, path: "users/following", userId: mine, schema: Following })(
+          datedObservationsOf({
+            kind: "followed",
+            subjectOf: ({ followee }) =>
+              pipe(Option.fromNullishOr(followee), Option.map(followedOf(origin))),
+            occurredAtOf: ({ createdAt }) => createdAt,
+          }),
+        ),
+      ]);
+      return yield* listings({ headers, pages, fetchedAt });
     }),
 });

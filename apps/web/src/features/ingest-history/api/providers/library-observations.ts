@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
-import { presentObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import { observationsOf } from "#/features/ingest-history/api/providers/observe";
 
 export type LibraryEntry = Readonly<{
   subject: SubjectInput;
@@ -9,7 +9,7 @@ export type LibraryEntry = Readonly<{
   lastPlayedAtMs: Option.Option<number>;
 }>;
 
-const consumedOf = presentObservationsOf("consumed")(({ subject, lastPlayedAtMs }: LibraryEntry) =>
+const consumedOf = observationsOf("consumed")(({ subject, lastPlayedAtMs }: LibraryEntry) =>
   pipe(
     lastPlayedAtMs,
     Option.map((occurredAtMs) => ({ occurredAtMs, subject })),

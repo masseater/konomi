@@ -3,8 +3,8 @@ import { Array as Arr, Effect, Match, Option, pipe } from "effect";
 import { cursorStateOf } from "#/features/ingest-history/api/providers/cursor-state";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import {
+  datedObservationsOf,
   observationsOf,
-  presentObservationsOf,
 } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
@@ -26,6 +26,12 @@ const scrobbledAt = (track: LastfmTrack): Option.Option<number> =>
     Option.fromNullishOr(track.date),
     Option.map(({ uts }) => uts * MS_PER_SECOND),
   );
+
+const lovedObservationsOf = datedObservationsOf({
+  kind: "endorsed",
+  subjectOf: (track: LastfmTrack) => Option.some(trackOf(track)),
+  occurredAtOf: (track) => Option.getOrUndefined(scrobbledAt(track)),
+});
 
 const pullScrobbles = ({
   account,
@@ -66,16 +72,9 @@ const pullLoved = ({
       fetchJson({ url, headers: {}, schema: LovedTracks }).pipe(
         Effect.map(({ lovedtracks }) => nextOf(url)(lovedtracks)),
       ),
-  }).pipe(
-    Effect.map(
-      observationsOf("endorsed")({
-        subjectOf: trackOf,
-        occurredAtOf: (track) => Option.getOrElse(scrobbledAt(track), () => fetchedAt),
-      }),
-    ),
-  );
+  }).pipe(Effect.map(lovedObservationsOf(fetchedAt)));
 
-const playsOf = presentObservationsOf("consumed")((track: LastfmTrack) =>
+const playsOf = observationsOf("consumed")((track: LastfmTrack) =>
   Option.map(scrobbledAt(track), (occurredAtMs) => ({
     occurredAtMs,
     subject: trackOf(track),

@@ -1,13 +1,13 @@
 import { Match, Option } from "effect";
 
-import type { Observation } from "#/entities/signal";
 import {
   jsonSource,
   listingOf,
   pulledListings,
 } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
-import { observationsOf } from "#/features/ingest-history/api/providers/observe";
+import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import type { Observer } from "#/features/ingest-history/api/providers/observe";
 import { urlAdvancing } from "#/features/ingest-history/api/providers/url-with";
 import type { SignalKind } from "#/shared/config";
 
@@ -28,15 +28,13 @@ export const firstPageUrl = (path: string): string => pageUrl(path, FIRST_PAGE);
 
 export const stampedVideosOf = ({
   kind,
-  fetchedAt,
   context,
-}: Readonly<{ kind: SignalKind; fetchedAt: number; context?: string | undefined }>): ((
-  entries: readonly VideoEntry[],
-) => readonly Observation[]) =>
-  observationsOf(kind)({
-    subjectOf: videoSubjectOf,
-    occurredAtOf: (entry) => stampOf({ entry, fallback: fetchedAt }),
-    context,
+}: Readonly<{ kind: SignalKind; context?: string | undefined }>): Observer<VideoEntry> =>
+  datedObservationsOf({
+    kind,
+    subjectOf: (entry) => Option.some(videoSubjectOf(entry)),
+    occurredAtOf: stampOf,
+    contextOf: () => Option.fromUndefinedOr(context),
   });
 
 const videoListing = ({ path, kind }: Readonly<{ path: string; kind: SignalKind }>): Listing =>
@@ -55,7 +53,7 @@ const videoListing = ({ path, kind }: Readonly<{ path: string; kind: SignalKind 
         ),
       }),
     }),
-  })((fetchedAt) => stampedVideosOf({ kind, fetchedAt }));
+  })(stampedVideosOf({ kind }));
 
 export const pullVideos = pulledListings([
   videoListing({ path: "/v1/users/me/watch/history", kind: "consumed" }),

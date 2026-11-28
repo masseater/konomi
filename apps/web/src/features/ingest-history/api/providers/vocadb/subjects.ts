@@ -1,8 +1,8 @@
-import { Array as Arr, Option, pipe } from "effect";
+import { Array as Arr, Option, pipe, Function as Fn } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
-import { stampedObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
@@ -32,8 +32,9 @@ const songOf = ({ song }: VocaDbRated): SubjectInput =>
     tags: Option.toArray(Option.fromNullishOr(song.songType)),
   });
 
-export const ratedObservationsOf = stampedObservationsOf("endorsed")({
-  subjectOf: songOf,
-  dateOf: ({ date }) => date,
+export const ratedObservationsOf = datedObservationsOf({
+  kind: "endorsed",
+  subjectOf: Fn.flow(songOf, Option.some),
+  occurredAtOf: ({ date }: VocaDbRated) => date,
   contextOf: ({ rating }) => Option.fromUndefinedOr(RATING_LABEL[rating]),
 });

@@ -3,10 +3,7 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { freshOf } from "#/features/ingest-history/api/providers/fresh";
 import { listingOf } from "#/features/ingest-history/api/providers/listing.server";
-import {
-  datedObservationsOf,
-  fetchedObservationsOf,
-} from "#/features/ingest-history/api/providers/observe";
+import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
@@ -20,6 +17,11 @@ const FIRST_PAGE = 1;
 export type Listening = Fetching & Readonly<{ storefront: string }>;
 
 export type Recent = Readonly<{ observations: readonly Observation[]; recent: readonly string[] }>;
+
+const observeRecent = datedObservationsOf({
+  kind: "consumed",
+  subjectOf: (subject: SubjectInput) => Option.some(subject),
+});
 
 export const pullRecent =
   ({ headers, storefront, fetchedAt }: Listening) =>
@@ -37,7 +39,7 @@ export const pullRecent =
             Arr.take(fresh.length),
             Arr.map((song) => songOf({ song, storefront })),
             Arr.getSomes,
-            fetchedObservationsOf("consumed")((subject: SubjectInput) => subject)(fetchedAt),
+            observeRecent(fetchedAt),
           ),
           recent,
         };

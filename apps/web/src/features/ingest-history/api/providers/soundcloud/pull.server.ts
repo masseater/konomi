@@ -4,8 +4,7 @@ import type { Observation, SubjectInput } from "#/entities/signal";
 import { pulledListings } from "#/features/ingest-history/api/providers/listing.server";
 import {
   datedObservationsOf,
-  fetchedObservationsOf,
-  presentObservationsOf,
+  observationsOf,
 } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
@@ -14,7 +13,7 @@ import { Followings, Me, PlayHistory, PlaylistLikes, TrackLikes } from "./schema
 import type { SoundcloudTrack } from "./schemas.ts";
 import { followedUserOf, playlistOf, trackOf } from "./subjects.ts";
 
-const playedObservationsOf = presentObservationsOf("consumed")(
+const playedObservationsOf = observationsOf("consumed")(
   ({
     played_at: playedAt,
     track,
@@ -57,7 +56,10 @@ export const pullSoundcloud = pullOf({
           ),
         ),
         listing({ path: `/users/${me.id}/followings`, schema: Followings })(
-          fetchedObservationsOf("followed")(followedUserOf),
+          datedObservationsOf({
+            kind: "followed",
+            subjectOf: (user) => Option.some(followedUserOf(user)),
+          }),
         ),
       ]);
       return yield* listings({ headers: session.headers, pages, fetchedAt });

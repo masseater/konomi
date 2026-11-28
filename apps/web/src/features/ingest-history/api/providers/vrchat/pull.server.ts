@@ -22,7 +22,7 @@ const favorites = (kind: WorkKind): Listing =>
       schema: Works,
       itemsOf: (works) => works,
     }),
-  })((fetchedAt) => favoriteObservationsOf({ kind, fetchedAt }));
+  })(favoriteObservationsOf(kind));
 
 const friends = (offline: boolean): Listing =>
   listingOf({

@@ -1,6 +1,6 @@
 import { Array as Arr, Option, pipe } from "effect";
 
-import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
+import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { personIn } from "#/features/ingest-history/api/providers/creator-input";
 import { observationsOf } from "#/features/ingest-history/api/providers/observe";
 import { durationFromMs } from "#/features/ingest-history/api/providers/subject-fields";
@@ -85,14 +85,12 @@ const trackOf =
     });
   };
 
-export const listenObservationsOf = (
-  listens: readonly ListenBrainzListen[],
-): readonly Observation[] =>
-  observationsOf("consumed")({
-    subjectOf: (listen: ListenBrainzListen) =>
-      trackOf(listen.recording_msid)(listen.track_metadata),
-    occurredAtOf: (listen: ListenBrainzListen) => listen.listened_at * MS_PER_SECOND,
-  })(listens);
+export const listenObservationsOf = observationsOf("consumed")((listen: ListenBrainzListen) =>
+  Option.some({
+    subject: trackOf(listen.recording_msid)(listen.track_metadata),
+    occurredAtMs: listen.listened_at * MS_PER_SECOND,
+  }),
+);
 
 const lovedIdOf = (recording: ListenBrainzLoved): string =>
   pipe(
@@ -101,18 +99,11 @@ const lovedIdOf = (recording: ListenBrainzLoved): string =>
     Option.getOrElse(() => String(recording.created)),
   );
 
-const lovedObservationOf = (recording: ListenBrainzLoved): Option.Option<Observation> => {
+export const lovedObservationsOf = observationsOf("endorsed")((recording: ListenBrainzLoved) => {
   const lovedTrackOf = trackOf(lovedIdOf(recording));
   return pipe(
     Option.fromNullishOr(recording.track_metadata),
     Option.map(lovedTrackOf),
-    Option.map((subject): Observation => ({
-      kind: "endorsed",
-      subject,
-      occurredAtMs: recording.created * MS_PER_SECOND,
-    })),
+    Option.map((subject) => ({ subject, occurredAtMs: recording.created * MS_PER_SECOND })),
   );
-};
-
-export const lovedObservationsOf = (loved: readonly ListenBrainzLoved[]): readonly Observation[] =>
-  pipe(loved, Arr.map(lovedObservationOf), Arr.getSomes);
+});

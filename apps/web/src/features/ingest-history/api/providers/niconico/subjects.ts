@@ -2,7 +2,6 @@ import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { creatorMapper, personMapper } from "#/features/ingest-history/api/providers/creator-input";
-import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
@@ -58,14 +57,10 @@ export const videoSubjectOf = (entry: VideoEntry): SubjectInput =>
     credits: ownerOf(entry),
   });
 
-export const stampOf = ({
-  entry,
-  fallback,
-}: Readonly<{ entry: VideoEntry; fallback: number }>): number =>
+export const stampOf = (entry: VideoEntry): string | undefined =>
   pipe(
     [entry.lastViewedAt, entry.likedAt, entry.addedAt],
     Arr.map(Option.fromNullishOr),
     Option.firstSomeOf,
-    parsedEpoch,
-    Option.getOrElse(() => fallback),
+    Option.getOrUndefined,
   );

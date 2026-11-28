@@ -1,4 +1,13 @@
-import { Array as Arr, Effect, Function as Fn, Option, String as Str, pipe } from "effect";
+import {
+  Array as Arr,
+  Effect,
+  Function as Fn,
+  Match,
+  Option,
+  Predicate,
+  String as Str,
+  pipe,
+} from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
 import { withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
@@ -42,28 +51,6 @@ const observed =
     occurredAtMs,
     ...contextOf(context),
   });
-
-const observeAt =
-  ({
-    kind,
-    context,
-    at,
-  }: Readonly<{
-    kind: SignalKind;
-    context: Option.Option<string>;
-    at: (text: string | null | undefined) => number;
-  }>) =>
-  ({
-    subject,
-    occurredAt,
-  }: Readonly<{
-    subject: Option.Option<SubjectInput>;
-    occurredAt: string | null | undefined;
-  }>): Option.Option<Observation> =>
-    pipe(
-      subject,
-      Option.map((found) => observed({ kind, context })([found, at(occurredAt)])),
-    );
 
 export const listEntriesOf =
   <Entry>({
@@ -109,34 +96,6 @@ export const listEntriesOf =
     ];
   };
 
-const NO_DATE = (): string => "";
-
-export const datedObservationsOf =
-  <Entry>({
-    kind,
-    listName,
-    subjectOf,
-    occurredAtOf = NO_DATE,
-  }: Readonly<{
-    kind: SignalKind;
-    listName?: string;
-    subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
-    occurredAtOf?: (entry: Entry) => string | null | undefined;
-  }>) =>
-  (fetchedAt: number) =>
-  (entries: readonly Entry[]): readonly Observation[] => {
-    const observe = observeAt({
-      kind,
-      context: Option.fromUndefinedOr(listName),
-      at: epochOr(fetchedAt),
-    });
-    return pipe(
-      entries,
-      Arr.map((entry) => observe({ subject: subjectOf(entry), occurredAt: occurredAtOf(entry) })),
-      Arr.getSomes,
-    );
-  };
-
 export const nonEmptyOr =
   (fallback: string) =>
   (value: string | null | undefined): string =>
@@ -156,25 +115,6 @@ export const pageOf = <Item>({
 
 export const observationsOf =
   (kind: SignalKind) =>
-  <Item>({
-    subjectOf,
-    occurredAtOf,
-    context,
-  }: Readonly<{
-    subjectOf: (item: Item) => SubjectInput;
-    occurredAtOf: (item: Item) => number;
-    context?: string | undefined;
-  }>) =>
-  (items: readonly Item[]): readonly Observation[] => {
-    const observe = observed({ kind, context: Option.fromUndefinedOr(context) });
-    return pipe(
-      items,
-      Arr.map((item) => observe([subjectOf(item), occurredAtOf(item)])),
-    );
-  };
-
-export const presentObservationsOf =
-  (kind: SignalKind) =>
   <Item>(pick: (item: Item) => Option.Option<Omit<Observation, "kind">>) =>
   (items: readonly Item[]): readonly Observation[] =>
     pipe(
@@ -183,44 +123,47 @@ export const presentObservationsOf =
       Arr.getSomes,
     );
 
-const KEEP_ALL = (): boolean => true;
+const NO_MOMENT = (): string => "";
 const NO_CONTEXT = (): Option.Option<string> => Option.none();
 
-export const stampedObservationsOf =
-  (kind: SignalKind) =>
-  <Item>({
+const momentAt =
+  (fetchedAt: number) =>
+  (moment: string | number | null | undefined): number =>
+    Match.value(moment).pipe(
+      Match.when(Predicate.isNumber, (ms: number) => ms),
+      Match.orElse(epochOr(fetchedAt)),
+    );
+
+export const datedObservationsOf =
+  <Entry>({
+    kind,
     subjectOf,
-    dateOf,
-    keeps = KEEP_ALL,
+    occurredAtOf = NO_MOMENT,
     contextOf: contextFor = NO_CONTEXT,
   }: Readonly<{
-    subjectOf: (item: Item) => SubjectInput;
-    dateOf: (item: Item) => string | null | undefined;
-    keeps?: (item: Item) => boolean;
-    contextOf?: (item: Item) => Option.Option<string>;
-  }>) =>
-  (fetchedAt: number) =>
-  (items: readonly Item[]): readonly Observation[] => {
-    const at = epochOr(fetchedAt);
-    return pipe(
-      items,
-      Arr.filter(keeps),
-      Arr.map((item) =>
-        observed({ kind, context: contextFor(item) })([subjectOf(item), at(dateOf(item))]),
-      ),
+    kind: SignalKind;
+    subjectOf: (entry: Entry) => Option.Option<SubjectInput>;
+    occurredAtOf?: (entry: Entry) => string | number | null | undefined;
+    contextOf?: (entry: Entry) => Option.Option<string>;
+  }>): Observer<Entry> =>
+  (fetchedAt) => {
+    const at = momentAt(fetchedAt);
+    return observationsOf(kind)((entry: Entry) =>
+      Option.map(subjectOf(entry), (subject) => ({
+        subject,
+        occurredAtMs: at(occurredAtOf(entry)),
+        ...contextOf(contextFor(entry)),
+      })),
     );
   };
-
-export const fetchedObservationsOf =
-  (kind: SignalKind) =>
-  <Item>(subjectOf: (item: Item) => SubjectInput) =>
-  (fetchedAt: number): ((items: readonly Item[]) => readonly Observation[]) =>
-    observationsOf(kind)({ subjectOf, occurredAtOf: () => fetchedAt });
 
 export const followedCreatorsAt = <Item>(
   creatorOf: (item: Item) => CreatorInput,
 ): ((fetchedAt: number) => (items: readonly Item[]) => readonly Observation[]) =>
-  fetchedObservationsOf("followed")((item: Item) => withoutRelations(creatorOf(item)));
+  datedObservationsOf({
+    kind: "followed",
+    subjectOf: (item: Item) => Option.some(withoutRelations(creatorOf(item))),
+  });
 
 const TWO = 2;
 
@@ -259,9 +202,9 @@ export const collectedListsOf =
     const pullList = (list: List): Observing => {
       const observe = datedObservationsOf({
         kind: "collected",
-        listName: nameOf(list),
         subjectOf,
         occurredAtOf,
+        contextOf: () => Option.some(nameOf(list)),
       })(fetching.fetchedAt);
       return entriesOf(fetching, list).pipe(Effect.map(observe));
     };
