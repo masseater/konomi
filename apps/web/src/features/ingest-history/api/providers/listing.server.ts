@@ -29,7 +29,7 @@ export const sourceOf =
   <Body>({
     first,
     schema,
-    fetch = fetchJson,
+    fetch: load = fetchJson,
   }: Readonly<{
     first: string;
     schema: Schema.Decoder<Body>;
@@ -39,7 +39,7 @@ export const sourceOf =
   (headers) => ({
     first,
     fetchPage: (cursor) =>
-      fetch({ url: cursor, headers, schema }).pipe(Effect.map((body) => pageOf(body, cursor))),
+      load({ url: cursor, headers, schema }).pipe(Effect.map((body) => pageOf(body, cursor))),
   });
 
 export const cursorPageOf =
