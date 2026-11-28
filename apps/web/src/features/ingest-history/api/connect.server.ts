@@ -11,7 +11,7 @@ import { CredentialRejected } from "#/features/ingest-history/model/credential-r
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import type { ProviderId } from "#/shared/config";
 
-import { exchangeFor, startByDiscovery, startByEndpoints } from "./authorization-flows.server.ts";
+import { exchangeFor, startFor } from "./authorization-flows.server.ts";
 import { PROVIDERS } from "./providers/index.server.ts";
 import { stateMatches } from "./providers/oauth.server.ts";
 import type { Authorizing } from "./providers/oauth.server.ts";
@@ -51,20 +51,7 @@ const authorizingOf = (provider: ProviderId): Effect.Effect<Authorizing, Credent
 export const startAuthorization = (provider: ProviderId): Effect.Effect<string, ProviderError> =>
   authorizingOf(provider).pipe(
     Effect.flatMap((authorizing) =>
-      pipe(
-        Option.fromUndefinedOr(authorizing.authorization.discovery),
-        Option.match({
-          onNone: () =>
-            startByEndpoints({ provider, redirectUri: redirectUriOf(provider), ...authorizing }),
-          onSome: (discovery) =>
-            startByDiscovery({
-              provider,
-              redirectUri: redirectUriOf(provider),
-              discovery,
-              ...authorizing,
-            }),
-        }),
-      ),
+      startFor({ provider, redirectUri: redirectUriOf(provider), ...authorizing }),
     ),
     Effect.withSpan("connect.start", { attributes: { provider } }),
   );

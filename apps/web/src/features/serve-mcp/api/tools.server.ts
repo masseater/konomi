@@ -8,12 +8,7 @@ import {
   findSimilar,
   tasteProfile,
 } from "#/entities/signal/index.server";
-import type {
-  KindCount,
-  SignalFilter,
-  SimilarSubject,
-  Taste,
-} from "#/entities/signal/index.server";
+import type { KindCount, SignalFilter, Taste } from "#/entities/signal/index.server";
 
 import { optionalMillis } from "./instant.ts";
 import { readTasteNote, writeTasteNote } from "./taste-note.server.ts";
@@ -25,7 +20,7 @@ import {
   SEARCH_SCHEMA,
   SIMILAR_SCHEMA,
 } from "./tool-input.ts";
-import type { SearchInput, SimilarInput } from "./tool-input.ts";
+import type { SearchInput } from "./tool-input.ts";
 import { registerTool } from "./tool-registry.server.ts";
 
 const DEFAULT_LIMIT = 30;
@@ -67,58 +62,65 @@ const profileOf = (filter: SignalFilter): Effect.Effect<Profile> =>
     { concurrency: 1 },
   );
 
-const similarOf = ({
-  query,
-  limit,
-}: typeof SimilarInput.Type): Effect.Effect<readonly SimilarSubject[], ToolError> =>
-  findSimilar({ ...query, limit: limit ?? SIMILAR_LIMIT }).pipe(
-    Effect.catchTag("EmbeddingFailed", ({ message }) => Effect.fail(ToolError.make({ message }))),
-  );
+const findSimilarTool = registerTool({
+  name: "find_similar",
+  description:
+    "文か対象の key から、意味の近い対象を持ち主の記録の中から探す。サービスをまたいだ同じ曲や、題名の違う同じ系統のものが見つかる。signals はその対象への持ち主の反応の数",
+  input: SIMILAR_SCHEMA,
+  run: ({ query, limit }) =>
+    findSimilar({ ...query, limit: limit ?? SIMILAR_LIMIT }).pipe(
+      Effect.catchTag("EmbeddingFailed", ({ message }) => Effect.fail(ToolError.make({ message }))),
+    ),
+});
+
+const readNoteTool = registerTool({
+  name: "read_taste_note",
+  description:
+    "前に書いた好みのメモと、そのメモが読み終えた日時より後に増えた記録の数を返す。好みを語る前に読み、記録が増えていれば taste_profile と search_signals で確かめてから write_taste_note で書き直す",
+  input: EMPTY_SCHEMA,
+  run: () => readTasteNote,
+});
+
+const writeNoteTool = registerTool({
+  name: "write_taste_note",
+  description:
+    "持ち主の好みを文で書き残す。1 文ごとに根拠の対象の key を付け、記録で確かめられたことだけを書く。人気や世間の評判で補わない。前のメモは履歴として残る",
+  input: NOTE_SCHEMA,
+  access: "write",
+  run: writeTasteNote,
+});
+
+const searchTool = registerTool({
+  name: "search_signals",
+  description:
+    "持ち主が見た・聴いた・高評価した・保存した・フォローした記録を、サービスをまたいで語・種類・期間で探す。語を省くと新しい順に返す。具体的に何を見ていたかを確かめるときに使う",
+  input: SEARCH_SCHEMA,
+  run: (input) => filterOf(input).pipe(Effect.flatMap(findSignals)),
+});
+
+const profileTool = registerTool({
+  name: "taste_profile",
+  description:
+    "持ち主の好みを、作品・投稿者やアーティスト・タグごとの度合いで返す。長く続く好み（lasting）と最近の好み（recent）、伸びているもの（rising）が分かる。好みの全体像や変化をつかむときに最初に使い、具体的な記録は search_signals で確かめる",
+  input: PROFILE_SCHEMA,
+  run: (input) => filterOf(input).pipe(Effect.flatMap(profileOf)),
+});
+
+const connectionsTool = registerTool({
+  name: "list_connections",
+  description:
+    "サービスごとの取り込みの状態を返す。status が rejected ならログインが切れているので、持ち主に konomi のサイトでログイン情報を入れ直すよう伝える",
+  input: EMPTY_SCHEMA,
+  run: () => listConnectionViews,
+});
 
 export const registerTools = (server: McpServer): McpServer =>
   pipe(
     server,
-    registerTool({
-      name: "find_similar",
-      description:
-        "文か対象の key から、意味の近い対象を持ち主の記録の中から探す。サービスをまたいだ同じ曲や、題名の違う同じ系統のものが見つかる。signals はその対象への持ち主の反応の数",
-      input: SIMILAR_SCHEMA,
-      run: similarOf,
-    }),
-    registerTool({
-      name: "read_taste_note",
-      description:
-        "前に書いた好みのメモと、そのメモが読み終えた日時より後に増えた記録の数を返す。好みを語る前に読み、記録が増えていれば taste_profile と search_signals で確かめてから write_taste_note で書き直す",
-      input: EMPTY_SCHEMA,
-      run: () => readTasteNote,
-    }),
-    registerTool({
-      name: "write_taste_note",
-      description:
-        "持ち主の好みを文で書き残す。1 文ごとに根拠の対象の key を付け、記録で確かめられたことだけを書く。人気や世間の評判で補わない。前のメモは履歴として残る",
-      input: NOTE_SCHEMA,
-      access: "write",
-      run: writeTasteNote,
-    }),
-    registerTool({
-      name: "search_signals",
-      description:
-        "持ち主が見た・聴いた・高評価した・保存した・フォローした記録を、サービスをまたいで語・種類・期間で探す。語を省くと新しい順に返す。具体的に何を見ていたかを確かめるときに使う",
-      input: SEARCH_SCHEMA,
-      run: (input) => filterOf(input).pipe(Effect.flatMap(findSignals)),
-    }),
-    registerTool({
-      name: "taste_profile",
-      description:
-        "持ち主の好みを、作品・投稿者やアーティスト・タグごとの度合いで返す。長く続く好み（lasting）と最近の好み（recent）、伸びているもの（rising）が分かる。好みの全体像や変化をつかむときに最初に使い、具体的な記録は search_signals で確かめる",
-      input: PROFILE_SCHEMA,
-      run: (input) => filterOf(input).pipe(Effect.flatMap(profileOf)),
-    }),
-    registerTool({
-      name: "list_connections",
-      description:
-        "サービスごとの取り込みの状態を返す。status が rejected ならログインが切れているので、持ち主に konomi のサイトでログイン情報を入れ直すよう伝える",
-      input: EMPTY_SCHEMA,
-      run: () => listConnectionViews,
-    }),
+    findSimilarTool,
+    readNoteTool,
+    writeNoteTool,
+    searchTool,
+    profileTool,
+    connectionsTool,
   );

@@ -4,27 +4,18 @@ import {
   refreshAuthorization,
   startAuthorization,
 } from "@modelcontextprotocol/client";
-import { Array as Arr, Effect, Option, Schema, pipe } from "effect";
+import { Effect, Option, Schema, pipe } from "effect";
 
 import type { Credential } from "#/entities/connection";
-import {
-  fieldOf,
-  requireField,
-  withFields,
-} from "#/features/ingest-history/api/providers/credential-field";
+import { fieldOf, requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { OAUTH_FIELD, withTokens } from "#/features/ingest-history/api/providers/oauth.server";
-import type {
-  Authorizing,
-  Exchanging,
-  Redirecting,
-} from "#/features/ingest-history/api/providers/oauth.server";
+import { OAUTH_FIELD, grantedBy } from "#/features/ingest-history/api/providers/oauth.server";
+import type { Exchanging, Tokens } from "#/features/ingest-history/api/providers/oauth.server";
 import { failureWhen } from "#/features/ingest-history/api/providers/provider-failure";
 import type { Discovery, ProviderError } from "#/features/ingest-history/model/provider";
 
 const VERIFIER_FIELD = "codeVerifier";
 const CLIENT_NAME = "konomi";
-const SCOPE_SEPARATOR = " ";
 
 const ClientMetadata = Schema.Struct({
   client_name: Schema.String,
@@ -51,19 +42,7 @@ const unavailable = (step: string): ((cause: unknown) => ProviderError) =>
 const sdkCall = <Out>(step: string, run: () => Promise<Out>): Effect.Effect<Out, ProviderError> =>
   Effect.tryPromise({ try: run, catch: unavailable(step) });
 
-const registeredClientOf = (
-  credential: Credential,
-): Effect.Effect<Readonly<{ client_id: string }>, ProviderError> =>
-  requireField(credential, OAUTH_FIELD.clientId).pipe(
-    Effect.map((clientId) => ({ client_id: clientId })),
-  );
-
-const settled = (
-  credential: Credential,
-  tokens: Readonly<{ access_token: string; refresh_token?: string | undefined }>,
-): Credential => withTokens(credential, tokens, [OAUTH_FIELD.state, VERIFIER_FIELD]);
-
-const clientIdOf = ({
+export const clientIdOf = ({
   discovery,
   credential,
   redirectUri,
@@ -98,61 +77,46 @@ const clientIdOf = ({
     }),
   );
 
-export const startDiscovered = ({
-  authorization,
+export const authorizeDiscovered = ({
   discovery,
-  credential,
+  clientId,
   redirectUri,
+  scope,
   state,
-}: Authorizing & Redirecting & Readonly<{ discovery: Discovery; state: string }>): Effect.Effect<
-  Readonly<{ url: string; credential: Credential }>,
+}: Readonly<{
+  discovery: Discovery;
+  clientId: string;
+  redirectUri: string;
+  scope: string;
+  state: string;
+}>): Effect.Effect<
+  Readonly<{ url: string; fields: Readonly<Record<string, string>> }>,
   ProviderError
 > =>
-  Effect.gen(function* start() {
-    const scope = Arr.join(authorization.scopes, SCOPE_SEPARATOR);
-    const clientId = yield* clientIdOf({ discovery, credential, redirectUri, scope });
-    const started = yield* sdkCall("許可の画面の用意", () =>
-      startAuthorization(discovery.issuer, {
-        clientInformation: { client_id: clientId },
-        redirectUrl: redirectUri,
-        scope,
-        state,
-        resource: discovery.resource,
-      }),
-    );
-    return {
+  sdkCall("許可の画面の用意", () =>
+    startAuthorization(discovery.issuer, {
+      clientInformation: { client_id: clientId },
+      redirectUrl: redirectUri,
+      scope,
+      state,
+      resource: discovery.resource,
+    }),
+  ).pipe(
+    Effect.map((started) => ({
       url: started.authorizationUrl.toString(),
-      credential: withFields(credential, {
-        [OAUTH_FIELD.clientId]: clientId,
-        [OAUTH_FIELD.state]: state,
-        [VERIFIER_FIELD]: started.codeVerifier,
-      }),
-    };
-  }).pipe(Effect.withSpan("oauth.discovered.start"));
+      fields: { [VERIFIER_FIELD]: started.codeVerifier },
+    })),
+    Effect.withSpan("oauth.discovered.start"),
+  );
 
-type Tokens = Awaited<ReturnType<typeof exchangeAuthorization>>;
-
-const grantedBy = ({
-  credential,
-  secretField,
-  step,
-  span,
-  grant,
-}: Readonly<{
-  credential: Credential;
-  secretField: string;
-  step: string;
-  span: string;
-  grant: (
-    given: Readonly<{ clientInformation: Readonly<{ client_id: string }>; secret: string }>,
-  ) => Promise<Tokens>;
-}>): Effect.Effect<Credential, ProviderError> =>
-  Effect.gen(function* granted() {
-    const clientInformation = yield* registeredClientOf(credential);
-    const secret = yield* requireField(credential, secretField);
-    const tokens = yield* sdkCall(step, () => grant({ clientInformation, secret }));
-    return settled(credential, tokens);
-  }).pipe(Effect.withSpan(span));
+const viaSdk = (
+  credential: Credential,
+  step: string,
+  grant: (clientInformation: Readonly<{ client_id: string }>) => Promise<Tokens>,
+): Effect.Effect<Tokens, ProviderError> =>
+  requireField(credential, OAUTH_FIELD.clientId).pipe(
+    Effect.flatMap((clientId) => sdkCall(step, () => grant({ client_id: clientId }))),
+  );
 
 export const finishDiscovered = ({
   discovery,
@@ -162,17 +126,19 @@ export const finishDiscovered = ({
 }: Exchanging & Readonly<{ discovery: Discovery }>): Effect.Effect<Credential, ProviderError> =>
   grantedBy({
     credential,
-    secretField: VERIFIER_FIELD,
-    step: "トークンの受け取り",
+    secret: requireField(credential, VERIFIER_FIELD),
+    request: (codeVerifier) =>
+      viaSdk(credential, "トークンの受け取り", (clientInformation) =>
+        exchangeAuthorization(discovery.issuer, {
+          clientInformation,
+          authorizationCode: code,
+          codeVerifier,
+          redirectUri,
+          resource: new URL(discovery.resource),
+        }),
+      ),
+    transient: [OAUTH_FIELD.state, VERIFIER_FIELD],
     span: "oauth.discovered.finish",
-    grant: ({ clientInformation, secret }) =>
-      exchangeAuthorization(discovery.issuer, {
-        clientInformation,
-        authorizationCode: code,
-        codeVerifier: secret,
-        redirectUri,
-        resource: new URL(discovery.resource),
-      }),
   });
 
 export const refreshDiscovered =
@@ -180,13 +146,15 @@ export const refreshDiscovered =
   (credential: Credential): Effect.Effect<Credential, ProviderError> =>
     grantedBy({
       credential,
-      secretField: OAUTH_FIELD.refreshToken,
-      step: "トークンの更新",
+      secret: requireField(credential, OAUTH_FIELD.refreshToken),
+      request: (refreshToken) =>
+        viaSdk(credential, "トークンの更新", (clientInformation) =>
+          refreshAuthorization(discovery.issuer, {
+            clientInformation,
+            refreshToken,
+            resource: new URL(discovery.resource),
+          }),
+        ),
+      transient: [OAUTH_FIELD.state, VERIFIER_FIELD],
       span: "oauth.discovered.refresh",
-      grant: ({ clientInformation, secret }) =>
-        refreshAuthorization(discovery.issuer, {
-          clientInformation,
-          refreshToken: secret,
-          resource: new URL(discovery.resource),
-        }),
     });

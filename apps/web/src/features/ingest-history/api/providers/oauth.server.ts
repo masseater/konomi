@@ -31,7 +31,7 @@ export const CLIENT_FIELDS = [
 
 const STATE_BYTES = 16;
 const BINARY = 2;
-const SCOPE_SEPARATOR = " ";
+export const SCOPE_SEPARATOR = " ";
 
 const TokenResponse = Schema.Struct({
   access_token: Schema.String,
@@ -45,13 +45,6 @@ const clientOf = (
     client_id: OAUTH_FIELD.clientId,
     client_secret: OAUTH_FIELD.clientSecret,
   });
-
-const basicAuthOf = (credential: Credential): Effect.Effect<string, ProviderError> =>
-  clientOf(credential).pipe(
-    Effect.map(
-      ({ client_id, client_secret }) => `Basic ${Base64.encode(`${client_id}:${client_secret}`)}`,
-    ),
-  );
 
 const THREE = 3;
 
@@ -69,7 +62,7 @@ const tokenFieldsOf = ({
   ),
 });
 
-export const withTokens: {
+const withTokens: {
   (tokens: Tokens, transient: readonly string[]): (credential: Credential) => Credential;
   (credential: Credential, tokens: Tokens, transient: readonly string[]): Credential;
 } = Fn.dual(
@@ -98,17 +91,39 @@ const clientAuthOf = (
       clientOf(credential).pipe(Effect.map((fields): TokenRequest => ({ headers: {}, fields }))),
     ),
     Match.orElse(() =>
-      basicAuthOf(credential).pipe(
-        Effect.map((basic): TokenRequest => ({ headers: { Authorization: basic }, fields: {} })),
+      clientOf(credential).pipe(
+        Effect.map(({ client_id, client_secret }): TokenRequest => ({
+          headers: { Authorization: `Basic ${Base64.encode(`${client_id}:${client_secret}`)}` },
+          fields: {},
+        })),
       ),
     ),
+  );
+
+export const grantedBy = ({
+  credential,
+  secret,
+  request,
+  transient,
+  span,
+}: Readonly<{
+  credential: Credential;
+  secret: Effect.Effect<string, ProviderError>;
+  request: (secret: string) => Effect.Effect<Tokens, ProviderError>;
+  transient: readonly string[];
+  span: string;
+}>): Effect.Effect<Credential, ProviderError> =>
+  secret.pipe(
+    Effect.flatMap(request),
+    Effect.map((tokens) => withTokens(credential, tokens, transient)),
+    Effect.withSpan(span),
   );
 
 const requestTokens = (
   authorization: Authorization,
   credential: Credential,
   fields: Readonly<Record<string, string>>,
-): Effect.Effect<Credential, ProviderError> =>
+): Effect.Effect<Tokens, ProviderError> =>
   clientAuthOf(authorization, credential).pipe(
     Effect.flatMap((client) =>
       fetchJson({
@@ -118,21 +133,22 @@ const requestTokens = (
         post: { form: { ...fields, ...client.fields } },
       }),
     ),
-    Effect.map((tokens) => withTokens(credential, tokens, [OAUTH_FIELD.state])),
   );
 
 export const refreshAccess =
   (authorization: Authorization) =>
   (credential: Credential): Effect.Effect<Credential, ProviderError> =>
-    requireField(credential, OAUTH_FIELD.refreshToken).pipe(
-      Effect.flatMap((refreshToken) =>
+    grantedBy({
+      credential,
+      secret: requireField(credential, OAUTH_FIELD.refreshToken),
+      request: (refreshToken) =>
         requestTokens(authorization, credential, {
           grant_type: "refresh_token",
           refresh_token: refreshToken,
         }),
-      ),
-      Effect.withSpan("oauth.refresh"),
-    );
+      transient: [OAUTH_FIELD.state],
+      span: "oauth.refresh",
+    });
 
 export const exchangeCode = ({
   authorization,
@@ -140,11 +156,18 @@ export const exchangeCode = ({
   code,
   redirectUri,
 }: Authorizing & Exchanging): Effect.Effect<Credential, ProviderError> =>
-  requestTokens(authorization, credential, {
-    grant_type: "authorization_code",
-    code,
-    redirect_uri: redirectUri,
-  }).pipe(Effect.withSpan("oauth.exchange"));
+  grantedBy({
+    credential,
+    secret: Effect.succeed(code),
+    request: (authorizationCode) =>
+      requestTokens(authorization, credential, {
+        grant_type: "authorization_code",
+        code: authorizationCode,
+        redirect_uri: redirectUri,
+      }),
+    transient: [OAUTH_FIELD.state],
+    span: "oauth.exchange",
+  });
 
 export const newState = (): string =>
   Hex.encode(crypto.getRandomValues(new Uint8Array(STATE_BYTES)));

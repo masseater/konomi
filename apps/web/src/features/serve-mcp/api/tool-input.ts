@@ -66,7 +66,7 @@ const SimilarBySubject = Schema.Struct({
   }),
 });
 
-export const SimilarInput = Schema.Struct({
+const SimilarInput = Schema.Struct({
   query: Schema.Union([SimilarByText, SimilarBySubject]).annotate({
     description: "文から探すなら by=text、対象の key から探すなら by=subject",
   }),
