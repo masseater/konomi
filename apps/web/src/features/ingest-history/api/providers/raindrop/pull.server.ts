@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 
-import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { bearerFieldOf } from "#/features/ingest-history/api/providers/credential-field";
 import { numberedListing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
@@ -21,9 +21,7 @@ export const pullRaindrop = pullOf({
   provider: "raindrop",
   cursor: "backfilled",
   observe: ({ credential, pages, fetchedAt }) =>
-    requireField(credential, FIELD.token).pipe(
-      Effect.flatMap((token) =>
-        raindrops({ headers: { Authorization: `Bearer ${token}` }, pages, fetchedAt }),
-      ),
+    bearerFieldOf(FIELD.token)(credential).pipe(
+      Effect.flatMap((headers) => raindrops({ headers, pages, fetchedAt })),
     ),
 });

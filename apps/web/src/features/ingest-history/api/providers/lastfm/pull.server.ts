@@ -1,9 +1,11 @@
 import { Array as Arr, Clock, Effect, Match, Option, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
 import { cursorStateOf } from "#/features/ingest-history/api/providers/cursor-state";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { observationsOf } from "#/features/ingest-history/api/providers/observe";
+import {
+  observationsOf,
+  presentObservationsOf,
+} from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
@@ -72,21 +74,12 @@ const pullLoved = ({
     ),
   );
 
-const playsOf = (tracks: readonly LastfmTrack[]): readonly Observation[] =>
-  pipe(
-    tracks,
-    Arr.map((track) =>
-      pipe(
-        scrobbledAt(track),
-        Option.map((occurredAtMs): Observation => ({
-          kind: "consumed",
-          subject: trackOf(track),
-          occurredAtMs,
-        })),
-      ),
-    ),
-    Arr.getSomes,
-  );
+const playsOf = presentObservationsOf("consumed")((track: LastfmTrack) =>
+  Option.map(scrobbledAt(track), (occurredAtMs) => ({
+    occurredAtMs,
+    subject: trackOf(track),
+  })),
+);
 
 const latestUtsOf = (
   tracks: readonly LastfmTrack[],

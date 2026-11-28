@@ -1,7 +1,7 @@
 import { Option, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
-import { libraryObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import { libraryObservationsOf } from "#/features/ingest-history/api/providers/library-observations";
 
 import { STORE } from "./api";
 import type { SteamGame } from "./schemas";

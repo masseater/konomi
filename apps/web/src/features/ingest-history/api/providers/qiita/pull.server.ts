@@ -1,6 +1,10 @@
-import { Effect, Option, pipe } from "effect";
+import { Effect } from "effect";
 
-import { fieldOf, requireField } from "#/features/ingest-history/api/providers/credential-field";
+import {
+  fieldOf,
+  optionalBearerOf,
+  requireField,
+} from "#/features/ingest-history/api/providers/credential-field";
 import { numberedListing } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
@@ -26,11 +30,7 @@ export const pullQiita = pullOf({
     requireField(credential, FIELD.user).pipe(
       Effect.flatMap((name) =>
         stocksOf(encodeURIComponent(name))({
-          headers: pipe(
-            fieldOf(credential, FIELD.token),
-            Option.map((token) => ({ Authorization: `Bearer ${token}` })),
-            Option.getOrElse(() => ({})),
-          ),
+          headers: optionalBearerOf(fieldOf(credential, FIELD.token)),
           pages,
           fetchedAt,
         }),

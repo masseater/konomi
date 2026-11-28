@@ -1,19 +1,14 @@
-import { Option } from "effect";
-
 import type { Credential } from "#/entities/connection";
-import { fieldOf } from "#/features/ingest-history/api/providers/credential-field";
+import {
+  fieldOf,
+  optionalBearerOf,
+} from "#/features/ingest-history/api/providers/credential-field";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 
 import { FIELD } from "./api";
 
-const authorizationOf = (token: Option.Option<string>): Headers =>
-  Option.match(token, {
-    onNone: () => ({}),
-    onSome: (value) => ({ Authorization: `Bearer ${value}` }),
-  });
-
 export const headersOf = (credential: Credential): Headers => ({
   Accept: "application/vnd.github.star+json",
   "X-GitHub-Api-Version": "2022-11-28",
-  ...authorizationOf(fieldOf(credential, FIELD.token)),
+  ...optionalBearerOf(fieldOf(credential, FIELD.token)),
 });

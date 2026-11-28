@@ -1,6 +1,6 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { bearerFieldOf } from "#/features/ingest-history/api/providers/credential-field";
 import {
   graphListing,
   pulledListings,
@@ -75,13 +75,9 @@ export const pullAnnict = pullOf({
   provider: "annict",
   cursor: "backfilled",
   observe: ({ credential, pages, fetchedAt }) =>
-    requireField(credential, FIELD.token).pipe(
-      Effect.flatMap((token) =>
-        pulledListings([records, entries])({
-          headers: { Authorization: `Bearer ${token}` },
-          pages,
-          fetchedAt,
-        }),
+    bearerFieldOf(FIELD.token)(credential).pipe(
+      Effect.flatMap((headers) =>
+        pulledListings([records, entries])({ headers, pages, fetchedAt }),
       ),
     ),
 });

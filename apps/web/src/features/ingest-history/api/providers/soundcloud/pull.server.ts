@@ -1,10 +1,11 @@
-import { Array as Arr, Effect, Option, pipe } from "effect";
+import { Effect, Option } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { pulledListings } from "#/features/ingest-history/api/providers/listing.server";
 import {
   datedObservationsOf,
   observationsOf,
+  presentObservationsOf,
 } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
@@ -13,23 +14,16 @@ import { Followings, Me, PlayHistory, PlaylistLikes, TrackLikes } from "./schema
 import type { SoundcloudTrack } from "./schemas";
 import { followedUserOf, playlistOf, trackOf } from "./subjects";
 
-const playedObservationsOf = (
-  played: readonly Readonly<{ played_at: number; track?: SoundcloudTrack | null | undefined }>[],
-): readonly Observation[] =>
-  pipe(
-    played,
-    Arr.flatMap(({ played_at: playedAt, track }) =>
-      pipe(
-        Option.fromNullishOr(track),
-        Option.map((found): Observation => ({
-          kind: "consumed",
-          subject: trackOf(found),
-          occurredAtMs: playedAt,
-        })),
-        Option.toArray,
-      ),
-    ),
-  );
+const playedObservationsOf = presentObservationsOf("consumed")(
+  ({
+    played_at: playedAt,
+    track,
+  }: Readonly<{ played_at: number; track?: SoundcloudTrack | null | undefined }>) =>
+    Option.map(Option.fromNullishOr(track), (found) => ({
+      occurredAtMs: playedAt,
+      subject: trackOf(found),
+    })),
+);
 
 const likedObservationsOf =
   <Entry extends Readonly<{ created_at?: string | null | undefined }>>(

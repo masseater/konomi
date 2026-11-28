@@ -7,6 +7,7 @@ import type { CredentialRejected } from "#/features/ingest-history/model/credent
 import type { Authorization, ProviderError } from "#/features/ingest-history/model/provider";
 
 import {
+  bearerFieldOf,
   fieldOf,
   requireField,
   requireFields,
@@ -168,14 +169,7 @@ export const authorizeUrlOf = ({
     state,
   });
 
-export const bearerOf = (token: string): Readonly<Record<string, string>> => ({
-  Authorization: `Bearer ${token}`,
-});
-
-export const bearerHeadersOf = (
-  credential: Credential,
-): Effect.Effect<Readonly<Record<string, string>>, ProviderError> =>
-  requireField(credential, OAUTH_FIELD.accessToken).pipe(Effect.map(bearerOf));
+export const bearerHeadersOf = bearerFieldOf(OAUTH_FIELD.accessToken);
 
 export const stateMatches: {
   (state: string): (credential: Credential) => boolean;
