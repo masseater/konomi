@@ -1,19 +1,15 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import {
-  personInputOf,
-  withoutRelations,
-} from "#/features/ingest-history/api/providers/creator-input";
+import { personIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
 import { nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
-import { plainTextOf, postTitleOf } from "#/features/ingest-history/api/providers/post-title";
-import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
+import { plainTextOf } from "#/features/ingest-history/api/providers/post-title";
+import { orEmpty, textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import type { MastodonAccount, MastodonStatus, MastodonTag } from "./schemas";
+import type { MastodonAccount, MastodonStatus } from "./schemas";
 
 const accountOf = (account: MastodonAccount): CreatorInput =>
-  personInputOf({
-    provider: "mastodon",
+  personIn("mastodon")({
     externalId: account.url,
     title: nonEmptyOr(account.acct)(account.display_name),
     url: account.url,
@@ -27,21 +23,16 @@ export const statusOf = (status: MastodonStatus): SubjectInput => {
     Option.fromNullishOr(status.url),
     Option.getOrElse(() => status.uri),
   );
-  return {
-    provider: "mastodon",
+  return textSubjectIn("mastodon")({
     externalId: status.uri,
     type: "post",
-    title: postTitleOf({
-      text: pipe(Option.fromNullishOr(status.content), Option.map(plainTextOf)),
-      fallback: url,
-    }),
+    text: pipe(Option.fromNullishOr(status.content), Option.map(plainTextOf)),
     url,
-    ...publishedOf(Option.fromNullishOr(status.created_at)),
+    publishedAt: status.created_at,
     credits: [accountOf(status.account)],
     tags: pipe(
-      Option.fromNullishOr(status.tags),
-      Option.getOrElse((): readonly MastodonTag[] => []),
+      orEmpty(status.tags),
       Arr.map(({ name }) => name),
     ),
-  };
+  });
 };

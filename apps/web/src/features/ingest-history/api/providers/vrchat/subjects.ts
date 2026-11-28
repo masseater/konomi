@@ -6,6 +6,7 @@ import {
   fetchedObservationsOf,
   followedCreatorsAt,
 } from "#/features/ingest-history/api/providers/observe";
+import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SubjectType } from "#/shared/config";
 
 import { AUTHOR_TAG, WEB } from "./api";
@@ -19,27 +20,26 @@ const personOf = personMapper({ provider: "vrchat", idPrefix: "user:", urlBase: 
 
 const authorTagsOf = (tags: readonly string[] | undefined): readonly string[] =>
   pipe(
-    Option.fromUndefinedOr(tags),
-    Option.getOrElse((): readonly string[] => []),
+    orEmpty(tags),
     Arr.filter(Str.startsWith(AUTHOR_TAG)),
     Arr.map(Str.slice(AUTHOR_TAG.length)),
   );
 
 const workOf =
   (kind: WorkKind) =>
-  (work: VrchatWork): SubjectInput => ({
-    provider: "vrchat",
-    externalId: `${kind}:${work.id}`,
-    type: TYPE_OF[kind],
-    title: work.name,
-    url: `${WEB}/${kind}/${work.id}`,
-    credits: pipe(
-      Option.fromUndefinedOr(work.authorId),
-      Option.map((id) => personOf({ id, name: work.authorName })),
-      Option.toArray,
-    ),
-    tags: authorTagsOf(work.tags),
-  });
+  (work: VrchatWork): SubjectInput =>
+    subjectIn("vrchat")({
+      externalId: `${kind}:${work.id}`,
+      type: TYPE_OF[kind],
+      title: work.name,
+      url: `${WEB}/${kind}/${work.id}`,
+      credits: pipe(
+        Option.fromUndefinedOr(work.authorId),
+        Option.map((id) => personOf({ id, name: work.authorName })),
+        Option.toArray,
+      ),
+      tags: authorTagsOf(work.tags),
+    });
 
 export const favoriteObservationsOf =
   ({ kind, fetchedAt }: Readonly<{ kind: WorkKind; fetchedAt: number }>) =>

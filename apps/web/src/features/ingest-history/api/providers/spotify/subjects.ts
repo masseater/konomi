@@ -6,6 +6,7 @@ import {
   durationFromMs,
   publishedOf,
 } from "#/features/ingest-history/api/providers/subject-fields";
+import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SubjectType } from "#/shared/config";
 
 import type { SpotifyArtist, SpotifyArtistRef, SpotifyTrack, SpotifyUrls } from "./schemas";
@@ -42,18 +43,9 @@ const releasedAtOf = (track: SpotifyTrack): Readonly<{ publishedAtMs?: number }>
   );
 
 const creditsOf = (track: SpotifyTrack): readonly CreatorInput[] =>
-  pipe(
-    Option.fromNullishOr(track.artists),
-    Option.map(Arr.map(artistOf)),
-    Option.map(Arr.getSomes),
-    Option.getOrElse((): readonly CreatorInput[] => []),
-  );
+  pipe(orEmpty(track.artists), Arr.map(artistOf), Arr.getSomes);
 
-const genresOf = (artist: SpotifyArtist): readonly string[] =>
-  pipe(
-    Option.fromNullishOr(artist.genres),
-    Option.getOrElse((): readonly string[] => []),
-  );
+const spotify = subjectIn("spotify");
 
 export const trackOf = (track: SpotifyTrack): Option.Option<SubjectInput> =>
   pipe(
@@ -63,8 +55,7 @@ export const trackOf = (track: SpotifyTrack): Option.Option<SubjectInput> =>
         Match.when("episode", (): SubjectType => "episode"),
         Match.orElse((): SubjectType => "track"),
       );
-      return {
-        provider: "spotify" as const,
+      return spotify({
         externalId: id,
         type,
         title: track.name,
@@ -72,12 +63,11 @@ export const trackOf = (track: SpotifyTrack): Option.Option<SubjectInput> =>
         ...durationFromMs(Option.fromNullishOr(track.duration_ms)),
         ...releasedAtOf(track),
         credits: creditsOf(track),
-        tags: [],
-      };
+      });
     }),
   );
 
 export const followedArtistOf = (artist: SpotifyArtist): Option.Option<SubjectInput> => {
-  const relate = withRelations({ credits: [], tags: genresOf(artist) });
+  const relate = withRelations({ credits: [], tags: orEmpty(artist.genres) });
   return pipe(Option.fromNullishOr(artist.id), Option.map(creatorOf(artist)), Option.map(relate));
 };

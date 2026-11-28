@@ -7,6 +7,7 @@ import {
   fetchedObservationsOf,
   followedCreatorsAt,
 } from "#/features/ingest-history/api/providers/observe";
+import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import { WEB } from "./api";
 
@@ -23,19 +24,19 @@ const creatorOf = personMapper({ provider: "pixiv", idPrefix: "user:", urlBase: 
 
 const workOf =
   ({ kind, url }: Readonly<{ kind: "artwork" | "book"; url: (id: number) => string }>) =>
-  (work: Work): SubjectInput => ({
-    provider: "pixiv",
-    externalId: `${kind}:${work.id}`,
-    type: kind,
-    title: work.title,
-    url: url(work.id),
-    publishedAtMs: Date.parse(work.createDate),
-    credits: [creatorOf(work.user)],
-    tags: pipe(
-      work.tags,
-      Arr.map(({ name }) => name),
-    ),
-  });
+  (work: Work): SubjectInput =>
+    subjectIn("pixiv")({
+      externalId: `${kind}:${work.id}`,
+      type: kind,
+      title: work.title,
+      url: url(work.id),
+      publishedAtMs: Date.parse(work.createDate),
+      credits: [creatorOf(work.user)],
+      tags: pipe(
+        work.tags,
+        Arr.map(({ name }) => name),
+      ),
+    });
 
 const illustOf = workOf({ kind: "artwork", url: (id) => `${WEB}/artworks/${id}` });
 const novelOf = workOf({ kind: "book", url: (id) => `${WEB}/novel/show.php?id=${id}` });

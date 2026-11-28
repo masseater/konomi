@@ -1,11 +1,12 @@
 import { Array as Arr, Match, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { personInputOf } from "#/features/ingest-history/api/providers/creator-input";
+import { personIn } from "#/features/ingest-history/api/providers/creator-input";
 import {
   durationFromMs,
   publishedOf,
 } from "#/features/ingest-history/api/providers/subject-fields";
+import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SubjectType } from "#/shared/config";
 
 import { WEB_ORIGIN } from "./api";
@@ -20,8 +21,7 @@ const artistOf = ({
   name,
   storefront,
 }: Readonly<{ name: string; storefront: string }>): CreatorInput =>
-  personInputOf({
-    provider: "apple-music",
+  personIn("apple-music")({
     externalId: `artist:${name}`,
     title: name,
     url: `${WEB_ORIGIN}/${storefront}/search?term=${encodeURIComponent(name)}`,
@@ -50,8 +50,18 @@ const subjectOf = ({
   attributes,
 }: Song & Readonly<{ attributes: Attributes }>): SubjectInput => {
   const externalId = catalogIdOf(song);
-  return {
-    provider: "apple-music",
+  const published = publishedOf(
+    pipe(
+      Option.fromNullishOr(attributes.releaseDate),
+      Option.filter((text) => text.length === FULL_DATE_LENGTH),
+    ),
+  );
+  const credits = pipe(
+    Option.fromNullishOr(attributes.artistName),
+    Option.map((name) => artistOf({ name, storefront })),
+    Option.toArray,
+  );
+  return subjectIn("apple-music")({
     externalId,
     type: typeOf(song.type),
     title: attributes.name,
@@ -60,23 +70,13 @@ const subjectOf = ({
       Option.getOrElse(() => `${WEB_ORIGIN}/${storefront}/song/${externalId}`),
     ),
     ...durationFromMs(Option.fromNullishOr(attributes.durationInMillis)),
-    ...publishedOf(
-      pipe(
-        Option.fromNullishOr(attributes.releaseDate),
-        Option.filter((text) => text.length === FULL_DATE_LENGTH),
-      ),
-    ),
-    credits: pipe(
-      Option.fromNullishOr(attributes.artistName),
-      Option.map((name) => artistOf({ name, storefront })),
-      Option.toArray,
-    ),
+    ...published,
+    credits,
     tags: pipe(
-      Option.fromNullishOr(attributes.genreNames),
-      Option.map(Arr.filter((genre) => !GENERIC_GENRES.has(genre))),
-      Option.getOrElse((): readonly string[] => []),
+      orEmpty(attributes.genreNames),
+      Arr.filter((genre) => !GENERIC_GENRES.has(genre)),
     ),
-  };
+  });
 };
 
 export const songOf = ({ song, storefront }: Song): Option.Option<SubjectInput> =>

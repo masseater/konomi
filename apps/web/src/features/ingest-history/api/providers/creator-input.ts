@@ -14,7 +14,7 @@ export const creatorInputOf =
     url: string;
   }>): CreatorInput => ({ provider, externalId, type, title, url });
 
-export const personInputOf = creatorInputOf("person");
+const personInputOf = creatorInputOf("person");
 
 export const personIn =
   (provider: CreatorInput["provider"]) =>

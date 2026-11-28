@@ -1,7 +1,9 @@
 import { Array as Arr, Match, Option, String as Str, pipe } from "effect";
 
-import type { Observation, SubjectInput } from "#/entities/signal";
+import type { SubjectInput } from "#/entities/signal";
+import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
 import { cellOf } from "#/features/ingest-history/api/providers/export-cell";
+import { presentObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { splitTitleSubjectOf } from "#/features/ingest-history/api/providers/title-subject";
 
 import { MIN_WATCHED_SEC, NOT_VIEWING, STORE_SEARCH, VIEWING_COLUMN } from "./api";
@@ -25,14 +27,7 @@ const zonedOf = (iso: string): string =>
   );
 
 const isoEpochOf = (text: string): Option.Option<number> =>
-  pipe(
-    text,
-    Str.replace(UTC_SUFFIX, ""),
-    Str.replace(" ", "T"),
-    zonedOf,
-    (iso) => Option.some(Date.parse(iso)),
-    Option.filter(Number.isFinite),
-  );
+  pipe(text, Str.replace(UTC_SUFFIX, ""), Str.replace(" ", "T"), zonedOf, Option.some, parsedEpoch);
 
 const playbackHourEpochOf = (text: string): Option.Option<number> =>
   pipe(
@@ -128,21 +123,15 @@ const titleSubjectOf = (title: string): SubjectInput =>
     searchUrlOf,
   });
 
-const viewingObservationOf = (row: ViewingRow): Option.Option<Observation> =>
+export const viewingObservationsOf = presentObservationsOf("consumed")((row: ViewingRow) =>
   Option.all({
     title: cellOf(row[VIEWING_COLUMN.title]),
     occurredAtMs: startedAtOf(row),
   }).pipe(
     Option.filter(({ occurredAtMs }) => isViewing(row) && watchedLongEnough(row, occurredAtMs)),
     Option.map(({ title, occurredAtMs }) => ({
-      kind: "consumed" as const,
       subject: titleSubjectOf(title),
       occurredAtMs,
     })),
-  );
-
-export const viewingObservationsOf = (rows: readonly ViewingRow[]): readonly Observation[] =>
-  pipe(
-    rows,
-    Arr.flatMap((row) => Option.toArray(viewingObservationOf(row))),
-  );
+  ),
+);

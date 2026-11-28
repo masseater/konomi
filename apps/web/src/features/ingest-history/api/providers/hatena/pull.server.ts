@@ -1,9 +1,10 @@
 import { Effect } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
-import { fetchFeed, itemsOf } from "#/features/ingest-history/api/providers/feed.server";
+import { fetchFeed } from "#/features/ingest-history/api/providers/feed.server";
 import { collectNumbered } from "#/features/ingest-history/api/providers/numbered-pages.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import { orEmpty } from "#/features/ingest-history/api/providers/subject-in";
 
 import { FIELD, HEADERS, PAGE_SIZE, WEB } from "./api";
 import { BookmarkFeed } from "./schemas";
@@ -23,7 +24,7 @@ export const pullHatena = pullOf({
         pages,
         fetchItems: (url) =>
           fetchFeed({ url, headers: HEADERS, schema: BookmarkFeed }).pipe(
-            Effect.map((feed) => itemsOf(feed["rdf:RDF"].item)),
+            Effect.map((feed) => orEmpty(feed["rdf:RDF"].item)),
           ),
       });
       return hatenaObservationsOf(fetchedAt)(bookmarks);

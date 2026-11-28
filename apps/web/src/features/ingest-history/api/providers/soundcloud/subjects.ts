@@ -6,6 +6,7 @@ import {
   durationFromMs,
   publishedOf,
 } from "#/features/ingest-history/api/providers/subject-fields";
+import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import type { SoundcloudPlaylist, SoundcloudTrack, SoundcloudUser } from "./schemas";
 
@@ -49,35 +50,39 @@ const tagsOf = (
     Arr.dedupe,
   );
 
-export const trackOf = (track: SoundcloudTrack): SubjectInput => ({
-  provider: "soundcloud",
-  externalId: String(track.id),
-  type: "track",
-  title: track.title,
-  url: track.permalink_url,
-  ...durationFromMs(
-    Option.orElse(Option.fromNullishOr(track.full_duration), () =>
-      Option.fromNullishOr(track.duration),
-    ),
-  ),
-  ...publishedOf(
-    Option.orElse(Option.fromNullishOr(track.display_date), () =>
-      Option.fromNullishOr(track.created_at),
-    ),
-  ),
-  credits: creditsOf(track.user),
-  tags: tagsOf(track),
-});
+const soundcloud = subjectIn("soundcloud");
 
-export const playlistOf = (playlist: SoundcloudPlaylist): SubjectInput => ({
-  provider: "soundcloud",
-  externalId: String(playlist.id),
-  type: "playlist",
-  title: playlist.title,
-  url: playlist.permalink_url,
-  credits: creditsOf(playlist.user),
-  tags: tagsOf(playlist),
-});
+const durationOf = (track: SoundcloudTrack): Option.Option<number> =>
+  Option.orElse(Option.fromNullishOr(track.full_duration), () =>
+    Option.fromNullishOr(track.duration),
+  );
+
+const releasedOf = (track: SoundcloudTrack): Option.Option<string> =>
+  Option.orElse(Option.fromNullishOr(track.display_date), () =>
+    Option.fromNullishOr(track.created_at),
+  );
+
+export const trackOf = (track: SoundcloudTrack): SubjectInput =>
+  soundcloud({
+    externalId: String(track.id),
+    type: "track",
+    title: track.title,
+    url: track.permalink_url,
+    ...durationFromMs(durationOf(track)),
+    ...publishedOf(releasedOf(track)),
+    credits: creditsOf(track.user),
+    tags: tagsOf(track),
+  });
+
+export const playlistOf = (playlist: SoundcloudPlaylist): SubjectInput =>
+  soundcloud({
+    externalId: String(playlist.id),
+    type: "playlist",
+    title: playlist.title,
+    url: playlist.permalink_url,
+    credits: creditsOf(playlist.user),
+    tags: tagsOf(playlist),
+  });
 
 export const followedUserOf = (user: SoundcloudUser): SubjectInput =>
   withoutRelations(userOf(user));

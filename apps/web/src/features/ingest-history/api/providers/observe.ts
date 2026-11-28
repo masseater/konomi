@@ -93,14 +93,14 @@ export const listEntriesOf =
       (value) => value >= likedFrom,
     );
     return [
-      { kind: "collected", subject, occurredAtMs, ...contextOf(context) },
+      observed({ kind: "collected", context })([subject, occurredAtMs]),
       ...pipe(
         [
           { kind: "endorsed", applies: liked },
           { kind: "consumed", applies: status === completedStatus },
         ] as const,
         Arr.filter(({ applies }) => applies),
-        Arr.map(({ kind }): Observation => ({ kind, subject, occurredAtMs })),
+        Arr.map(({ kind }) => observed({ kind, context: Option.none() })([subject, occurredAtMs])),
       ),
     ];
   };
@@ -160,16 +160,13 @@ export const observationsOf =
     occurredAtOf: (item: Item) => number;
     context?: string | undefined;
   }>) =>
-  (items: readonly Item[]): readonly Observation[] =>
-    pipe(
+  (items: readonly Item[]): readonly Observation[] => {
+    const observe = observed({ kind, context: Option.fromUndefinedOr(context) });
+    return pipe(
       items,
-      Arr.map((item): Observation => ({
-        kind,
-        subject: subjectOf(item),
-        occurredAtMs: occurredAtOf(item),
-        ...contextOf(Option.fromUndefinedOr(context)),
-      })),
+      Arr.map((item) => observe([subjectOf(item), occurredAtOf(item)])),
     );
+  };
 
 export const presentObservationsOf =
   (kind: SignalKind) =>
@@ -203,12 +200,9 @@ export const stampedObservationsOf =
     return pipe(
       items,
       Arr.filter(keeps),
-      Arr.map((item): Observation => ({
-        kind,
-        subject: subjectOf(item),
-        occurredAtMs: at(dateOf(item)),
-        ...contextOf(contextFor(item)),
-      })),
+      Arr.map((item) =>
+        observed({ kind, context: contextFor(item) })([subjectOf(item), at(dateOf(item))]),
+      ),
     );
   };
 

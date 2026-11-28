@@ -1,13 +1,9 @@
 import { Option, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
-import {
-  personInputOf,
-  withoutRelations,
-} from "#/features/ingest-history/api/providers/creator-input";
+import { personIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
 import { nonEmptyOr, observationsOf } from "#/features/ingest-history/api/providers/observe";
-import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
-import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
+import { orEmpty, textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SignalKind } from "#/shared/config";
 
 import type { MisskeyNote, MisskeyUser } from "./schemas";
@@ -20,8 +16,7 @@ const accountOf =
       Option.map((host) => `${user.username}@${host}`),
       Option.getOrElse(() => user.username),
     );
-    return personInputOf({
-      provider: "misskey",
+    return personIn("misskey")({
       externalId: `${origin}/users/${user.id}`,
       title: nonEmptyOr(acct)(user.name),
       url: `${origin}/@${acct}`,
@@ -37,19 +32,15 @@ const noteOf =
   (origin: string) =>
   (note: MisskeyNote): SubjectInput => {
     const url = `${origin}/notes/${note.id}`;
-    return {
-      provider: "misskey",
+    return textSubjectIn("misskey")({
       externalId: url,
       type: "post",
-      title: postTitleOf({ text: Option.fromNullishOr(note.text), fallback: url }),
+      text: Option.fromNullishOr(note.text),
       url,
-      ...publishedOf(Option.some(note.createdAt)),
+      publishedAt: note.createdAt,
       credits: [accountOf(origin)(note.user)],
-      tags: pipe(
-        Option.fromNullishOr(note.tags),
-        Option.getOrElse((): readonly string[] => []),
-      ),
-    };
+      tags: orEmpty(note.tags),
+    });
   };
 
 export const notedAs = ({
