@@ -4,7 +4,7 @@ import type { Observation, SubjectInput } from "#/entities/signal";
 import { pulledListings } from "#/features/ingest-history/api/providers/listing.server";
 import {
   datedObservationsOf,
-  observationsOf,
+  fetchedObservationsOf,
   presentObservationsOf,
 } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
@@ -68,8 +68,7 @@ export const pullSoundcloud = pullOf({
         listing({
           path: `/users/${me.id}/followings`,
           schema: Followings,
-          observe: (at) =>
-            observationsOf("followed")({ subjectOf: followedUserOf, occurredAtOf: () => at }),
+          observe: fetchedObservationsOf("followed")(followedUserOf),
         }),
       ]);
       return yield* listings({ headers: session.headers, pages, fetchedAt });

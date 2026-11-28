@@ -32,24 +32,18 @@ const sealingKey: Effect.Effect<CryptoKey> = Effect.promise(() =>
   ),
 );
 
+const withKey = <Out>(use: (key: CryptoKey) => Promise<Out>): Effect.Effect<Out> =>
+  sealingKey.pipe(Effect.flatMap((key) => Effect.promise(() => use(key))));
+
 export const sealSecret = (secret: string): Effect.Effect<string> =>
-  sealingKey.pipe(
-    Effect.flatMap((key) =>
-      Effect.promise(() =>
-        new CompactEncrypt(textEncoder.encode(secret)).setProtectedHeader(ALGORITHMS).encrypt(key),
-      ),
-    ),
+  withKey((key) =>
+    new CompactEncrypt(textEncoder.encode(secret)).setProtectedHeader(ALGORITHMS).encrypt(key),
   );
 
 export const openSecret = (sealed: string): Effect.Effect<string> =>
-  sealingKey.pipe(
-    Effect.flatMap((key) =>
-      Effect.promise(() =>
-        compactDecrypt(sealed, key, {
-          keyManagementAlgorithms: [ALGORITHMS.alg],
-          contentEncryptionAlgorithms: [ALGORITHMS.enc],
-        }),
-      ),
-    ),
-    Effect.map(({ plaintext }) => textDecoder.decode(plaintext)),
-  );
+  withKey((key) =>
+    compactDecrypt(sealed, key, {
+      keyManagementAlgorithms: [ALGORITHMS.alg],
+      contentEncryptionAlgorithms: [ALGORITHMS.enc],
+    }),
+  ).pipe(Effect.map(({ plaintext }) => textDecoder.decode(plaintext)));

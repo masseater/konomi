@@ -1,10 +1,10 @@
-import { Array as Arr, Effect, Function as Fn, Option, pipe } from "effect";
+import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Observation } from "#/entities/signal";
+import type { Observation, SubjectInput } from "#/entities/signal";
 import { freshOf } from "#/features/ingest-history/api/providers/fresh";
 import {
-  observationsOf,
   datedObservationsOf,
+  fetchedObservationsOf,
 } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
@@ -41,7 +41,7 @@ export const pullRecent =
             Arr.take(fresh.length),
             Arr.map((song) => songOf({ song, storefront })),
             Arr.getSomes,
-            observationsOf("consumed")({ subjectOf: Fn.identity, occurredAtOf: () => fetchedAt }),
+            fetchedObservationsOf("consumed")((subject: SubjectInput) => subject)(fetchedAt),
           ),
           recent,
         };

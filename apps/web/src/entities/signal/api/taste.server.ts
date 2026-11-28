@@ -8,7 +8,7 @@ import type { Link, SignalBucket, SubjectInfo, Taste } from "#/entities/signal/m
 import { db } from "#/shared/db/index.server";
 
 import { conditionsOf, creditsOf, tagsOf } from "./query.server";
-import type { SignalFilter } from "./query.server";
+import type { KeyMatch, SignalFilter } from "./query.server";
 
 type BucketRow = SignalBucket & SubjectInfo;
 
@@ -40,21 +40,18 @@ const matchingSubjects = (filter: SignalFilter): SQLWrapper =>
 
 type CreditRow = Link & Readonly<{ creator: SubjectInfo }>;
 
-const creditRowsOf = (filter: SignalFilter): Effect.Effect<readonly CreditRow[]> =>
-  creditsOf((column) => inArray(column, matchingSubjects(filter))).pipe(
-    Effect.map(
-      Arr.map(({ subjectKey, key, title, url, type }): CreditRow => ({
-        subjectKey,
-        target: key,
-        creator: { key, title, url, type },
-      })),
-    ),
-  );
+const rowsOf =
+  <Raw, Row>(query: (match: KeyMatch) => Effect.Effect<readonly Raw[]>, toRow: (raw: Raw) => Row) =>
+  (filter: SignalFilter): Effect.Effect<readonly Row[]> =>
+    query((column) => inArray(column, matchingSubjects(filter))).pipe(Effect.map(Arr.map(toRow)));
 
-const tagRowsOf = (filter: SignalFilter): Effect.Effect<readonly Link[]> =>
-  tagsOf((column) => inArray(column, matchingSubjects(filter))).pipe(
-    Effect.map(Arr.map(({ subjectKey, tag }): Link => ({ subjectKey, target: tag }))),
-  );
+const creditRowsOf = rowsOf(creditsOf, ({ subjectKey, key, title, url, type }): CreditRow => ({
+  subjectKey,
+  target: key,
+  creator: { key, title, url, type },
+}));
+
+const tagRowsOf = rowsOf(tagsOf, ({ subjectKey, tag }): Link => ({ subjectKey, target: tag }));
 
 export const tasteProfile = (filter: SignalFilter): Effect.Effect<Taste> =>
   Effect.all(
