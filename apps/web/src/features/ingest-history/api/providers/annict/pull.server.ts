@@ -2,7 +2,7 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 import type { Schema } from "effect";
 
 import { bearerFieldOf } from "#/features/ingest-history/api/providers/credential-field";
-import { postJson } from "#/features/ingest-history/api/providers/http.server";
+import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import {
   listingOf,
   pulledListings,
@@ -75,12 +75,11 @@ const viewerListing =
         first: START,
         schema,
         fetch: ({ url: after, headers, schema: decoder }) =>
-          postJson({
+          fetchJson({
             url: API,
             headers,
-            payload: Query,
-            body: { query, variables: { after: afterOf(after) } },
             schema: decoder,
+            post: { payload: Query, value: { query, variables: { after: afterOf(after) } } },
           }),
       })((response) => graphPageOf(connectionOf(response))),
     })(observe);

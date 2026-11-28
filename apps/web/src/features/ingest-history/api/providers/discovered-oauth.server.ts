@@ -12,7 +12,7 @@ import {
   requireField,
   withFields,
 } from "#/features/ingest-history/api/providers/credential-field";
-import { postJson } from "#/features/ingest-history/api/providers/http.server";
+import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { OAUTH_FIELD, withTokens } from "#/features/ingest-history/api/providers/oauth.server";
 import type {
   Authorizing,
@@ -79,19 +79,21 @@ const clientIdOf = ({
     Option.match({
       onSome: Effect.succeed,
       onNone: () =>
-        postJson({
+        fetchJson({
           url: discovery.registration,
           headers: {},
-          payload: ClientMetadata,
-          body: {
-            client_name: CLIENT_NAME,
-            redirect_uris: [redirectUri],
-            grant_types: ["authorization_code", "refresh_token"],
-            response_types: ["code"],
-            token_endpoint_auth_method: "none",
-            scope,
-          },
           schema: RegisteredClient,
+          post: {
+            payload: ClientMetadata,
+            value: {
+              client_name: CLIENT_NAME,
+              redirect_uris: [redirectUri],
+              grant_types: ["authorization_code", "refresh_token"],
+              response_types: ["code"],
+              token_endpoint_auth_method: "none",
+              scope,
+            },
+          },
         }).pipe(Effect.map(({ client_id: clientId }) => clientId)),
     }),
   );

@@ -2,7 +2,7 @@ import { Effect, Option, pipe } from "effect";
 import type { Schema } from "effect";
 
 import { bearerOf, requireField } from "#/features/ingest-history/api/providers/credential-field";
-import { postJson } from "#/features/ingest-history/api/providers/http.server";
+import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
@@ -26,19 +26,21 @@ const call =
     schema: Schema.Decoder<Item>,
     userId: Option.Option<string>,
   ): Fetched<Item> =>
-    postJson({
+    fetchJson({
       url: `${origin}/api/${path}`,
       headers,
-      payload: Request,
-      body: {
-        limit: LIMIT,
-        ...pipe(
-          userId,
-          Option.map((id) => ({ userId: id })),
-          Option.getOrElse(() => ({})),
-        ),
-      },
       schema,
+      post: {
+        payload: Request,
+        value: {
+          limit: LIMIT,
+          ...pipe(
+            userId,
+            Option.map((id) => ({ userId: id })),
+            Option.getOrElse(() => ({})),
+          ),
+        },
+      },
     });
 
 const listingAt =

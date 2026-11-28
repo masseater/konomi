@@ -14,7 +14,7 @@ import {
   withFields,
   withoutFields,
 } from "./credential-field.ts";
-import { postForm } from "./http.server.ts";
+import { fetchJson } from "./http.server.ts";
 
 export const OAUTH_FIELD = {
   clientId: "clientId",
@@ -111,11 +111,11 @@ const requestTokens = (
 ): Effect.Effect<Credential, ProviderError> =>
   clientAuthOf(authorization, credential).pipe(
     Effect.flatMap((client) =>
-      postForm({
+      fetchJson({
         url: authorization.tokenUrl,
         headers: client.headers,
-        fields: { ...fields, ...client.fields },
         schema: TokenResponse,
+        post: { form: { ...fields, ...client.fields } },
       }),
     ),
     Effect.map((tokens) => withTokens(credential, tokens, [OAUTH_FIELD.state])),

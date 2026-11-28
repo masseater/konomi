@@ -1,7 +1,7 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
-import { postJson } from "#/features/ingest-history/api/providers/http.server";
+import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import {
   listingOf,
   pulledListings,
@@ -33,12 +33,17 @@ const mediaListOf = (user: string, type: (typeof MEDIA_TYPES)[number]): Listing 
       first: String(FIRST),
       schema: MediaListPage,
       fetch: ({ url: page, headers, schema }) =>
-        postJson({
+        fetchJson({
           url: API,
           headers,
-          payload: Query,
-          body: { query: MEDIA_LIST, variables: { user, type, page: Number(page) } },
           schema,
+          post: {
+            payload: Query,
+            value: {
+              query: MEDIA_LIST,
+              variables: { user, type, page: Number(page) },
+            },
+          },
         }),
     })(({ data }) => ({
       items: data.Page.mediaList,
