@@ -11,13 +11,15 @@ const ANNOTATIONS = {
   write: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
 };
 
+export type Access = keyof typeof ANNOTATIONS;
+
 export const registerTool: {
   <Input, Output>(
     tool: Readonly<{
       name: string;
       description: string;
       input: StandardSchemaWithJSON<Input, Output>;
-      access?: "read" | "write";
+      access?: Access;
       run: (args: Output) => Effect.Effect<unknown, ToolError>;
     }>,
   ): (server: McpServer) => McpServer;
@@ -27,7 +29,7 @@ export const registerTool: {
       name: string;
       description: string;
       input: StandardSchemaWithJSON<Input, Output>;
-      access?: "read" | "write";
+      access?: Access;
       run: (args: Output) => Effect.Effect<unknown, ToolError>;
     }>,
   ): McpServer;
@@ -45,7 +47,7 @@ export const registerTool: {
       name: string;
       description: string;
       input: StandardSchemaWithJSON<Input, Output>;
-      access?: "read" | "write";
+      access?: Access;
       run: (args: Output) => Effect.Effect<unknown, ToolError>;
     }>,
   ): McpServer => {
