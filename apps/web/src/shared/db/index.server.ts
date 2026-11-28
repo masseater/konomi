@@ -1,2 +1,16 @@
-export * as authTables from "./generated/auth.table";
 export { db } from "./client.server";
+export {
+  account,
+  authRelations,
+  jwks,
+  oauthAccessToken,
+  oauthClient,
+  oauthClientAssertion,
+  oauthClientResource,
+  oauthConsent,
+  oauthRefreshToken,
+  oauthResource,
+  session,
+  user,
+  verification,
+} from "./generated/auth.table";
