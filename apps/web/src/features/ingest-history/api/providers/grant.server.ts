@@ -84,7 +84,7 @@ export const grantFor =
         }),
       ),
     );
-    const request = Option.match(discovery, {
+    const obtain = Option.match(discovery, {
       onNone: () => formTokens(authorization),
       onSome: sdkTokens,
     });
@@ -93,7 +93,7 @@ export const grantFor =
       onSome: () => [OAUTH_FIELD.state, VERIFIER_FIELD],
     });
     return secret.pipe(
-      Effect.flatMap((value) => request(credential, grant, value)),
+      Effect.flatMap((value) => obtain(credential, grant, value)),
       Effect.map((tokens) => withTokens(credential, tokens, transient)),
       Effect.withSpan(`oauth.${grant.kind}`),
     );
