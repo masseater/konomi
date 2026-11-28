@@ -1,6 +1,5 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Credential } from "#/entities/connection";
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { freshOf } from "#/features/ingest-history/api/providers/fresh";
 import { listingOf } from "#/features/ingest-history/api/providers/listing.server";
@@ -10,26 +9,12 @@ import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, LIBRARY_LIMIT, RECENT_LIMIT } from "./api.ts";
-import { headersOf, songsFrom, storefrontOf } from "./fetching.server.ts";
+import { songsFrom } from "./fetching.server.ts";
 import { catalogIdOf, songOf } from "./subjects.ts";
 
 const FIRST_PAGE = 1;
 
 export type Listening = Fetching & Readonly<{ storefront: string }>;
-
-export const listeningOf = ({
-  credential,
-  storefront,
-  fetchedAt,
-}: Readonly<{
-  credential: Credential;
-  storefront: string | undefined;
-  fetchedAt: number;
-}>): Effect.Effect<Listening, ProviderError> =>
-  Effect.gen(function* listening() {
-    const headers = yield* headersOf(credential);
-    return { headers, storefront: yield* storefrontOf(headers)(storefront), fetchedAt };
-  });
 
 export type Recent = Readonly<{ observations: readonly Observation[]; recent: readonly string[] }>;
 
