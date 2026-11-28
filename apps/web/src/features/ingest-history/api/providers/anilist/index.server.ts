@@ -2,8 +2,8 @@ import { Effect } from "effect";
 
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { pullAniList } from "./pull.server";
+import { FIELD } from "./api.ts";
+import { pullAniList } from "./pull.server.ts";
 
 export const anilist: Provider = {
   id: "anilist",

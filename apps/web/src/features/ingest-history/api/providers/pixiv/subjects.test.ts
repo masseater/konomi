@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { followObservationsOf, illustObservationsOf, novelObservationsOf } from "./subjects";
+import { followObservationsOf, illustObservationsOf, novelObservationsOf } from "./subjects.ts";
 
 const FETCHED_AT = 1_792_972_800_000;
 const CREATED_AT = "2026-10-01T12:00:00+09:00";

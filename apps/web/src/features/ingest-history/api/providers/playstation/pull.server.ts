@@ -7,10 +7,10 @@ import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import { ProviderUnavailable } from "#/features/ingest-history/model/provider-unavailable";
 
-import { LIMIT, ME } from "./api";
-import { playedObservationsOf } from "./subjects";
-import type { PlayedGame } from "./subjects";
-import { accessTokenOf } from "./tokens.server";
+import { LIMIT, ME } from "./api.ts";
+import { playedObservationsOf } from "./subjects.ts";
+import type { PlayedGame } from "./subjects.ts";
+import { accessTokenOf } from "./tokens.server.ts";
 
 const playedPage =
   (accessToken: string) =>

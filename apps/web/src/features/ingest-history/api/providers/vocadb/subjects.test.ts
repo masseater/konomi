@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { ratedObservationsOf } from "./subjects";
+import { ratedObservationsOf } from "./subjects.ts";
 
 const SONG_ID = 1_023_163;
 const ARTIST_ID = 161;

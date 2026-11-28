@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { stockObservationsOf } from "./subjects";
+import { stockObservationsOf } from "./subjects.ts";
 
 const FETCHED_AT = 0;
 

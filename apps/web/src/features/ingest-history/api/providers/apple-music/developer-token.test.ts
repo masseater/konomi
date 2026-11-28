@@ -4,7 +4,7 @@ import { Base64 } from "effect/encoding";
 import { decodeProtectedHeader, exportSPKI, importSPKI, jwtVerify } from "jose";
 import { describe, expect, it } from "vite-plus/test";
 
-import { signDeveloperToken } from "./developer-token.server";
+import { signDeveloperToken } from "./developer-token.server.ts";
 
 const ALGORITHM = "ES256";
 const TEAM_ID = "TEAM123456";

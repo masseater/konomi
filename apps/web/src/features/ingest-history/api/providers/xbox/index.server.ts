@@ -2,8 +2,8 @@ import { Effect } from "effect";
 
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { pullXbox } from "./pull.server";
+import { FIELD } from "./api.ts";
+import { pullXbox } from "./pull.server.ts";
 
 export const xbox: Provider = {
   id: "xbox",

@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { MEDIA_TYPES } from "./api";
+import { MEDIA_TYPES } from "./api.ts";
 
 const OptionalText = Schema.String.pipe(Schema.NullOr, Schema.optional);
 

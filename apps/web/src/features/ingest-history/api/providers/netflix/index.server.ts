@@ -1,6 +1,6 @@
 import { fileImportProvider } from "#/features/ingest-history/api/providers/file-import.server";
 
-import { NETFLIX_IMPORTS } from "./imports.server";
+import { NETFLIX_IMPORTS } from "./imports.server.ts";
 
 export const netflix = fileImportProvider({
   id: "netflix",

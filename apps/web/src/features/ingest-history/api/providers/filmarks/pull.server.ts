@@ -6,10 +6,10 @@ import { collectPages } from "#/features/ingest-history/api/providers/paging.ser
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-import { FIELD, HEADERS, WEB } from "./api";
-import { clipCardsOf, markCardsOf } from "./cards";
-import type { Card } from "./cards";
-import { clipObservationOf, markObservationsOf } from "./subjects";
+import { FIELD, HEADERS, WEB } from "./api.ts";
+import { clipCardsOf, markCardsOf } from "./cards.ts";
+import type { Card } from "./cards.ts";
+import { clipObservationOf, markObservationsOf } from "./subjects.ts";
 
 type Read = (html: string) => Readonly<{ cards: readonly Card[]; next: Option.Option<string> }>;
 

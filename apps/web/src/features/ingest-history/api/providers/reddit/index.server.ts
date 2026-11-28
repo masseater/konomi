@@ -1,8 +1,8 @@
 import { CLIENT_FIELDS, refreshAccess } from "#/features/ingest-history/api/providers/oauth.server";
 import type { Authorization, Provider } from "#/features/ingest-history/model/provider";
 
-import { WEB } from "./api";
-import { pullReddit } from "./pull.server";
+import { WEB } from "./api.ts";
+import { pullReddit } from "./pull.server.ts";
 
 const AUTHORIZATION: Authorization = {
   authorizeUrl: `${WEB}/api/v1/authorize`,

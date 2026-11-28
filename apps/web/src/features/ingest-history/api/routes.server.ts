@@ -13,10 +13,10 @@ import {
   ImportBody,
   importResponse,
   saveAppleUserTokenResponse,
-} from "./handlers.server";
-import { knowsMethod } from "./providers/index.server";
-import { statusOf } from "./status.server";
-import { syncAll } from "./sync.server";
+} from "./handlers.server.ts";
+import { knowsMethod } from "./providers/index.server.ts";
+import { statusOf } from "./status.server.ts";
+import { syncAll } from "./sync.server.ts";
 
 const UNAUTHORIZED = 401;
 const BAD_REQUEST = 400;
@@ -125,4 +125,4 @@ export const connectionRoutes = createRouter("/api/connections")
 
 export type ConnectionRoutes = typeof connectionRoutes;
 
-export type { ImportView, ProviderState } from "./status.server";
+export type { ImportView, ProviderState } from "./status.server.ts";

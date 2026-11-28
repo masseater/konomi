@@ -3,8 +3,8 @@ import { Effect } from "effect";
 import { fileFormat } from "#/features/ingest-history/api/providers/file-import.server";
 import type { ImportFormat } from "#/features/ingest-history/model/provider";
 
-import { Viewing } from "./schemas";
-import { viewingObservationsOf } from "./subjects";
+import { Viewing } from "./schemas.ts";
+import { viewingObservationsOf } from "./subjects.ts";
 
 export const PRIME_VIDEO_IMPORTS: readonly ImportFormat[] = [
   fileFormat({

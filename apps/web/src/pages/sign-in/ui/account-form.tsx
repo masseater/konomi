@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 
 import { Button } from "#/shared/ui/button";
 
-import { AccountFields } from "./account-fields";
+import { AccountFields } from "./account-fields.tsx";
 
 export const AccountForm = ({
   mutationFn,

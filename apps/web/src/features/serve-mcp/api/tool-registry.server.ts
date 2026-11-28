@@ -2,8 +2,8 @@ import type { McpServer, StandardSchemaWithJSON } from "@modelcontextprotocol/se
 import type { Effect } from "effect";
 import { Function as Fn } from "effect";
 
-import type { ToolError } from "./tool-error";
-import { runTool } from "./tool-result.server";
+import type { ToolError } from "./tool-error.ts";
+import { runTool } from "./tool-result.server.ts";
 
 const BINARY = 2;
 const ANNOTATIONS = {

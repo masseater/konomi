@@ -2,8 +2,8 @@ import { Effect } from "effect";
 
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { pullListenbrainz } from "./pull.server";
+import { FIELD } from "./api.ts";
+import { pullListenbrainz } from "./pull.server.ts";
 
 export const listenbrainz: Provider = {
   id: "listenbrainz",

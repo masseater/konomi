@@ -1,11 +1,11 @@
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { bluesky } from "./bluesky/index.server";
-import { mastodon } from "./mastodon/index.server";
-import { misskey } from "./misskey/index.server";
-import { reddit } from "./reddit/index.server";
-import { twilog } from "./twilog/index.server";
-import { twitch } from "./twitch/index.server";
+import { bluesky } from "./bluesky/index.server.ts";
+import { mastodon } from "./mastodon/index.server.ts";
+import { misskey } from "./misskey/index.server.ts";
+import { reddit } from "./reddit/index.server.ts";
+import { twilog } from "./twilog/index.server.ts";
+import { twitch } from "./twitch/index.server.ts";
 
 export const SOCIAL_PROVIDERS = {
   bluesky,

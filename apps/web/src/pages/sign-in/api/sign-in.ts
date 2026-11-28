@@ -2,7 +2,7 @@ import { Schema } from "effect";
 
 import { authClient } from "#/shared/auth";
 
-import { submitOf } from "./submit-of";
+import { submitOf } from "./submit-of.ts";
 
 const HOME = "/";
 

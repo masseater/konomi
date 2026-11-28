@@ -4,9 +4,9 @@ import { pagedListing } from "#/features/ingest-history/api/providers/listing.se
 import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { API, LIMIT } from "./api";
-import { Pins } from "./schemas";
-import { pinObservationsOf } from "./subjects";
+import { API, LIMIT } from "./api.ts";
+import { Pins } from "./schemas.ts";
+import { pinObservationsOf } from "./subjects.ts";
 
 const FIRST = `${API}/pins?page_size=${LIMIT}`;
 

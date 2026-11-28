@@ -6,7 +6,7 @@ import { nonEmptyOr, observationsOf } from "#/features/ingest-history/api/provid
 import { orEmpty, textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SignalKind } from "#/shared/config";
 
-import type { MisskeyNote, MisskeyUser } from "./schemas";
+import type { MisskeyNote, MisskeyUser } from "./schemas.ts";
 
 const accountOf =
   (origin: string) =>

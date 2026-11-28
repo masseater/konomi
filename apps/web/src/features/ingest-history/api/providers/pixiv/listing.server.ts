@@ -9,7 +9,7 @@ import { CredentialRejected } from "#/features/ingest-history/model/credential-r
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import { ProviderUnavailable } from "#/features/ingest-history/model/provider-unavailable";
 
-import { FIRST_PAGE } from "./api";
+import { FIRST_PAGE } from "./api.ts";
 
 export type Paged = Readonly<{ nextUrl: string | null }>;
 

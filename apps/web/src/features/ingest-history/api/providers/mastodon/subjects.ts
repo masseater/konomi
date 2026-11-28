@@ -6,7 +6,7 @@ import { nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
 import { plainTextOf } from "#/features/ingest-history/api/providers/post-title";
 import { orEmpty, textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import type { MastodonAccount, MastodonStatus } from "./schemas";
+import type { MastodonAccount, MastodonStatus } from "./schemas.ts";
 
 const accountOf = (account: MastodonAccount): CreatorInput =>
   personIn("mastodon")({

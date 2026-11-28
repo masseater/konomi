@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { stampOf, videoSubjectOf } from "./subjects";
+import { stampOf, videoSubjectOf } from "./subjects.ts";
 
 const FETCHED_AT = 1_700_000_000_000;
 

@@ -5,7 +5,7 @@ import type { Observation, SubjectInput } from "#/entities/signal";
 import { libraryObservationsOf } from "#/features/ingest-history/api/providers/library-observations";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
 
-import { STORE } from "./api";
+import { STORE } from "./api.ts";
 
 export type PlayedGame = Readonly<
   Pick<

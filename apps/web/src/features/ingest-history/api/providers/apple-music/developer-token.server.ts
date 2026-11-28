@@ -5,7 +5,7 @@ import type { Credential } from "#/entities/connection";
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 
-import { FIELD } from "./api";
+import { FIELD } from "./api.ts";
 
 const ALGORITHM = "ES256";
 const TOKEN_TTL_SECONDS = 43_200;

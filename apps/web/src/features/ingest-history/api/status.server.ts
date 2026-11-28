@@ -8,8 +8,8 @@ import type { CredentialMethod, ImportFormat } from "#/features/ingest-history/m
 import { PROVIDER_IDS, SIGNAL_KINDS } from "#/shared/config";
 import type { ProviderId, SignalKind } from "#/shared/config";
 
-import { redirectUriOf } from "./connect.server";
-import { PROVIDERS } from "./providers/index.server";
+import { redirectUriOf } from "./connect.server.ts";
+import { PROVIDERS } from "./providers/index.server.ts";
 
 const ALL_SIGNALS: SignalFilter = {
   keyword: Option.none(),

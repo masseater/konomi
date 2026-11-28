@@ -1,3 +1,3 @@
-export type { Connection, ConnectionView } from "./model/connection";
-export type { Credential } from "./model/credential";
-export type { SyncStatus } from "./model/sync-status";
+export type { Connection, ConnectionView } from "./model/connection.ts";
+export type { Credential } from "./model/credential.ts";
+export type { SyncStatus } from "./model/sync-status.ts";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { entryObservationsOf } from "./subjects";
+import { entryObservationsOf } from "./subjects.ts";
 
 const ANIME_ID = 5114;
 const SEASON_YEAR = 2009;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { favoriteObservationsOf, friendObservationsOf } from "./subjects";
+import { favoriteObservationsOf, friendObservationsOf } from "./subjects.ts";
 
 const FETCHED_AT = 1_792_972_800_000;
 

@@ -4,7 +4,7 @@ import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { personIn } from "#/features/ingest-history/api/providers/creator-input";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import type { LastfmTrack } from "./schemas";
+import type { LastfmTrack } from "./schemas.ts";
 
 const ORIGIN = "https://www.last.fm";
 

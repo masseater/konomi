@@ -9,8 +9,8 @@ import {
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SubjectType } from "#/shared/config";
 
-import { AUTHOR_TAG, WEB } from "./api";
-import type { VrchatFriend, VrchatWork } from "./schemas";
+import { AUTHOR_TAG, WEB } from "./api.ts";
+import type { VrchatFriend, VrchatWork } from "./schemas.ts";
 
 export type WorkKind = "world" | "avatar";
 

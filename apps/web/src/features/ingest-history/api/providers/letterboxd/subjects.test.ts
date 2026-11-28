@@ -1,8 +1,8 @@
 import { Array as Arr, pipe } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import type { LetterboxdEntry } from "./schemas";
-import { letterboxdObservationsOf } from "./subjects";
+import type { LetterboxdEntry } from "./schemas.ts";
+import { letterboxdObservationsOf } from "./subjects.ts";
 
 const FETCHED_AT = 0;
 const WATCHED_AT = 1_792_972_800_000;

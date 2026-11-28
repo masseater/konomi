@@ -1,1 +1,1 @@
-export { runRequest } from "./runtime.server";
+export { runRequest } from "./runtime.server.ts";

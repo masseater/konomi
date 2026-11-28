@@ -1,7 +1,7 @@
 import type { SubjectInput } from "#/entities/signal";
 
-import { WEB } from "./api";
-import type { TwitchFollowed } from "./schemas";
+import { WEB } from "./api.ts";
+import type { TwitchFollowed } from "./schemas.ts";
 
 export const channelOf = (followed: TwitchFollowed): SubjectInput => ({
   provider: "twitch",

@@ -4,9 +4,9 @@ import type { ReactNode } from "react";
 import type { ProviderState } from "#/features/ingest-history/api/routes.server";
 import { STATUS_LABELS } from "#/features/ingest-history/model/labels";
 
-import { CredentialForm } from "./credential-form";
-import { ImportForm } from "./import-form";
-import { KindTotals } from "./kind-totals";
+import { CredentialForm } from "./credential-form.tsx";
+import { ImportForm } from "./import-form.tsx";
+import { KindTotals } from "./kind-totals.tsx";
 
 export const ProviderCard = ({ state }: Readonly<{ state: ProviderState }>): ReactNode => {
   const { connection } = state;

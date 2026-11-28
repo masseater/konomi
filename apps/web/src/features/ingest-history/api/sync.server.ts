@@ -12,7 +12,7 @@ import { recordObservations } from "#/entities/signal/index.server";
 import { methodOf } from "#/features/ingest-history/model/provider";
 import type { Provider, ProviderError, Pulled } from "#/features/ingest-history/model/provider";
 
-import { PROVIDERS } from "./providers/index.server";
+import { PROVIDERS } from "./providers/index.server.ts";
 
 const renews = (provider: Provider, credential: Credential): boolean =>
   pipe(

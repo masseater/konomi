@@ -10,9 +10,9 @@ import type { Observing } from "#/features/ingest-history/api/providers/observe"
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-import { API, LIBRARY_LIMIT, RECENT_LIMIT } from "./api";
-import type { fetchSongs } from "./fetching.server";
-import { catalogIdOf, songOf } from "./subjects";
+import { API, LIBRARY_LIMIT, RECENT_LIMIT } from "./api.ts";
+import type { fetchSongs } from "./fetching.server.ts";
+import { catalogIdOf, songOf } from "./subjects.ts";
 
 const FIRST_PAGE = 1;
 

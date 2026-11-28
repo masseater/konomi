@@ -6,8 +6,8 @@ import { stampedObservationsOf } from "#/features/ingest-history/api/providers/o
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import { WEB } from "./api";
-import type { VocaDbCredit, VocaDbRated } from "./schemas";
+import { WEB } from "./api.ts";
+import type { VocaDbCredit, VocaDbRated } from "./schemas.ts";
 
 const artistOf = personMapper({
   provider: "vocadb",

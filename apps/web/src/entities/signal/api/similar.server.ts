@@ -6,7 +6,7 @@ import { signal, subject } from "#/entities/signal/model/signal.table";
 import type { SubjectType } from "#/shared/config";
 import { db } from "#/shared/db/index.server";
 
-import { EmbeddingFailed, embedTexts, vectorIdOf } from "./embedding.server";
+import { EmbeddingFailed, embedTexts, vectorIdOf } from "./embedding.server.ts";
 
 const SELF = 1;
 const NO_SIGNALS = 0;

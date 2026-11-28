@@ -4,8 +4,8 @@ import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
 import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import { WEB } from "./api";
-import type { RedditThing } from "./schemas";
+import { WEB } from "./api.ts";
+import type { RedditThing } from "./schemas.ts";
 
 const MS_PER_SECOND = 1000;
 

@@ -7,7 +7,7 @@ import { connectionClient, connectionQueries } from "#/features/ingest-history/a
 import type { ProviderState } from "#/features/ingest-history/api/routes.server";
 import { Button } from "#/shared/ui/button";
 
-import { ProviderCard } from "./provider-card";
+import { ProviderCard } from "./provider-card.tsx";
 
 const SYNC_NOW = "今すぐ取り込む";
 const LOADING = "読み込み中";

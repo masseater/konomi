@@ -3,8 +3,8 @@ import { Option, pipe } from "effect";
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { libraryObservationsOf } from "#/features/ingest-history/api/providers/library-observations";
 
-import { STORE } from "./api";
-import type { SteamGame } from "./schemas";
+import { STORE } from "./api.ts";
+import type { SteamGame } from "./schemas.ts";
 
 const MS_PER_SECOND = 1000;
 const NEVER_PLAYED = 0;

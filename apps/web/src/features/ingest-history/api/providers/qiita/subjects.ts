@@ -6,7 +6,7 @@ import { fetchedObservationsOf, nonEmptyOr } from "#/features/ingest-history/api
 import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import type { QiitaItem } from "./schemas";
+import type { QiitaItem } from "./schemas.ts";
 
 const WEB = "https://qiita.com";
 

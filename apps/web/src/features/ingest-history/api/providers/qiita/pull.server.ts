@@ -9,9 +9,9 @@ import { numberedListing } from "#/features/ingest-history/api/providers/listing
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { API, FIELD, LIMIT } from "./api";
-import { Items } from "./schemas";
-import { stockObservationsOf } from "./subjects";
+import { API, FIELD, LIMIT } from "./api.ts";
+import { Items } from "./schemas.ts";
+import { stockObservationsOf } from "./subjects.ts";
 
 const stocksOf = (user: string): Listing =>
   numberedListing({

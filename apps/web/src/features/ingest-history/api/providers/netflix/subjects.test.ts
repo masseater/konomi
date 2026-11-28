@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import type { ActivityRow } from "./schemas";
-import { activityObservationsOf } from "./subjects";
+import type { ActivityRow } from "./schemas.ts";
+import { activityObservationsOf } from "./subjects.ts";
 
 const STARTED_AT = Date.parse("2026-10-23T12:34:56Z");
 

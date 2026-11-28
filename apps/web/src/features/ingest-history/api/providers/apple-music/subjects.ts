@@ -9,8 +9,8 @@ import {
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SubjectType } from "#/shared/config";
 
-import { WEB_ORIGIN } from "./api";
-import type { AppleSong } from "./schemas";
+import { WEB_ORIGIN } from "./api.ts";
+import type { AppleSong } from "./schemas.ts";
 
 const FULL_DATE_LENGTH = 10;
 const GENERIC_GENRES: ReadonlySet<string> = new Set(["Music", "ミュージック"]);

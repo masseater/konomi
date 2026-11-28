@@ -5,8 +5,8 @@ import { personIn, withRelations } from "#/features/ingest-history/api/providers
 import { nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
 import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import { WEB } from "./api";
-import type { BlueskyPost, BlueskyProfile } from "./schemas";
+import { WEB } from "./api.ts";
+import type { BlueskyPost, BlueskyProfile } from "./schemas.ts";
 
 const PATH_SEPARATOR = "/";
 

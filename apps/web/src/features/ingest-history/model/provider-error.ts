@@ -1,4 +1,4 @@
-import type { CredentialRejected } from "./credential-rejected";
-import type { ProviderUnavailable } from "./provider-unavailable";
+import type { CredentialRejected } from "./credential-rejected.ts";
+import type { ProviderUnavailable } from "./provider-unavailable.ts";
 
 export type ProviderError = CredentialRejected | ProviderUnavailable;

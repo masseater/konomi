@@ -4,9 +4,9 @@ import type { Credential } from "#/entities/connection";
 import { withFields } from "#/features/ingest-history/api/providers/credential-field";
 import type { Provider, ProviderError } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { scrapeClientId } from "./client-id.server";
-import { pullSoundcloud } from "./pull.server";
+import { FIELD } from "./api.ts";
+import { scrapeClientId } from "./client-id.server.ts";
+import { pullSoundcloud } from "./pull.server.ts";
 
 const renewClientId = (credential: Credential): Effect.Effect<Credential, ProviderError> =>
   scrapeClientId.pipe(

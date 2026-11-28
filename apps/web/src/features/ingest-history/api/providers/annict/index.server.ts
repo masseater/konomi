@@ -2,8 +2,8 @@ import { Effect } from "effect";
 
 import type { Provider } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { pullAnnict } from "./pull.server";
+import { FIELD } from "./api.ts";
+import { pullAnnict } from "./pull.server.ts";
 
 export const annict: Provider = {
   id: "annict",

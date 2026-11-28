@@ -5,11 +5,11 @@ import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.s
 import { pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import { pullWithState } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { PLAYLIST_INTERVAL_MS } from "./api";
-import { pullLibrary } from "./library.server";
-import { pullPlaylists } from "./playlists.server";
-import { Cursor } from "./schemas";
-import { pullWatched } from "./watched.server";
+import { PLAYLIST_INTERVAL_MS } from "./api.ts";
+import { pullLibrary } from "./library.server.ts";
+import { pullPlaylists } from "./playlists.server.ts";
+import { Cursor } from "./schemas.ts";
+import { pullWatched } from "./watched.server.ts";
 
 const cursorState = cursorStateOf(Cursor)({ backfilled: false });
 

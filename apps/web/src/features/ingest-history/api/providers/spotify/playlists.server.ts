@@ -5,10 +5,10 @@ import { collectedListsOf, pageOf } from "#/features/ingest-history/api/provider
 import type { Fetched, Fetching } from "#/features/ingest-history/api/providers/observe";
 import { pagesFor, collectJsonPages } from "#/features/ingest-history/api/providers/paging.server";
 
-import { API, LIMIT } from "./api";
-import { Me, PlaylistItems, Playlists } from "./schemas";
-import type { SpotifyPlaylist, SpotifyPlaylistEntry } from "./schemas";
-import { trackOf } from "./subjects";
+import { API, LIMIT } from "./api.ts";
+import { Me, PlaylistItems, Playlists } from "./schemas.ts";
+import type { SpotifyPlaylist, SpotifyPlaylistEntry } from "./schemas.ts";
+import { trackOf } from "./subjects.ts";
 
 const entryTrackOf = (entry: SpotifyPlaylistEntry): ReturnType<typeof trackOf> =>
   pipe(

@@ -6,11 +6,11 @@ import { collectPages } from "#/features/ingest-history/api/providers/paging.ser
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
-import { TIMELINES } from "./api";
-import { postsPage } from "./posts.server";
-import type { Timeline } from "./posts.server";
-import type { TwilogLog } from "./schemas";
-import { logObservationsOf } from "./subjects";
+import { TIMELINES } from "./api.ts";
+import { postsPage } from "./posts.server.ts";
+import type { Timeline } from "./posts.server.ts";
+import type { TwilogLog } from "./schemas.ts";
+import { logObservationsOf } from "./subjects.ts";
 
 const FIRST = 1;
 

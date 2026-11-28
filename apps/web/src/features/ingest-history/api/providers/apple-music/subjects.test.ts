@@ -1,7 +1,7 @@
 import { Option } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { songOf } from "./subjects";
+import { songOf } from "./subjects.ts";
 
 describe("songOf", () => {
   it("uses the catalog id of a library song and drops the generic genre", () => {

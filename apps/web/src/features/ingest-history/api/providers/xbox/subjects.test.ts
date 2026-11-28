@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { friendObservationsOf, playedObservationsOf } from "./subjects";
+import { friendObservationsOf, playedObservationsOf } from "./subjects.ts";
 
 const PLAYED_AT = "2026-10-26T02:34:30.2229199Z";
 const FETCHED_AT = 0;

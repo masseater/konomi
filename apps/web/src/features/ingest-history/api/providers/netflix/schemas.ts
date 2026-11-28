@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { ACTIVITY_COLUMN, HISTORY_COLUMN } from "./api";
+import { ACTIVITY_COLUMN, HISTORY_COLUMN } from "./api.ts";
 
 export const Activity = Schema.Struct({
   [ACTIVITY_COLUMN.profile]: Schema.String,

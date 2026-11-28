@@ -8,7 +8,7 @@ import {
 } from "#/features/ingest-history/api/providers/observe";
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import type { GitHubAccount, GitHubStar } from "./schemas";
+import type { GitHubAccount, GitHubStar } from "./schemas.ts";
 
 const accountOf = (account: GitHubAccount): CreatorInput =>
   personIn("github")({

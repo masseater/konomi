@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { starObservationsOf } from "./subjects";
+import { starObservationsOf } from "./subjects.ts";
 
 const REPO_ID = 1;
 const OWNER_ID = 2;

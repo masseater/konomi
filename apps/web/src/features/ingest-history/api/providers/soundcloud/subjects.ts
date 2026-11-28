@@ -8,7 +8,7 @@ import {
 } from "#/features/ingest-history/api/providers/subject-fields";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import type { SoundcloudPlaylist, SoundcloudTrack, SoundcloudUser } from "./schemas";
+import type { SoundcloudPlaylist, SoundcloudTrack, SoundcloudUser } from "./schemas.ts";
 
 const TAG = /"(?<quoted>[^"]+)"|(?<bare>\S+)/gu;
 

@@ -6,9 +6,9 @@ import { requireField, withFields } from "#/features/ingest-history/api/provider
 import { CredentialRejected } from "#/features/ingest-history/model/credential-rejected";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
 
-import { FIELD } from "./api";
-import { collectRestricted } from "./listing.server";
-import { followObservationsOf, illustObservationsOf, novelObservationsOf } from "./subjects";
+import { FIELD } from "./api.ts";
+import { collectRestricted } from "./listing.server.ts";
+import { followObservationsOf, illustObservationsOf, novelObservationsOf } from "./subjects.ts";
 
 const RESTRICTS = [BookmarkRestrict.PUBLIC, BookmarkRestrict.PRIVATE] as const;
 const FOLLOW_RESTRICTS = [FollowRestrict.PUBLIC, FollowRestrict.PRIVATE] as const;

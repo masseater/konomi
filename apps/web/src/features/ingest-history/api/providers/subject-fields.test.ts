@@ -1,7 +1,7 @@
 import { Option } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { durationFromMs, durationOf, publishedOf } from "./subject-fields";
+import { durationFromMs, durationOf, publishedOf } from "./subject-fields.ts";
 
 const TRACK_MS = 215_400;
 const TRACK_SECONDS = 215;

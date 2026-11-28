@@ -9,7 +9,7 @@ import {
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SubjectType } from "#/shared/config";
 
-import type { SpotifyArtist, SpotifyArtistRef, SpotifyTrack, SpotifyUrls } from "./schemas";
+import type { SpotifyArtist, SpotifyArtistRef, SpotifyTrack, SpotifyUrls } from "./schemas.ts";
 
 const OPEN_URL = "https://open.spotify.com";
 const FULL_DATE_LENGTH = 10;

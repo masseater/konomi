@@ -4,11 +4,11 @@ import { Effect } from "effect";
 
 import { browserClient, createQueries, serverClient } from "#/shared/api";
 
-import type { ConnectionRoutes } from "./routes.server";
+import type { ConnectionRoutes } from "./routes.server.ts";
 
 const loadConnectionHandle = (): Promise<(request: Request) => Promise<Response>> =>
   run(
-    Effect.promise(() => import("./handle.server")).pipe(
+    Effect.promise(() => import("./handle.server.ts")).pipe(
       Effect.map((module) => module.handleConnections),
     ),
   );

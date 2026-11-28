@@ -11,10 +11,10 @@ import type { Listing } from "#/features/ingest-history/api/providers/listing.se
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { SignalKind } from "#/shared/config";
 
-import { LIMIT, SERVICE } from "./api";
-import { Follows, Likes } from "./schemas";
-import { signIn } from "./sign-in.server";
-import { followedOf, postOf } from "./subjects";
+import { LIMIT, SERVICE } from "./api.ts";
+import { Follows, Likes } from "./schemas.ts";
+import { signIn } from "./sign-in.server.ts";
+import { followedOf, postOf } from "./subjects.ts";
 
 const pageUrl = (method: string, did: string): string =>
   `${SERVICE}/${method}?actor=${encodeURIComponent(did)}&limit=${LIMIT}`;

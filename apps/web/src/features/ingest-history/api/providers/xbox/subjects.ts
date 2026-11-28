@@ -3,8 +3,8 @@ import { Array as Arr, Option, pipe } from "effect";
 import type { Observation } from "#/entities/signal";
 import { personIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
 
-import { GAME, WEB } from "./api";
-import type { XboxPerson, XboxTitle } from "./schemas";
+import { GAME, WEB } from "./api.ts";
+import type { XboxPerson, XboxTitle } from "./schemas.ts";
 
 const playedAtOf = (title: XboxTitle): Option.Option<number> =>
   pipe(

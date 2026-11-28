@@ -4,7 +4,7 @@ import type { SubjectInput } from "#/entities/signal";
 import { stampedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { orEmpty, textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import type { RaindropItem } from "./schemas";
+import type { RaindropItem } from "./schemas.ts";
 
 const pageOf = ({ _id: id, ...item }: RaindropItem): SubjectInput =>
   textSubjectIn("raindrop")({

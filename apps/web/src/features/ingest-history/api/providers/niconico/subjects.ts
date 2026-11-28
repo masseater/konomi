@@ -6,7 +6,7 @@ import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import type { VideoEntry } from "./schemas";
+import type { VideoEntry } from "./schemas.ts";
 
 const WATCH_URL = "https://www.nicovideo.jp/watch/";
 const USER_URL = "https://www.nicovideo.jp/user/";

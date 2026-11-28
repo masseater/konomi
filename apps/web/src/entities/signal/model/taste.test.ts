@@ -1,8 +1,8 @@
 import { Array as Arr, Duration, Record as Rec, pipe } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { tasteOf } from "./taste";
-import type { Link, SignalBucket, SubjectInfo, Taste } from "./taste";
+import { tasteOf } from "./taste.ts";
+import type { Link, SignalBucket, SubjectInfo, Taste } from "./taste.ts";
 
 const NOW = 1_800_000_000_000;
 const LIMIT = 10;

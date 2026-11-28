@@ -6,8 +6,8 @@ import { cellOf } from "#/features/ingest-history/api/providers/export-cell";
 import { presentObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import { LIBRARY_COLUMN, MIN_READ_MS, OWNED_ITEM, SESSION_COLUMN, STORE } from "./api";
-import type { LibraryRow, SessionRow } from "./schemas";
+import { LIBRARY_COLUMN, MIN_READ_MS, OWNED_ITEM, SESSION_COLUMN, STORE } from "./api.ts";
+import type { LibraryRow, SessionRow } from "./schemas.ts";
 
 const MS_PER_DAY = 86_400_000;
 

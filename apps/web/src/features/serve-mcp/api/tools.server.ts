@@ -5,12 +5,12 @@ import { listConnectionViews } from "#/entities/connection/index.server";
 import { countByKind, findSignals, tasteProfile } from "#/entities/signal/index.server";
 import type { KindCount, SignalFilter, Taste } from "#/entities/signal/index.server";
 
-import { optionalMillis } from "./instant";
-import { registerTasteTools } from "./taste-tools.server";
-import type { ToolError } from "./tool-error";
-import { EMPTY_SCHEMA, PROFILE_SCHEMA, SEARCH_SCHEMA } from "./tool-input";
-import type { SearchInput } from "./tool-input";
-import { registerTool } from "./tool-registry.server";
+import { optionalMillis } from "./instant.ts";
+import { registerTasteTools } from "./taste-tools.server.ts";
+import type { ToolError } from "./tool-error.ts";
+import { EMPTY_SCHEMA, PROFILE_SCHEMA, SEARCH_SCHEMA } from "./tool-input.ts";
+import type { SearchInput } from "./tool-input.ts";
+import { registerTool } from "./tool-registry.server.ts";
 
 const DEFAULT_LIMIT = 30;
 const PROFILE_METHOD =

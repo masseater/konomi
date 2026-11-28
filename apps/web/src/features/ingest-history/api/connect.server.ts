@@ -11,10 +11,10 @@ import { CredentialRejected } from "#/features/ingest-history/model/credential-r
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import type { ProviderId } from "#/shared/config";
 
-import { exchangeFor, startByDiscovery, startByEndpoints } from "./authorization-flows.server";
-import { PROVIDERS } from "./providers/index.server";
-import { stateMatches } from "./providers/oauth.server";
-import type { Authorizing } from "./providers/oauth.server";
+import { exchangeFor, startByDiscovery, startByEndpoints } from "./authorization-flows.server.ts";
+import { PROVIDERS } from "./providers/index.server.ts";
+import { stateMatches } from "./providers/oauth.server.ts";
+import type { Authorizing } from "./providers/oauth.server.ts";
 
 const HOME = "/";
 

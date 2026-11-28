@@ -9,7 +9,7 @@ import {
 } from "#/features/ingest-history/api/providers/observe";
 import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
-import type { TwilogLog } from "./schemas";
+import type { TwilogLog } from "./schemas.ts";
 
 const X_ORIGIN = "https://x.com";
 

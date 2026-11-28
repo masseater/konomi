@@ -3,7 +3,7 @@ import { Option, String as Str, pipe } from "effect";
 import type { SubjectInput } from "#/entities/signal";
 import { splitTitleSubjectOf } from "#/features/ingest-history/api/providers/title-subject";
 
-import { WEB } from "./api";
+import { WEB } from "./api.ts";
 
 const SEPARATOR = ": ";
 const EPISODE_PARTS = 3;

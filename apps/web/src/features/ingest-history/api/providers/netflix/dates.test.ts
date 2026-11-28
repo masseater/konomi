@@ -1,7 +1,7 @@
 import { Option } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { datesToEpochs } from "./dates";
+import { datesToEpochs } from "./dates.ts";
 
 const utc = (date: string): number => Date.parse(`${date}T00:00:00Z`);
 
