@@ -1,6 +1,10 @@
 import { Effect, Option } from "effect";
 
-import { cursorSource, listingOf } from "#/features/ingest-history/api/providers/listing.server";
+import {
+  cursorPageOf,
+  listingOf,
+  sourceOf,
+} from "#/features/ingest-history/api/providers/listing.server";
 import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
@@ -12,13 +16,13 @@ const FIRST = `${API}/pins?page_size=${LIMIT}`;
 
 const pins = listingOf({
   label: "pins",
-  source: cursorSource({
-    first: FIRST,
-    param: "bookmark",
-    schema: Pins,
-    itemsOf: ({ items }) => items,
-    cursorOf: ({ bookmark }) => Option.fromNullishOr(bookmark),
-  }),
+  source: sourceOf({ first: FIRST, schema: Pins })(
+    cursorPageOf({
+      param: "bookmark",
+      itemsOf: ({ items }) => items,
+      cursorOf: ({ bookmark }) => Option.fromNullishOr(bookmark),
+    }),
+  ),
 })(pinObservationsOf);
 
 export const pullPinterest = pullOf({

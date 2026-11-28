@@ -1,19 +1,23 @@
 import { Option } from "effect";
 
-import { listingOf, pulledListings } from "#/features/ingest-history/api/providers/listing.server";
+import {
+  listingOf,
+  pulledListings,
+  sourceOf,
+} from "#/features/ingest-history/api/providers/listing.server";
 import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 
 import { API, LIMIT } from "./api.ts";
-import { tokenSource } from "./page.ts";
+import { tokenPaging } from "./page.ts";
 import { Subscriptions, Videos } from "./schemas.ts";
 import { likedVideoOf, subscribedChannelOf } from "./subjects.ts";
 
 const pullLiked = listingOf({
   label: "liked",
-  source: tokenSource({
+  source: sourceOf({
     first: `${API}/videos?myRating=like&part=snippet,contentDetails&maxResults=${LIMIT}`,
     schema: Videos,
-  }),
+  })(tokenPaging()),
 })(
   datedObservationsOf({
     kind: "endorsed",
@@ -23,10 +27,10 @@ const pullLiked = listingOf({
 
 const pullSubscriptions = listingOf({
   label: "subscriptions",
-  source: tokenSource({
+  source: sourceOf({
     first: `${API}/subscriptions?mine=true&part=snippet&maxResults=${LIMIT}`,
     schema: Subscriptions,
-  }),
+  })(tokenPaging()),
 })(
   datedObservationsOf({
     kind: "followed",

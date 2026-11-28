@@ -14,67 +14,50 @@ export type Reading = Readonly<{ headers: Headers; pages: number; fetchedAt: num
 
 export type Listing = (reading: Reading) => Observing;
 
-export type Source<Item, Env = never> = Readonly<{
+export type Source<Item> = Readonly<{
   first: string;
-  fetchPage: (cursor: string) => Effect.Effect<Page<Item>, ProviderError, Env>;
+  fetchPage: (cursor: string) => Effect.Effect<Page<Item>, ProviderError>;
 }>;
 
-export type Sourcing<Item, Env = never> = (headers: Headers) => Source<Item, Env>;
+export type Sourcing<Item> = (headers: Headers) => Source<Item>;
+
+export type BodyFetch<Body> = (
+  request: Readonly<{ url: string; headers: Headers; schema: Schema.Decoder<Body> }>,
+) => Effect.Effect<Body, ProviderError>;
 
 export const sourceOf =
-  <Body, Item, Env = never>({
+  <Body>({
     first,
-    fetchBody,
-    pageOf,
+    schema,
+    fetch = fetchJson,
   }: Readonly<{
     first: string;
-    fetchBody: (cursor: string, headers: Headers) => Effect.Effect<Body, ProviderError, Env>;
-    pageOf: (body: Body, cursor: string) => Page<Item>;
-  }>): Sourcing<Item, Env> =>
+    schema: Schema.Decoder<Body>;
+    fetch?: BodyFetch<Body> | undefined;
+  }>) =>
+  <Item>(pageOf: (body: Body, cursor: string) => Page<Item>): Sourcing<Item> =>
   (headers) => ({
     first,
     fetchPage: (cursor) =>
-      fetchBody(cursor, headers).pipe(Effect.map((body) => pageOf(body, cursor))),
+      fetch({ url: cursor, headers, schema }).pipe(Effect.map((body) => pageOf(body, cursor))),
   });
 
-export const jsonSource = <Body, Item>({
-  first,
-  schema,
-  pageOf,
-}: Readonly<{
-  first: string;
-  schema: Schema.Decoder<Body>;
-  pageOf: (body: Body, url: string) => Page<Item>;
-}>): Sourcing<Item> =>
-  sourceOf({
-    first,
-    fetchBody: (url, headers) => fetchJson({ url, headers, schema }),
-    pageOf,
-  });
-
-export const cursorSource = <Body, Item>({
-  first,
-  param,
-  schema,
-  itemsOf,
-  cursorOf,
-}: Readonly<{
-  first: string;
-  param: string;
-  schema: Schema.Decoder<Body>;
-  itemsOf: (body: Body) => readonly Item[];
-  cursorOf: (body: Body) => Option.Option<string>;
-}>): Sourcing<Item> =>
-  jsonSource({
-    first,
-    schema,
-    pageOf: (body) => ({
-      items: itemsOf(body),
-      next: pipe(
-        cursorOf(body),
-        Option.map((cursor) => urlWith(first, { [param]: cursor })),
-      ),
-    }),
+export const cursorPageOf =
+  <Body, Item>({
+    param,
+    itemsOf,
+    cursorOf,
+  }: Readonly<{
+    param: string;
+    itemsOf: (body: Body) => readonly Item[];
+    cursorOf: (body: Body) => Option.Option<string>;
+  }>) =>
+  (body: Body, url: string): Page<Item> => ({
+    items: itemsOf(body),
+    next: pipe(
+      cursorOf(body),
+      Option.map((cursor) => urlWith(url, { [param]: cursor })),
+    ),
   });
 
 export const collectedFrom =

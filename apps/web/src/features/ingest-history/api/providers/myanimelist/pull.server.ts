@@ -2,9 +2,9 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { userClientOf } from "#/features/ingest-history/api/providers/credential-field";
 import {
-  jsonSource,
   listingOf,
   pulledListings,
+  sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
@@ -19,17 +19,16 @@ const FIELDS = "list_status,genres,start_season";
 const listOf = (user: string, list: MalList): Listing =>
   listingOf({
     label: `${list}list`,
-    source: jsonSource({
+    source: sourceOf({
       first: `${API}/users/${user}/${list}list?fields=${FIELDS}&limit=${LIMIT}&nsfw=true&sort=list_updated_at`,
       schema: UserList,
-      pageOf: ({ data, paging }) => ({
-        items: data,
-        next: pipe(
-          Option.fromNullishOr(paging),
-          Option.flatMap(({ next }) => Option.fromNullishOr(next)),
-        ),
-      }),
-    }),
+    })(({ data, paging }) => ({
+      items: data,
+      next: pipe(
+        Option.fromNullishOr(paging),
+        Option.flatMap(({ next }) => Option.fromNullishOr(next)),
+      ),
+    })),
   })((fetchedAt) => Arr.flatMap(entryObservationsOf({ list, fetchedAt })));
 
 export const pullMyAnimeList = pullOf({

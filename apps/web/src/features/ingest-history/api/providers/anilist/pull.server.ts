@@ -31,22 +31,22 @@ const mediaListOf = (user: string, type: (typeof MEDIA_TYPES)[number]): Listing 
     label: type,
     source: sourceOf({
       first: String(FIRST),
-      fetchBody: (page, headers) =>
+      schema: MediaListPage,
+      fetch: ({ url: page, headers, schema }) =>
         postJson({
           url: API,
           headers,
           payload: Query,
           body: { query: MEDIA_LIST, variables: { user, type, page: Number(page) } },
-          schema: MediaListPage,
+          schema,
         }),
-      pageOf: ({ data }) => ({
-        items: data.Page.mediaList,
-        next: pipe(
-          Option.liftPredicate(data.Page.pageInfo, ({ hasNextPage }) => hasNextPage),
-          Option.map(({ currentPage }) => String(currentPage + FIRST)),
-        ),
-      }),
-    }),
+    })(({ data }) => ({
+      items: data.Page.mediaList,
+      next: pipe(
+        Option.liftPredicate(data.Page.pageInfo, ({ hasNextPage }) => hasNextPage),
+        Option.map(({ currentPage }) => String(currentPage + FIRST)),
+      ),
+    })),
   })((fetchedAt) => Arr.flatMap(entryObservationsOf(fetchedAt)));
 
 export const pullAniList = pullOf({

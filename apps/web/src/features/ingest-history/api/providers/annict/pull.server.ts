@@ -73,16 +73,16 @@ const viewerListing =
       label,
       source: sourceOf({
         first: START,
-        fetchBody: (after, headers) =>
+        schema,
+        fetch: ({ url: after, headers, schema: decoder }) =>
           postJson({
             url: API,
             headers,
             payload: Query,
             body: { query, variables: { after: afterOf(after) } },
-            schema,
+            schema: decoder,
           }),
-        pageOf: (response) => graphPageOf(connectionOf(response)),
-      }),
+      })((response) => graphPageOf(connectionOf(response))),
     })(observe);
 
 const records = viewerListing({

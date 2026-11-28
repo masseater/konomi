@@ -58,9 +58,9 @@ const listingAt =
       label: path,
       source: sourceOf({
         first: path,
-        fetchBody: (_cursor, headers) => call(origin, headers)(path, schema, userId),
-        pageOf: (items) => pageOf({ items }),
-      }),
+        schema,
+        fetch: ({ headers, schema: decoder }) => call(origin, headers)(path, decoder, userId),
+      })((items) => pageOf({ items })),
     })(observe);
 
 export const pullMisskey = pullOf({

@@ -1,9 +1,9 @@
 import { Match, Option } from "effect";
 
 import {
-  jsonSource,
   listingOf,
   pulledListings,
+  sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
@@ -40,19 +40,13 @@ export const stampedVideosOf = ({
 const videoListing = ({ path, kind }: Readonly<{ path: string; kind: SignalKind }>): Listing =>
   listingOf({
     label: path,
-    source: jsonSource({
-      first: pageUrl(path, FIRST_PAGE),
-      schema: VideoPage,
-      pageOf: ({ data }, url) => ({
-        items: data.items,
-        next: Match.value(data.hasNext === true).pipe(
-          Match.when(true, () =>
-            Option.some(urlAdvancing(url, { param: "page", step: FIRST_PAGE })),
-          ),
-          Match.orElse(() => Option.none<string>()),
-        ),
-      }),
-    }),
+    source: sourceOf({ first: pageUrl(path, FIRST_PAGE), schema: VideoPage })(({ data }, url) => ({
+      items: data.items,
+      next: Match.value(data.hasNext === true).pipe(
+        Match.when(true, () => Option.some(urlAdvancing(url, { param: "page", step: FIRST_PAGE }))),
+        Match.orElse(() => Option.none<string>()),
+      ),
+    })),
   })(stampedVideosOf({ kind }));
 
 export const pullVideos = pulledListings([

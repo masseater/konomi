@@ -4,7 +4,7 @@ import type { Schema } from "effect";
 import type { Credential } from "#/entities/connection";
 import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { jsonSource, listingOf } from "#/features/ingest-history/api/providers/listing.server";
+import { listingOf, sourceOf } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import type { Observer } from "#/features/ingest-history/api/providers/observe";
 import { urlWith } from "#/features/ingest-history/api/providers/url-with";
@@ -69,13 +69,9 @@ export const collectionListing =
     const first = sign(firstUrlOf(path));
     return listingOf({
       label: path,
-      source: jsonSource({
-        first,
-        schema,
-        pageOf: ({ collection, next_href: next }) => ({
-          items: collection,
-          next: pipe(Option.fromNullishOr(next), Option.map(sign)),
-        }),
-      }),
+      source: sourceOf({ first, schema })(({ collection, next_href: next }) => ({
+        items: collection,
+        next: pipe(Option.fromNullishOr(next), Option.map(sign)),
+      })),
     });
   };

@@ -3,9 +3,10 @@ import { Effect, Option } from "effect";
 import type { ListingKind } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import {
-  cursorSource,
+  cursorPageOf,
   listingOf,
   pulledListings,
+  sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.server";
@@ -17,13 +18,16 @@ import { Listing as ListingBody, Me } from "./schemas.ts";
 import { thingOf } from "./subjects.ts";
 
 const savedListingOf = (user: string, path: string, kind: ListingKind): Listing => {
-  const source = cursorSource({
+  const source = sourceOf({
     first: `${API}/user/${user}/${path}?limit=${LIMIT}&raw_json=1`,
-    param: "after",
     schema: ListingBody,
-    itemsOf: ({ data }) => data.children,
-    cursorOf: ({ data }) => Option.fromNullishOr(data.after),
-  });
+  })(
+    cursorPageOf({
+      param: "after",
+      itemsOf: ({ data }) => data.children,
+      cursorOf: ({ data }) => Option.fromNullishOr(data.after),
+    }),
+  );
   return listingOf({ label: path, source })(
     datedObservationsOf({ kind, subjectOf: (thing) => Option.some(thingOf(thing)) }),
   );

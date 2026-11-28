@@ -6,9 +6,9 @@ import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import {
-  jsonSource,
   listingOf,
   pulledListings,
+  sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
 import { pageOf } from "#/features/ingest-history/api/providers/observe";
 import type { Observer } from "#/features/ingest-history/api/providers/observe";
@@ -27,11 +27,9 @@ const listingAt =
   (observe: Observer<Item>): Listing =>
     listingOf({
       label: path,
-      source: jsonSource({
-        first: `${origin}/api/v1/${path}?limit=${LIMIT}`,
-        schema,
-        pageOf: (items) => pageOf({ items }),
-      }),
+      source: sourceOf({ first: `${origin}/api/v1/${path}?limit=${LIMIT}`, schema })((items) =>
+        pageOf({ items }),
+      ),
     })(observe);
 
 export const pullMastodon = pullOf({
