@@ -1,4 +1,4 @@
-import { Array as Arr, Clock, Effect, Match, Option, pipe } from "effect";
+import { Array as Arr, Effect, Match, Option, pipe } from "effect";
 
 import { cursorStateOf } from "#/features/ingest-history/api/providers/cursor-state";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
@@ -8,7 +8,8 @@ import {
 } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
-import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
+import { pullWithState } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { accountOf, methodUrl, nextOf } from "./methods";
 import type { Account } from "./methods";
@@ -93,25 +94,23 @@ const latestUtsOf = (
     Arr.match({ onEmpty: Option.none, onNonEmpty: (all) => Option.some(Math.max(...all)) }),
   );
 
-export const pullLastfm = ({
-  credential,
-  cursor,
-}: PullInput): Effect.Effect<Pulled, ProviderError> =>
-  Effect.gen(function* lastfm() {
-    const account = yield* accountOf(credential);
-    const fetchedAt = yield* Clock.currentTimeMillis;
-    const previous = cursorState.read(cursor);
-    const pages = pagesFor(previous.backfilled);
-    const fromUts = Option.fromUndefinedOr(previous.latestUts);
-    const scrobbles = yield* pullScrobbles({ account, pages, fromUts });
-    const loved = yield* pullLoved({ account, pages, fetchedAt });
-    const latestUts = latestUtsOf(scrobbles, fromUts);
-    const next = Match.value(latestUts).pipe(
-      Match.when(Option.isSome, ({ value }) => ({ backfilled: true, latestUts: value })),
-      Match.orElse(() => ({ backfilled: true })),
-    );
-    return {
-      observations: [...playsOf(scrobbles), ...loved],
-      cursor: yield* cursorState.write(next),
-    };
-  }).pipe(Effect.withSpan("lastfm.pull"));
+export const pullLastfm = pullWithState({
+  provider: "lastfm",
+  state: cursorState,
+  pull: ({ credential, state, fetchedAt }) =>
+    Effect.gen(function* lastfm() {
+      const account = yield* accountOf(credential);
+      const pages = pagesFor(state.backfilled);
+      const fromUts = Option.fromUndefinedOr(state.latestUts);
+      const scrobbles = yield* pullScrobbles({ account, pages, fromUts });
+      const loved = yield* pullLoved({ account, pages, fetchedAt });
+      const latestUts = latestUtsOf(scrobbles, fromUts);
+      return {
+        observations: [...playsOf(scrobbles), ...loved],
+        state: Match.value(latestUts).pipe(
+          Match.when(Option.isSome, ({ value }) => ({ backfilled: true, latestUts: value })),
+          Match.orElse(() => ({ backfilled: true })),
+        ),
+      };
+    }),
+});
