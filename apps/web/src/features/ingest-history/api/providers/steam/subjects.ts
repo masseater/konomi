@@ -1,6 +1,6 @@
 import { Option, pipe } from "effect";
 
-import type { Observation, SubjectInput } from "#/entities/signal";
+import type { SubjectInput } from "#/entities/signal";
 import { libraryObservationsOf } from "#/features/ingest-history/api/providers/library-observations";
 
 import { STORE } from "./api.ts";
@@ -30,13 +30,8 @@ const lastPlayedOf = (game: SteamGame): Option.Option<number> =>
     Option.map((seconds) => seconds * MS_PER_SECOND),
   );
 
-export const gamesObservedAt = (
-  fetchedAt: number,
-): ((games: readonly SteamGame[]) => readonly Observation[]) =>
-  libraryObservationsOf((game: SteamGame) =>
-    Option.map(gameOf(game), (subject) => ({
-      subject,
-      collectedAtMs: fetchedAt,
-      lastPlayedAtMs: lastPlayedOf(game),
-    })),
-  );
+export const gamesObservedAt = libraryObservationsOf({
+  subjectOf: gameOf,
+  collectedAtOf: (_game: SteamGame, fetchedAt: number): number => fetchedAt,
+  lastPlayedAtOf: lastPlayedOf,
+});

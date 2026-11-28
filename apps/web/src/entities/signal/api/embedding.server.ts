@@ -132,28 +132,24 @@ const markEmbedded = (keyed: readonly (readonly [string, string])[]): Effect.Eff
     { concurrency: 1, discard: true },
   );
 
-const upsertVectors = (
-  ids: readonly string[],
-  vectors: readonly (readonly number[])[],
-): Effect.Effect<void, EmbeddingFailed> =>
-  Effect.tryPromise({
-    try: () =>
-      env.SUBJECT_VECTORS.upsert(
-        pipe(
-          ids,
-          Arr.zipWith(vectors, (id, values) => ({ id, values: [...values] })),
-        ),
-      ),
-    catch: failedBy,
-  });
-
 const storeVectors = (
   pending: readonly Pending[],
   vectors: readonly (readonly number[])[],
 ): Effect.Effect<void, EmbeddingFailed> => {
   const keys = keysOf(pending);
   return Effect.forEach(keys, vectorIdOf, { concurrency: 1 }).pipe(
-    Effect.tap((ids) => upsertVectors(ids, vectors)),
+    Effect.tap((ids) =>
+      Effect.tryPromise({
+        try: () =>
+          env.SUBJECT_VECTORS.upsert(
+            pipe(
+              ids,
+              Arr.zipWith(vectors, (id, values) => ({ id, values: [...values] })),
+            ),
+          ),
+        catch: failedBy,
+      }),
+    ),
     Effect.flatMap((ids) => markEmbedded(pipe(keys, Arr.zip(ids)))),
   );
 };

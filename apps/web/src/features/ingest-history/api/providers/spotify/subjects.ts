@@ -1,7 +1,7 @@
 import { Array as Arr, Match, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { personIn, withRelations } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorIn, withRelations } from "#/features/ingest-history/api/providers/creator-input";
 import { publishedOf, durationOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import type { SubjectType } from "#/shared/config";
@@ -21,7 +21,7 @@ const urlOf = (external: SpotifyUrls, path: string): string =>
 const creatorOf =
   (artist: SpotifyArtistRef) =>
   (id: string): CreatorInput =>
-    personIn("spotify")({
+    creatorIn("spotify")({
       externalId: id,
       title: artist.name,
       url: urlOf(artist.external_urls, `artist/${id}`),

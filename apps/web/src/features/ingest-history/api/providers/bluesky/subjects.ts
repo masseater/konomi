@@ -1,7 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { personIn, withRelations } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorIn, withRelations } from "#/features/ingest-history/api/providers/creator-input";
 import { nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
 import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
@@ -11,7 +11,7 @@ import type { BlueskyPost, BlueskyProfile } from "./schemas.ts";
 const PATH_SEPARATOR = "/";
 
 const personOf = (profile: BlueskyProfile): CreatorInput =>
-  personIn("bluesky")({
+  creatorIn("bluesky")({
     externalId: profile.did,
     title: nonEmptyOr(profile.handle)(profile.displayName),
     url: `${WEB}/profile/${profile.handle}`,

@@ -78,3 +78,21 @@ export const pulledListings =
   (listings: readonly Listing[]) =>
   (reading: Reading): Observing =>
     flatMapEach(listings, (listing) => listing(reading));
+
+export const flatListing =
+  <Item>({
+    label,
+    first,
+    schema,
+    fetch,
+  }: Readonly<{
+    label: string;
+    first: string;
+    schema: Schema.Decoder<readonly Item[]>;
+    fetch?: BodyFetch<readonly Item[]> | undefined;
+  }>) =>
+  (observe: Observer<Item>): Listing =>
+    listingOf({
+      label,
+      source: sourceOf({ first, schema, fetch })((items) => ({ items, next: Option.none() })),
+    })(observe);

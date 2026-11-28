@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { personIn } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
 import { observationsOf } from "#/features/ingest-history/api/providers/observe";
 import { durationOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
@@ -12,26 +12,28 @@ import type { ListenBrainzListen, ListenBrainzLoved, ListenBrainzTrack } from ".
 
 const MS_PER_SECOND = 1000;
 
-const listenbrainz = personIn("listenbrainz");
-
-const mappedArtistOf = ({
-  artist_credit_name: title,
-  artist_mbid: mbid,
-}: Readonly<{ artist_credit_name: string; artist_mbid: string }>): CreatorInput =>
-  listenbrainz({
-    externalId: `artist:${mbid}`,
-    title,
-    url: `${MUSICBRAINZ}/artist/${mbid}`,
-  });
+const listenbrainz = creatorIn("listenbrainz");
 
 const searchUrlFor = (type: string, query: string): string =>
   urlWith(`${MUSICBRAINZ}/search`, { query, type });
 
-const namedArtistOf = (name: string): CreatorInput =>
+const artistOf = ({
+  name,
+  mbid,
+}: Readonly<{ name: string; mbid: Option.Option<string> }>): CreatorInput =>
   listenbrainz({
-    externalId: `artist-name:${name}`,
+    externalId: pipe(
+      mbid,
+      Option.match({ onNone: () => `artist-name:${name}`, onSome: (id) => `artist:${id}` }),
+    ),
     title: name,
-    url: searchUrlFor("artist", name),
+    url: pipe(
+      mbid,
+      Option.match({
+        onNone: () => searchUrlFor("artist", name),
+        onSome: (id) => `${MUSICBRAINZ}/artist/${id}`,
+      }),
+    ),
   });
 
 const artistsOf = (track: ListenBrainzTrack): readonly CreatorInput[] =>
@@ -39,8 +41,12 @@ const artistsOf = (track: ListenBrainzTrack): readonly CreatorInput[] =>
     Option.fromNullishOr(track.mbid_mapping),
     Option.flatMap(({ artists }) => Option.fromUndefinedOr(artists)),
     Option.filter(Arr.isReadonlyArrayNonEmpty),
-    Option.map(Arr.map(mappedArtistOf)),
-    Option.getOrElse(() => [namedArtistOf(track.artist_name)]),
+    Option.map(
+      Arr.map(({ artist_credit_name: name, artist_mbid: mbid }) =>
+        artistOf({ name, mbid: Option.some(mbid) }),
+      ),
+    ),
+    Option.getOrElse(() => [artistOf({ name: track.artist_name, mbid: Option.none() })]),
   );
 
 const recordingMbidOf = (track: ListenBrainzTrack): Option.Option<string> =>

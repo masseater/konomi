@@ -1,32 +1,30 @@
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 
-export const personIn =
+export const creatorIn =
   (provider: CreatorInput["provider"]) =>
-  (person: Readonly<{ externalId: string; title: string; url: string }>): CreatorInput => ({
+  (creator: Readonly<{ externalId: string; title: string; url: string }>): CreatorInput => ({
     provider,
     type: "person",
-    ...person,
+    ...creator,
   });
 
-export const creatorMapper =
-  ({
-    type = "person",
-    provider,
-    idPrefix,
-    urlBase,
-  }: Readonly<{
-    type?: CreatorInput["type"];
-    provider: CreatorInput["provider"];
-    idPrefix: string;
-    urlBase: string;
-  }>) =>
-  ({ id, name }: Readonly<{ id: string | number; name: string }>): CreatorInput => ({
-    provider,
+export const creatorMapper = ({
+  type = "person",
+  provider,
+  idPrefix,
+  urlBase,
+}: Readonly<{
+  type?: CreatorInput["type"];
+  provider: CreatorInput["provider"];
+  idPrefix: string;
+  urlBase: string;
+}>): ((raw: Readonly<{ id: string | number; name: string }>) => CreatorInput) => {
+  const person = creatorIn(provider);
+  return ({ id, name }) => ({
+    ...person({ externalId: `${idPrefix}${id}`, title: name, url: `${urlBase}${id}` }),
     type,
-    externalId: `${idPrefix}${id}`,
-    title: name,
-    url: `${urlBase}${id}`,
   });
+};
 
 export const withRelations =
   (relations: Pick<SubjectInput, "credits" | "tags">) =>

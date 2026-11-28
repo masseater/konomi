@@ -1,10 +1,13 @@
-import { Array as Arr, Match, Option, pipe } from "effect";
+import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { personIn } from "#/features/ingest-history/api/providers/creator-input";
-import { publishedOf, durationOf } from "#/features/ingest-history/api/providers/subject-fields";
+import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
+import {
+  durationOf,
+  publishedOf,
+  subjectTypeOf,
+} from "#/features/ingest-history/api/providers/subject-fields";
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
-import type { SubjectType } from "#/shared/config";
 
 import { WEB_ORIGIN } from "./api.ts";
 import type { AppleSong } from "./schemas.ts";
@@ -18,18 +21,13 @@ const artistOf = ({
   name,
   storefront,
 }: Readonly<{ name: string; storefront: string }>): CreatorInput =>
-  personIn("apple-music")({
+  creatorIn("apple-music")({
     externalId: `artist:${name}`,
     title: name,
     url: `${WEB_ORIGIN}/${storefront}/search?term=${encodeURIComponent(name)}`,
   });
 
-const typeOf = (type: string): SubjectType =>
-  Match.value(type).pipe(
-    Match.when("music-videos", (): SubjectType => "video"),
-    Match.when("library-music-videos", (): SubjectType => "video"),
-    Match.orElse((): SubjectType => "track"),
-  );
+const typeOf = subjectTypeOf({ "music-videos": "video", "library-music-videos": "video" }, "track");
 
 export const catalogIdOf = (song: AppleSong): string =>
   pipe(

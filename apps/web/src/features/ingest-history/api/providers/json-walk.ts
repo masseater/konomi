@@ -16,19 +16,19 @@ const EMPTY = 0;
 
 export type Named = Readonly<{ name: string; value: unknown }>;
 
-const childrenOf = (node: unknown): readonly unknown[] =>
-  Match.value(node).pipe(
-    Match.when(Predicate.isString, (): readonly unknown[] => []),
-    Match.when(Predicate.isIterable, (items) => Arr.fromIterable(items)),
-    Match.when(Predicate.isReadonlyObject, (record) => Rec.values(record)),
-    Match.orElse((): readonly unknown[] => []),
-  );
+type Expansion = Readonly<{ hits: readonly Named[]; children: readonly unknown[] }>;
 
-const hitsOf = (node: unknown, names: readonly string[]): readonly Named[] =>
+const LEAF: Expansion = { hits: [], children: [] };
+
+const expand = (node: unknown, names: readonly string[]): Expansion =>
   Match.value(node).pipe(
-    Match.when(Arr.isArray, (): readonly Named[] => []),
-    Match.when(Predicate.isReadonlyObject, (record) =>
-      pipe(
+    Match.when(Predicate.isString, (): Expansion => LEAF),
+    Match.when(Predicate.isIterable, (items): Expansion => ({
+      hits: [],
+      children: Arr.fromIterable(items),
+    })),
+    Match.when(Predicate.isReadonlyObject, (record): Expansion => ({
+      hits: pipe(
         names,
         Arr.map((name) =>
           pipe(
@@ -38,17 +38,18 @@ const hitsOf = (node: unknown, names: readonly string[]): readonly Named[] =>
         ),
         Arr.getSomes,
       ),
-    ),
-    Match.orElse((): readonly Named[] => []),
+      children: Rec.values(record),
+    })),
+    Match.orElse((): Expansion => LEAF),
   );
 
 const walk = (root: unknown, names: readonly string[]): readonly Named[] => {
   const found: Named[] = [];
   const pending: unknown[] = [root];
   for (let visited = FIRST_VISIT; visited < MAX_NODES && pending.length > EMPTY; visited += STEP) {
-    const node = pending.pop();
-    found.push(...hitsOf(node, names));
-    pending.push(...Arr.reverse(childrenOf(node)));
+    const { hits, children } = expand(pending.pop(), names);
+    found.push(...hits);
+    pending.push(...Arr.reverse(children));
   }
   return found;
 };

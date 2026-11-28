@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, ListingKind, SubjectInput } from "#/entities/signal";
-import { personIn } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
 import {
   datedObservationsOf,
   followedCreatorsAt,
@@ -14,7 +14,7 @@ import { orEmpty, textSubjectIn } from "#/features/ingest-history/api/providers/
 import type { MastodonAccount, MastodonStatus } from "./schemas.ts";
 
 const accountOf = (account: MastodonAccount): CreatorInput =>
-  personIn("mastodon")({
+  creatorIn("mastodon")({
     externalId: account.url,
     title: nonEmptyOr(account.acct)(account.display_name),
     url: account.url,

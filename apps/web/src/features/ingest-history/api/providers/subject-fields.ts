@@ -1,6 +1,7 @@
-import { Function as Fn, Option, pipe } from "effect";
+import { Function as Fn, Option, Record as Rec, pipe } from "effect";
 
 import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
+import type { SubjectType } from "#/shared/config";
 
 const UNITS_PER_SECOND = { seconds: 1, millis: 1000 } as const;
 
@@ -27,3 +28,20 @@ export const publishedOf = (date: Option.Option<string>): Readonly<{ publishedAt
     Option.map((publishedAtMs) => ({ publishedAtMs })),
     Option.getOrElse(() => ({})),
   );
+
+const ARITY = 3;
+
+export const subjectTypeOf: {
+  (
+    types: Readonly<Record<string, SubjectType>>,
+    fallback: SubjectType,
+  ): (key: string) => SubjectType;
+  (key: string, types: Readonly<Record<string, SubjectType>>, fallback: SubjectType): SubjectType;
+} = Fn.dual(
+  ARITY,
+  (key: string, types: Readonly<Record<string, SubjectType>>, fallback: SubjectType): SubjectType =>
+    pipe(
+      Rec.get(types, key),
+      Option.getOrElse(() => fallback),
+    ),
+);
