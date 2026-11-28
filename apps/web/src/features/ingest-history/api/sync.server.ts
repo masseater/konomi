@@ -50,8 +50,14 @@ const pullFor = (connection: Connection): Effect.Effect<Pulled, ProviderError> =
     );
   });
 
-const storePulled = (connection: Connection, pulled: Pulled): Effect.Effect<SyncOutcome> =>
-  Effect.gen(function* store() {
+const failed =
+  (status: "rejected" | "failed") =>
+  ({ message }: Readonly<{ message: string }>): Effect.Effect<SyncOutcome> =>
+    Effect.succeed({ status, failure: message });
+
+const syncConnection = (connection: Connection): Effect.Effect<void> =>
+  Effect.gen(function* sync() {
+    const pulled = yield* pullFor(connection);
     yield* recordObservations(pulled.observations);
     yield* Option.match(Option.fromUndefinedOr(pulled.credential), {
       onNone: () => Effect.void,
@@ -60,21 +66,13 @@ const storePulled = (connection: Connection, pulled: Pulled): Effect.Effect<Sync
     yield* Effect.logInfo("provider synced").pipe(
       Effect.annotateLogs({ observations: pulled.observations.length }),
     );
-    return {
-      status: "synced" as const,
+    const outcome: SyncOutcome = {
+      status: "synced",
       atMs: yield* Clock.currentTimeMillis,
       cursor: pulled.cursor,
     };
-  });
-
-const failed =
-  (status: "rejected" | "failed") =>
-  ({ message }: Readonly<{ message: string }>): Effect.Effect<SyncOutcome> =>
-    Effect.succeed({ status, failure: message });
-
-const syncConnection = (connection: Connection): Effect.Effect<void> =>
-  pullFor(connection).pipe(
-    Effect.flatMap((pulled) => storePulled(connection, pulled)),
+    return outcome;
+  }).pipe(
     Effect.tapError((cause) => Effect.logWarning("provider sync failed", cause)),
     Effect.catchTags({
       CredentialRejected: failed("rejected"),

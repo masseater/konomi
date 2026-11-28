@@ -8,7 +8,7 @@ import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "#/shared/config";
 import { digestHex } from "#/shared/crypto/index.server";
 import { db } from "#/shared/db/index.server";
 
-import { among, creditsOf, tagsOf } from "./query.server.ts";
+import { among, relationsOf } from "./query.server.ts";
 
 const EMBEDS_PER_RUN = 200;
 const EMBEDS_PER_CALL = 50;
@@ -102,10 +102,7 @@ const valuesFor = <Row extends Readonly<{ subjectKey: string }>>(
 
 const describeAll = (pending: readonly Pending[]): Effect.Effect<readonly string[]> => {
   const keys = keysOf(pending);
-  return Effect.all(
-    { credits: creditsOf(among(keys)), tags: tagsOf(among(keys)) },
-    { concurrency: 1 },
-  ).pipe(
+  return relationsOf(among(keys)).pipe(
     Effect.map(({ credits, tags }) =>
       pipe(
         pending,

@@ -1,13 +1,4 @@
-import {
-  Array as Arr,
-  Effect,
-  Function as Fn,
-  Match,
-  Option,
-  Predicate,
-  String as Str,
-  pipe,
-} from "effect";
+import { Array as Arr, Effect, Function as Fn, Match, Option, Predicate, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
 import { withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
@@ -95,15 +86,6 @@ export const listEntriesOf =
       ),
     ];
   };
-
-export const nonEmptyOr =
-  (fallback: string) =>
-  (value: string | null | undefined): string =>
-    pipe(
-      Option.fromNullishOr(value),
-      Option.filter(Str.isNonEmpty),
-      Option.getOrElse(() => fallback),
-    );
 
 export const pageOf = <Item>({
   items,

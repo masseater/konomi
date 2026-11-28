@@ -6,7 +6,6 @@ import {
   pulledListings,
   sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
-import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 
@@ -27,34 +26,6 @@ const fullPageNext =
 const nextOffset = (url: string): string =>
   String(Number(new URL(url).searchParams.get(OFFSET)) + LIMIT);
 
-const lovedListing = (user: string): Listing =>
-  listingOf({
-    label: "loved",
-    source: sourceOf({
-      first: `${API}/feedback/user/${user}/get-feedback?score=${LOVED}&count=${LIMIT}&metadata=true&${OFFSET}=0`,
-      schema: Feedback,
-    })(({ feedback }, url) => ({
-      items: feedback,
-      next: fullPageNext({ url, items: feedback })({ name: OFFSET, value: nextOffset(url) }),
-    })),
-  })(() => lovedObservationsOf);
-
-const listensListing = (user: string): Listing =>
-  listingOf({
-    label: "listens",
-    source: sourceOf({ first: `${API}/user/${user}/listens?count=${LIMIT}`, schema: Listens })(
-      ({ payload: { listens } }, url) => ({
-        items: listens,
-        next: pipe(
-          Arr.last(listens),
-          Option.flatMap(({ listened_at: listenedAt }) =>
-            fullPageNext({ url, items: listens })({ name: "max_ts", value: String(listenedAt) }),
-          ),
-        ),
-      }),
-    ),
-  })(() => listenObservationsOf);
-
 export const pullListenbrainz = pullOf({
   provider: "listenbrainz",
   cursor: "backfilled",
@@ -62,7 +33,39 @@ export const pullListenbrainz = pullOf({
     Effect.gen(function* listenbrainz() {
       const name = yield* requireField(credential, FIELD.user);
       const user = encodeURIComponent(name);
-      const listings = pulledListings([listensListing(user), lovedListing(user)]);
+      const listings = pulledListings([
+        listingOf({
+          label: "listens",
+          source: sourceOf({
+            first: `${API}/user/${user}/listens?count=${LIMIT}`,
+            schema: Listens,
+          })(({ payload: { listens } }, url) => ({
+            items: listens,
+            next: pipe(
+              Arr.last(listens),
+              Option.flatMap(({ listened_at: listenedAt }) =>
+                fullPageNext({ url, items: listens })({
+                  name: "max_ts",
+                  value: String(listenedAt),
+                }),
+              ),
+            ),
+          })),
+        })(() => listenObservationsOf),
+        listingOf({
+          label: "loved",
+          source: sourceOf({
+            first: `${API}/feedback/user/${user}/get-feedback?score=${LOVED}&count=${LIMIT}&metadata=true&${OFFSET}=0`,
+            schema: Feedback,
+          })(({ feedback }, url) => ({
+            items: feedback,
+            next: fullPageNext({ url, items: feedback })({
+              name: OFFSET,
+              value: nextOffset(url),
+            }),
+          })),
+        })(() => lovedObservationsOf),
+      ]);
       return yield* listings({ headers: HEADERS, pages, fetchedAt });
     }),
 });

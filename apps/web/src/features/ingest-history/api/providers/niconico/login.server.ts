@@ -46,34 +46,6 @@ const oneTimeCode = (secret: string): Effect.Effect<string> =>
     ),
   );
 
-const passMfa = ({
-  browser,
-  page,
-  base,
-  login,
-}: Readonly<{ browser: Browser; page: string; base: string; login: Login }>): Effect.Effect<
-  void,
-  ProviderError
-> =>
-  Effect.gen(function* mfa() {
-    const secret = yield* Effect.fromOption(login.totpSecret).pipe(
-      Effect.mapError(() =>
-        CredentialRejected.make({
-          message: "二段階認証が要る。認証アプリのシークレットも登録する",
-        }),
-      ),
-    );
-    yield* browser.submit({
-      url: yield* mfaActionOf(page, base),
-      fields: {
-        otp: yield* oneTimeCode(secret),
-        loginBtn: "ログイン",
-        is_mfa_trusted_device: "true",
-        device_name: DEVICE_NAME,
-      },
-    });
-  });
-
 const signIn =
   (login: Login) =>
   (browser: Browser): Effect.Effect<string, ProviderError> =>
@@ -85,7 +57,22 @@ const signIn =
       });
       const signedIn = yield* browser.cookie(SESSION_COOKIE);
       if (Option.isNone(signedIn) && Str.includes(MFA_MARKER)(submitted.text)) {
-        yield* passMfa({ browser, page: submitted.text, base: submitted.url, login });
+        const secret = yield* Effect.fromOption(login.totpSecret).pipe(
+          Effect.mapError(() =>
+            CredentialRejected.make({
+              message: "二段階認証が要る。認証アプリのシークレットも登録する",
+            }),
+          ),
+        );
+        yield* browser.submit({
+          url: yield* mfaActionOf(submitted.text, submitted.url),
+          fields: {
+            otp: yield* oneTimeCode(secret),
+            loginBtn: "ログイン",
+            is_mfa_trusted_device: "true",
+            device_name: DEVICE_NAME,
+          },
+        });
       }
       return yield* browser.cookie(SESSION_COOKIE).pipe(
         Effect.flatMap(Effect.fromOption),

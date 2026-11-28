@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { count, inArray } from "drizzle-orm";
-import { Array as Arr, Effect, Option, Record as Rec, pipe } from "effect";
+import { Array as Arr, Effect, Match, Option, Record as Rec, pipe } from "effect";
 
 import { signal, subject } from "#/entities/signal/model/signal.table";
 import type { SubjectType } from "#/shared/config";
@@ -30,31 +30,15 @@ const keysOf = (rows: readonly Readonly<{ key: string }>[]): string[] =>
     Arr.map(({ key }) => key),
   );
 
-type Match = Readonly<{ id: string; score: number }>;
+type Neighbor = Readonly<{ id: string; score: number }>;
 
 const vectorize = (
   run: () => Promise<VectorizeMatches>,
-): Effect.Effect<readonly Match[], EmbeddingFailed> =>
+): Effect.Effect<readonly Neighbor[], EmbeddingFailed> =>
   Effect.tryPromise({
     try: run,
     catch: (cause) => EmbeddingFailed.make({ message: String(cause) }),
   }).pipe(Effect.map(({ matches }) => matches));
-
-const matchesOf = (query: SimilarQuery): Effect.Effect<readonly Match[], EmbeddingFailed> => {
-  if (query.by === "text") {
-    return embedTexts([query.text]).pipe(
-      Effect.map(Arr.flatten),
-      Effect.flatMap((vector) =>
-        vectorize(() => env.SUBJECT_VECTORS.query([...vector], { topK: query.limit })),
-      ),
-    );
-  }
-  return vectorIdOf(query.subjectKey).pipe(
-    Effect.flatMap((id) =>
-      vectorize(() => env.SUBJECT_VECTORS.queryById(id, { topK: query.limit + SELF })),
-    ),
-  );
-};
 
 type SubjectRow = Omit<SimilarSubject, "score" | "signals"> & Readonly<{ vectorId: string | null }>;
 
@@ -106,7 +90,7 @@ const similarOf =
     ),
   });
 
-const joinMatches = (matches: readonly Match[]): Effect.Effect<readonly SimilarSubject[]> =>
+const joinMatches = (matches: readonly Neighbor[]): Effect.Effect<readonly SimilarSubject[]> =>
   subjectsOf(
     pipe(
       matches,
@@ -133,7 +117,22 @@ const joinMatches = (matches: readonly Match[]): Effect.Effect<readonly SimilarS
 export const findSimilar = (
   query: SimilarQuery,
 ): Effect.Effect<readonly SimilarSubject[], EmbeddingFailed> =>
-  matchesOf(query).pipe(
+  Match.value(query).pipe(
+    Match.discriminatorsExhaustive("by")({
+      text: ({ text, limit }) =>
+        embedTexts([text]).pipe(
+          Effect.map(Arr.flatten),
+          Effect.flatMap((vector) =>
+            vectorize(() => env.SUBJECT_VECTORS.query([...vector], { topK: limit })),
+          ),
+        ),
+      subject: ({ subjectKey, limit }) =>
+        vectorIdOf(subjectKey).pipe(
+          Effect.flatMap((id) =>
+            vectorize(() => env.SUBJECT_VECTORS.queryById(id, { topK: limit + SELF })),
+          ),
+        ),
+    }),
     Effect.flatMap(joinMatches),
     Effect.map((found) =>
       pipe(

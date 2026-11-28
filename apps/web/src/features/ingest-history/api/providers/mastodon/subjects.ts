@@ -2,21 +2,21 @@ import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, ListingKind, SubjectInput } from "#/entities/signal";
 import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
+import { textOr } from "#/features/ingest-history/api/providers/non-blank";
 import {
   datedObservationsOf,
   followedCreatorsAt,
-  nonEmptyOr,
 } from "#/features/ingest-history/api/providers/observe";
 import type { Observer } from "#/features/ingest-history/api/providers/observe";
 import { plainTextOf } from "#/features/ingest-history/api/providers/post-title";
-import { orEmpty, textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
+import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import type { MastodonAccount, MastodonStatus } from "./schemas.ts";
 
 const accountOf = (account: MastodonAccount): CreatorInput =>
   creatorIn("mastodon")({
     externalId: account.url,
-    title: nonEmptyOr(account.acct)(account.display_name),
+    title: textOr(account.acct)(account.display_name),
     url: account.url,
   });
 
@@ -27,7 +27,7 @@ const statusOf = (status: MastodonStatus): SubjectInput => {
     Option.fromNullishOr(status.url),
     Option.getOrElse(() => status.uri),
   );
-  return textSubjectIn("mastodon")({
+  return subjectIn("mastodon")({
     externalId: status.uri,
     type: "post",
     text: pipe(Option.fromNullishOr(status.content), Option.map(plainTextOf)),

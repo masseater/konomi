@@ -2,8 +2,8 @@ import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { creatorIn, withRelations } from "#/features/ingest-history/api/providers/creator-input";
-import { nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
-import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
+import { textOr } from "#/features/ingest-history/api/providers/non-blank";
+import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import { WEB } from "./api.ts";
 import type { BlueskyPost, BlueskyProfile } from "./schemas.ts";
@@ -13,7 +13,7 @@ const PATH_SEPARATOR = "/";
 const personOf = (profile: BlueskyProfile): CreatorInput =>
   creatorIn("bluesky")({
     externalId: profile.did,
-    title: nonEmptyOr(profile.handle)(profile.displayName),
+    title: textOr(profile.handle)(profile.displayName),
     url: `${WEB}/profile/${profile.handle}`,
   });
 
@@ -29,7 +29,7 @@ const postUrlOf = (post: BlueskyPost): string =>
   );
 
 export const postOf = (post: BlueskyPost): SubjectInput =>
-  textSubjectIn("bluesky")({
+  subjectIn("bluesky")({
     externalId: post.uri,
     type: "post",
     text: Option.fromNullishOr(post.record.text),
