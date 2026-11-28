@@ -1,5 +1,6 @@
-import { Option, String as Str, pipe } from "effect";
+import { Option } from "effect";
 
+import { nonBlank, textOr } from "#/features/ingest-history/api/providers/non-blank";
 import { splitTitleSubjectOf } from "#/features/ingest-history/api/providers/title-subject";
 
 import { WEB } from "./api.ts";
@@ -16,13 +17,6 @@ export const netflixSubjectOf = splitTitleSubjectOf({
   searchUrlOf,
 });
 
-const NOTHING = "";
+export const textOf = textOr("");
 
-export const textOf = (text: string | undefined): string =>
-  pipe(
-    Option.fromUndefinedOr(text),
-    Option.map(Str.trim),
-    Option.getOrElse(() => NOTHING),
-  );
-
-export const isBlank = (text: string | undefined): boolean => Str.isEmpty(textOf(text));
+export const isBlank = (text: string | undefined): boolean => Option.isNone(nonBlank(text));

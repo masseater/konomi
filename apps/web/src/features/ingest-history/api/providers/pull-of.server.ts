@@ -1,34 +1,12 @@
 import { Clock, Effect, Match, Predicate } from "effect";
 
-import type { Credential } from "#/entities/connection";
-import type { Observation } from "#/entities/signal";
 import { BACKFILLED, pagesWithin } from "#/features/ingest-history/api/providers/backfill-cursor";
-import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { BACKFILL_PAGES } from "#/features/ingest-history/api/providers/paging.server";
+import type {
+  ObservedPull,
+  StatefulPull,
+} from "#/features/ingest-history/api/providers/pull-config";
 import type { ProviderError, PullInput, Pulled } from "#/features/ingest-history/model/provider";
-
-type Pull = Readonly<{ credential: Credential; pages: number; fetchedAt: number }>;
-
-type StateSpec<State> = Readonly<{
-  read: (cursor: string) => State;
-  write: (next: State) => Effect.Effect<string>;
-}>;
-
-type StatefulPull<State> = Readonly<{
-  state: StateSpec<State>;
-  pull: (
-    input: Readonly<{ credential: Credential; state: State; fetchedAt: number }>,
-  ) => Effect.Effect<
-    Readonly<{ observations: readonly Observation[]; state: State }>,
-    ProviderError
-  >;
-}>;
-
-type ObservedPull = Readonly<{
-  cursor: "backfilled" | "kept";
-  backfill?: number | undefined;
-  observe: (pull: Pull) => Observing;
-}>;
 
 const observedState = ({
   cursor: kind,
@@ -64,28 +42,9 @@ const isObserved = <State>(config: StatefulPull<State> | ObservedPull): config i
 export const pullOf = <State = string>({
   provider,
   ...config
-}: Readonly<{ provider: string }> &
-  (
-    | Readonly<{
-        state: Readonly<{
-          read: (cursor: string) => State;
-          write: (next: State) => Effect.Effect<string>;
-        }>;
-        pull: (
-          input: Readonly<{ credential: Credential; state: State; fetchedAt: number }>,
-        ) => Effect.Effect<
-          Readonly<{ observations: readonly Observation[]; state: State }>,
-          ProviderError
-        >;
-      }>
-    | Readonly<{
-        cursor: "backfilled" | "kept";
-        backfill?: number | undefined;
-        observe: (
-          pull: Readonly<{ credential: Credential; pages: number; fetchedAt: number }>,
-        ) => Observing;
-      }>
-  )): ((input: PullInput) => Effect.Effect<Pulled, ProviderError>) => {
+}: Readonly<{ provider: string }> & (StatefulPull<State> | ObservedPull)): ((
+  input: PullInput,
+) => Effect.Effect<Pulled, ProviderError>) => {
   if (isObserved(config)) {
     return pulling(provider, observedState(config));
   }

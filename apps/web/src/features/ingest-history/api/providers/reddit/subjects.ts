@@ -2,7 +2,7 @@ import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { creatorMapper } from "#/features/ingest-history/api/providers/creator-input";
-import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
+import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import { WEB } from "./api.ts";
 import type { RedditThing } from "./schemas.ts";
@@ -25,7 +25,7 @@ export const thingOf = ({ data }: RedditThing): SubjectInput => {
     Arr.getSomes,
     Arr.head,
   );
-  return textSubjectIn("reddit")({
+  return subjectIn("reddit")({
     externalId: data.name,
     type: "post",
     text,

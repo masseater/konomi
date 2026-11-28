@@ -2,12 +2,12 @@ import { Option, Function as Fn } from "effect";
 
 import type { SubjectInput } from "#/entities/signal";
 import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
-import { orEmpty, textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
+import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import type { RaindropItem } from "./schemas.ts";
 
 const pageOf = ({ _id: id, ...item }: RaindropItem): SubjectInput =>
-  textSubjectIn("raindrop")({
+  subjectIn("raindrop")({
     externalId: String(id),
     type: "page",
     text: Option.fromNullishOr(item.title),

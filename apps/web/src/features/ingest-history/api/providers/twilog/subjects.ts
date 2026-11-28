@@ -2,9 +2,10 @@ import { Option } from "effect";
 
 import type { CreatorInput, ListingKind, SubjectInput } from "#/entities/signal";
 import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
-import { datedObservationsOf, nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
+import { textOr } from "#/features/ingest-history/api/providers/non-blank";
+import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Observer } from "#/features/ingest-history/api/providers/observe";
-import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
+import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import type { TwilogLog } from "./schemas.ts";
 
@@ -13,12 +14,12 @@ const X_ORIGIN = "https://x.com";
 const authorOf = (log: TwilogLog): CreatorInput =>
   creatorIn("twilog")({
     externalId: `@${log.authorId}`,
-    title: nonEmptyOr(log.authorId)(log.authorName),
+    title: textOr(log.authorId)(log.authorName),
     url: `${X_ORIGIN}/${log.authorId}`,
   });
 
 const postOf = (log: TwilogLog): SubjectInput =>
-  textSubjectIn("twilog")({
+  subjectIn("twilog")({
     externalId: log.contentUrl,
     type: "post",
     text: Option.fromNullishOr(log.content),

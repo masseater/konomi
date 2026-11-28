@@ -11,28 +11,23 @@ export const subjectIn =
     tags = [],
     ...subject
   }: Readonly<
-    Omit<SubjectInput, "provider" | "credits" | "tags"> &
-      Partial<Pick<SubjectInput, "credits" | "tags">>
-  >): SubjectInput => ({ provider, ...subject, credits, tags });
-
-export const textSubjectIn =
-  (provider: SubjectInput["provider"]) =>
-  ({
-    text,
-    publishedAt,
-    ...subject
-  }: Readonly<
     Omit<SubjectInput, "provider" | "title" | "credits" | "tags"> &
-      Partial<Pick<SubjectInput, "credits" | "tags">> & {
-        text: Option.Option<string>;
-        publishedAt?: string | null | undefined;
-      }
-  >): SubjectInput =>
-    subjectIn(provider)({
-      ...subject,
-      title: postTitleOf({ text, fallback: subject.url }),
-      ...publishedOf(Option.fromNullishOr(publishedAt)),
-    });
+      Partial<Pick<SubjectInput, "credits" | "tags">> &
+      ({ title: string } | { text: Option.Option<string>; publishedAt?: string | null | undefined })
+  >): SubjectInput => {
+    if ("text" in subject) {
+      const { text, publishedAt, ...rest } = subject;
+      return {
+        provider,
+        ...rest,
+        title: postTitleOf({ text, fallback: rest.url }),
+        ...publishedOf(Option.fromNullishOr(publishedAt)),
+        credits,
+        tags,
+      };
+    }
+    return { provider, ...subject, credits, tags };
+  };
 
 export const textTagsOf = (value: number | string | null | undefined): readonly string[] =>
   pipe(Option.fromNullishOr(value), Option.map(String), Option.toArray);

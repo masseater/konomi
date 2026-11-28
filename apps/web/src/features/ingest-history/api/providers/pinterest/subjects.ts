@@ -2,7 +2,7 @@ import { Array as Arr, Option, pipe, Function as Fn } from "effect";
 
 import type { SubjectInput } from "#/entities/signal";
 import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
-import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
+import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import { WEB } from "./api.ts";
 import type { PinterestPin } from "./schemas.ts";
@@ -15,7 +15,7 @@ const pinOf = (pin: PinterestPin): SubjectInput => {
     Arr.getSomes,
     Arr.head,
   );
-  return textSubjectIn("pinterest")({
+  return subjectIn("pinterest")({
     externalId: pin.id,
     type: "artwork",
     text,
