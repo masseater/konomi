@@ -81,18 +81,14 @@ const decay = (horizon: Horizon, ageMs: number): number =>
 const sumOf = <Value>(values: readonly Value[], pick: (value: Value) => number): number =>
   pipe(values, Arr.map(pick), Num.sumAll);
 
-const latestOf = (values: readonly number[]): number => Math.max(EMPTY_SCORE.lastAtMs, ...values);
+const latestOf = <Value>(values: readonly Value[], pick: (value: Value) => number): number =>
+  Math.max(EMPTY_SCORE.lastAtMs, ...pipe(values, Arr.map(pick)));
 
 const sumScores = (scores: readonly Score[]): Score => ({
   recent: sumOf(scores, ({ recent }) => recent),
   lasting: sumOf(scores, ({ lasting }) => lasting),
   signals: sumOf(scores, ({ signals }) => signals),
-  lastAtMs: latestOf(
-    pipe(
-      scores,
-      Arr.map(({ lastAtMs }) => lastAtMs),
-    ),
-  ),
+  lastAtMs: latestOf(scores, ({ lastAtMs }) => lastAtMs),
 });
 
 const decayedOf = (
@@ -126,12 +122,7 @@ const subjectScore = (buckets: readonly SignalBucket[], nowMs: number): Score =>
   recent: weigh(decayedOf(buckets, nowMs, "recent")),
   lasting: weigh(decayedOf(buckets, nowMs, "lasting")),
   signals: sumOf(buckets, ({ signals }) => signals),
-  lastAtMs: latestOf(
-    pipe(
-      buckets,
-      Arr.map(({ atMs }) => atMs),
-    ),
-  ),
+  lastAtMs: latestOf(buckets, ({ atMs }) => atMs),
 });
 
 const rollUp = (

@@ -6,6 +6,7 @@ import {
   withoutRelations,
 } from "#/features/ingest-history/api/providers/creator-input";
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
+import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import type { YoutubePlaylistItem, YoutubeSubscription, YoutubeVideo } from "./schemas.ts";
 
@@ -75,17 +76,17 @@ export const channelOf = ({
 }>): Option.Option<Channel> =>
   Option.all({ id: Option.fromNullishOr(id), title: Option.fromNullishOr(title) });
 
-export const videoSubjectOf = (parts: VideoParts): SubjectInput => ({
-  provider: "youtube",
-  externalId: parts.id,
-  type: "video",
-  title: parts.title,
-  url: `${ORIGIN}/watch?v=${parts.id}`,
-  ...durationOf(parts.durationSec),
-  ...publishedOf(parts.publishedAt),
-  credits: pipe(parts.channel, Option.map(channelCreatorOf), Option.toArray),
-  tags: pipe(parts.tags, Arr.take(MAX_TAGS)),
-});
+export const videoSubjectOf = (parts: VideoParts): SubjectInput =>
+  subjectIn("youtube")({
+    externalId: parts.id,
+    type: "video",
+    title: parts.title,
+    url: `${ORIGIN}/watch?v=${parts.id}`,
+    ...durationOf(parts.durationSec),
+    ...publishedOf(parts.publishedAt),
+    credits: pipe(parts.channel, Option.map(channelCreatorOf), Option.toArray),
+    tags: pipe(parts.tags, Arr.take(MAX_TAGS)),
+  });
 
 export const likedVideoOf = ({ id, snippet, contentDetails }: YoutubeVideo): SubjectInput =>
   videoSubjectOf({
@@ -97,10 +98,7 @@ export const likedVideoOf = ({ id, snippet, contentDetails }: YoutubeVideo): Sub
       Option.flatMap(({ duration }) => isoSecondsOf(duration)),
     ),
     publishedAt: Option.fromNullishOr(snippet.publishedAt),
-    tags: pipe(
-      Option.fromNullishOr(snippet.tags),
-      Option.getOrElse((): readonly string[] => []),
-    ),
+    tags: orEmpty(snippet.tags),
   });
 
 export const playlistVideoOf = ({

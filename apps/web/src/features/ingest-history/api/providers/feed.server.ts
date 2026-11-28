@@ -1,5 +1,5 @@
 import { COMMON_HTML, EntityDecoder } from "@nodable/entities";
-import { Effect, Option, Schema, pipe } from "effect";
+import { Effect, Schema } from "effect";
 import { XMLParser } from "fast-xml-parser";
 
 import { fetchText } from "#/features/ingest-history/api/providers/http.server";
@@ -37,10 +37,4 @@ export const fetchFeed = <Feed>({
         Effect.mapError(() => ProviderUnavailable.make({ message: `${url} changed its feed` })),
       ),
     ),
-  );
-
-export const itemsOf = <Item>(items: readonly Item[] | undefined): readonly Item[] =>
-  pipe(
-    Option.fromUndefinedOr(items),
-    Option.getOrElse((): readonly Item[] => []),
   );

@@ -1,5 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/server";
-import { Array as Arr, Clock, Effect, Option, Schema, pipe } from "effect";
+import { Array as Arr, Clock, Effect, Option, pipe } from "effect";
 
 import { countByKind, existingSubjectKeys, findSimilar } from "#/entities/signal/index.server";
 import type { KindCount, SimilarQuery, SimilarSubject } from "#/entities/signal/index.server";
@@ -8,16 +8,12 @@ import { optionalMillis } from "./instant.ts";
 import { latestTasteNote, saveTasteNote } from "./taste-note.server.ts";
 import type { TasteNote } from "./taste-note.server.ts";
 import { ToolError } from "./tool-error.ts";
-import { EmptyInput, NoteInput, SimilarInput } from "./tool-input.ts";
-import { runTool } from "./tool-result.server.ts";
+import { EMPTY_SCHEMA, NOTE_SCHEMA, SIMILAR_SCHEMA } from "./tool-input.ts";
+import type { NoteInput, SimilarInput } from "./tool-input.ts";
+import { registerTool } from "./tool-registry.server.ts";
 
 const DEFAULT_LIMIT = 20;
 const NEVER = 0;
-const READ_ONLY = { readOnlyHint: true, openWorldHint: false };
-const WRITES = { readOnlyHint: false, destructiveHint: false, idempotentHint: false };
-const SIMILAR_SCHEMA = SimilarInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
-const NOTE_SCHEMA = NoteInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
-const EMPTY_SCHEMA = EmptyInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
 
 const similarQueryOf = ({ query, limit }: typeof SimilarInput.Type): SimilarQuery => ({
   ...query,
@@ -93,36 +89,29 @@ const writeNote = (input: typeof NoteInput.Type): Effect.Effect<TasteNote, ToolE
     ),
   );
 
-export const registerTasteTools = (server: McpServer): McpServer => {
-  server.registerTool(
-    "find_similar",
-    {
+export const registerTasteTools = (server: McpServer): McpServer =>
+  pipe(
+    server,
+    registerTool({
+      name: "find_similar",
       description:
         "文か対象の key から、意味の近い対象を持ち主の記録の中から探す。サービスをまたいだ同じ曲や、題名の違う同じ系統のものが見つかる。signals はその対象への持ち主の反応の数",
-      inputSchema: SIMILAR_SCHEMA,
-      annotations: READ_ONLY,
-    },
-    (input) => runTool(similarOf(input)),
-  );
-  server.registerTool(
-    "read_taste_note",
-    {
+      input: SIMILAR_SCHEMA,
+      run: similarOf,
+    }),
+    registerTool({
+      name: "read_taste_note",
       description:
         "前に書いた好みのメモと、そのメモが読み終えた日時より後に増えた記録の数を返す。好みを語る前に読み、記録が増えていれば taste_profile と search_signals で確かめてから write_taste_note で書き直す",
-      inputSchema: EMPTY_SCHEMA,
-      annotations: READ_ONLY,
-    },
-    () => runTool(noteView),
-  );
-  server.registerTool(
-    "write_taste_note",
-    {
+      input: EMPTY_SCHEMA,
+      run: () => noteView,
+    }),
+    registerTool({
+      name: "write_taste_note",
       description:
         "持ち主の好みを文で書き残す。1 文ごとに根拠の対象の key を付け、記録で確かめられたことだけを書く。人気や世間の評判で補わない。前のメモは履歴として残る",
-      inputSchema: NOTE_SCHEMA,
-      annotations: WRITES,
-    },
-    (input) => runTool(writeNote(input)),
+      input: NOTE_SCHEMA,
+      access: "write",
+      run: writeNote,
+    }),
   );
-  return server;
-};

@@ -1,11 +1,10 @@
-import { Array as Arr, Clock, Effect, Option, pipe } from "effect";
+import { Clock, Effect, Option, pipe } from "effect";
 import type { Schema } from "effect";
 
-import type { Observation } from "#/entities/signal";
 import { bearerOf, requireField } from "#/features/ingest-history/api/providers/credential-field";
 import { postJson } from "#/features/ingest-history/api/providers/http.server";
 import { instanceOriginOf } from "#/features/ingest-history/api/providers/instance-origin";
-import { epochOr } from "#/features/ingest-history/api/providers/observe";
+import { epochOr, presentObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { Fetched, Observing } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
@@ -54,20 +53,15 @@ const followingOf = (reading: Reading): Observing =>
     const api = call(reading);
     const { id } = yield* api("i", Me, Option.none());
     const followed = yield* api("users/following", Following, Option.some(id));
-    return pipe(
-      followed,
-      Arr.flatMap(({ followee, createdAt }) =>
-        pipe(
-          Option.fromNullishOr(followee),
-          Option.map((user): Observation => ({
-            kind: "followed",
-            subject: followedOf(reading.origin)(user),
-            occurredAtMs: reading.at(createdAt),
-          })),
-          Option.toArray,
-        ),
+    return presentObservationsOf("followed")(({ followee, createdAt }: (typeof followed)[number]) =>
+      pipe(
+        Option.fromNullishOr(followee),
+        Option.map((user) => ({
+          subject: followedOf(reading.origin)(user),
+          occurredAtMs: reading.at(createdAt),
+        })),
       ),
-    );
+    )(followed);
   });
 
 export const pullMisskey = pullOf({

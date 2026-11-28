@@ -2,7 +2,7 @@ import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
-import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
+import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import type { HatenaBookmark } from "./schemas.ts";
 
@@ -21,15 +21,14 @@ const contextOf = (description: HatenaBookmark["description"]): Readonly<{ conte
     Option.getOrElse(() => ({})),
   );
 
-const pageOf = (bookmark: HatenaBookmark): SubjectInput => ({
-  provider: "hatena",
-  externalId: bookmark.link,
-  type: "page",
-  title: postTitleOf({ text: Option.fromNullishOr(bookmark.title), fallback: bookmark.link }),
-  url: bookmark.link,
-  credits: [],
-  tags: tagsOf(bookmark["dc:subject"]),
-});
+const pageOf = (bookmark: HatenaBookmark): SubjectInput =>
+  textSubjectIn("hatena")({
+    externalId: bookmark.link,
+    type: "page",
+    text: Option.fromNullishOr(bookmark.title),
+    url: bookmark.link,
+    tags: tagsOf(bookmark["dc:subject"]),
+  });
 
 const observationOf =
   (at: (text: string | undefined) => number) =>

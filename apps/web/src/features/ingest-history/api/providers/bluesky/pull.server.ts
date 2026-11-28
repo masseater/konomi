@@ -1,5 +1,7 @@
 import { Effect, Option, pipe } from "effect";
+import type { Schema } from "effect";
 
+import type { SubjectInput } from "#/entities/signal";
 import { bearerOf } from "#/features/ingest-history/api/providers/credential-field";
 import {
   jsonListing,
@@ -7,6 +9,7 @@ import {
 } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import type { SignalKind } from "#/shared/config";
 
 import { LIMIT, SERVICE } from "./api.ts";
 import { Follows, Likes } from "./schemas.ts";
@@ -24,27 +27,53 @@ const withCursor =
       Option.map((value) => `${first}&cursor=${encodeURIComponent(value)}`),
     );
 
-const likesOf = (did: string): Listing => {
-  const first = pageUrl("app.bsky.feed.getActorLikes", did);
-  return jsonListing({
-    kind: "endorsed",
-    first,
-    schema: Likes,
-    pageOf: ({ feed, cursor }) => ({ items: feed, next: withCursor(first)(cursor) }),
-    subjectOf: ({ post }) => Option.some(postOf(post)),
-  });
-};
+const cursoredListing =
+  <
+    Body extends Schema.Top &
+      Readonly<{
+        DecodingServices: never;
+        Type: Readonly<{ cursor?: string | null | undefined }>;
+      }>,
+    Item,
+  >({
+    method,
+    kind,
+    schema,
+    itemsOf,
+    subjectOf,
+  }: Readonly<{
+    method: string;
+    kind: SignalKind;
+    schema: Body;
+    itemsOf: (body: Body["Type"]) => readonly Item[];
+    subjectOf: (item: Item) => Option.Option<SubjectInput>;
+  }>) =>
+  (did: string): Listing => {
+    const first = pageUrl(method, did);
+    return jsonListing({
+      kind,
+      first,
+      schema,
+      pageOf: (body) => ({ items: itemsOf(body), next: withCursor(first)(body.cursor) }),
+      subjectOf,
+    });
+  };
 
-const followsOf = (did: string): Listing => {
-  const first = pageUrl("app.bsky.graph.getFollows", did);
-  return jsonListing({
-    kind: "followed",
-    first,
-    schema: Follows,
-    pageOf: ({ follows, cursor }) => ({ items: follows, next: withCursor(first)(cursor) }),
-    subjectOf: (followed) => Option.some(followedOf(followed)),
-  });
-};
+const likesOf = cursoredListing({
+  method: "app.bsky.feed.getActorLikes",
+  kind: "endorsed",
+  schema: Likes,
+  itemsOf: ({ feed }) => feed,
+  subjectOf: ({ post }) => Option.some(postOf(post)),
+});
+
+const followsOf = cursoredListing({
+  method: "app.bsky.graph.getFollows",
+  kind: "followed",
+  schema: Follows,
+  itemsOf: ({ follows }) => follows,
+  subjectOf: (followed) => Option.some(followedOf(followed)),
+});
 
 export const pullBluesky = pullOf({
   provider: "bluesky",

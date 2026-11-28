@@ -46,7 +46,7 @@ export const SearchInput = Schema.Struct({
   limit: Limit,
 });
 
-export const ProfileInput = Schema.Struct({
+const ProfileInput = Schema.Struct({
   kinds: Kinds,
   types: Types,
   providers: Providers,
@@ -83,4 +83,22 @@ export const NoteInput = Schema.Struct({
   coversUntil: Instant,
 });
 
-export const EmptyInput = Schema.Struct({});
+const EmptyInput = Schema.Struct({});
+
+export const SEARCH_SCHEMA = SearchInput.pipe(
+  Schema.toStandardSchemaV1,
+  Schema.toStandardJSONSchemaV1,
+);
+export const PROFILE_SCHEMA = ProfileInput.pipe(
+  Schema.toStandardSchemaV1,
+  Schema.toStandardJSONSchemaV1,
+);
+export const SIMILAR_SCHEMA = SimilarInput.pipe(
+  Schema.toStandardSchemaV1,
+  Schema.toStandardJSONSchemaV1,
+);
+export const NOTE_SCHEMA = NoteInput.pipe(Schema.toStandardSchemaV1, Schema.toStandardJSONSchemaV1);
+export const EMPTY_SCHEMA = EmptyInput.pipe(
+  Schema.toStandardSchemaV1,
+  Schema.toStandardJSONSchemaV1,
+);

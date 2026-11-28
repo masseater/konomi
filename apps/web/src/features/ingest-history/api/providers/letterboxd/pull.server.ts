@@ -1,8 +1,9 @@
 import { Effect } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
-import { fetchFeed, itemsOf } from "#/features/ingest-history/api/providers/feed.server";
+import { fetchFeed } from "#/features/ingest-history/api/providers/feed.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import { orEmpty } from "#/features/ingest-history/api/providers/subject-in";
 
 import { FIELD, HEADERS, WEB } from "./api.ts";
 import { DiaryFeed } from "./schemas.ts";
@@ -19,6 +20,6 @@ export const pullLetterboxd = pullOf({
         headers: HEADERS,
         schema: DiaryFeed,
       });
-      return letterboxdObservationsOf(fetchedAt)(itemsOf(feed.rss.channel.item));
+      return letterboxdObservationsOf(fetchedAt)(orEmpty(feed.rss.channel.item));
     }),
 });

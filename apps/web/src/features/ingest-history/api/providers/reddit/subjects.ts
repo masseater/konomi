@@ -2,7 +2,7 @@ import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
-import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
+import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import { WEB } from "./api.ts";
 import type { RedditThing } from "./schemas.ts";
@@ -25,11 +25,10 @@ export const thingOf = ({ data }: RedditThing): SubjectInput => {
     Arr.getSomes,
     Arr.head,
   );
-  return {
-    provider: "reddit",
+  return textSubjectIn("reddit")({
     externalId: data.name,
     type: "post",
-    title: postTitleOf({ text, fallback: url }),
+    text,
     url,
     ...pipe(
       Option.fromNullishOr(data.created_utc),
@@ -47,5 +46,5 @@ export const thingOf = ({ data }: RedditThing): SubjectInput => {
       Option.map((subreddit) => `r/${subreddit}`),
       Option.toArray,
     ),
-  };
+  });
 };

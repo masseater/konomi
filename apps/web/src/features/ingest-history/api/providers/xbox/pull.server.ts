@@ -1,9 +1,9 @@
 import { Effect } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
-import { itemsOf } from "#/features/ingest-history/api/providers/feed.server";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
+import { orEmpty } from "#/features/ingest-history/api/providers/subject-in";
 
 import { API, FIELD, HEADERS } from "./api.ts";
 import { FriendsResponse, TitlesResponse } from "./schemas.ts";
@@ -29,8 +29,8 @@ export const pullXbox = pullOf({
         schema: FriendsResponse,
       }).pipe(Effect.withSpan("xbox.friends"));
       return [
-        ...playedObservationsOf(itemsOf(titles.content.titles)),
-        ...friendObservationsOf(fetchedAt)(itemsOf(friends.content.people)),
+        ...playedObservationsOf(orEmpty(titles.content.titles)),
+        ...friendObservationsOf(fetchedAt)(orEmpty(friends.content.people)),
       ];
     }),
 });

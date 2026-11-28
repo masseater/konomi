@@ -32,5 +32,3 @@ export const Verified = Schema.Struct({ id: Schema.String });
 export type MastodonAccount = typeof Account.Type;
 
 export type MastodonStatus = typeof Status.Type;
-
-export type MastodonTag = typeof Tag.Type;

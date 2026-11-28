@@ -3,8 +3,7 @@ import { Array as Arr, Option, String as Str, pipe } from "effect";
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
 import { personIn, withRelations } from "#/features/ingest-history/api/providers/creator-input";
 import { nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
-import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
-import { publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
+import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import { WEB } from "./api.ts";
 import type { BlueskyPost, BlueskyProfile } from "./schemas.ts";
@@ -29,13 +28,12 @@ const postUrlOf = (post: BlueskyPost): string =>
     Option.getOrElse(() => `${WEB}/profile/${post.author.handle}`),
   );
 
-export const postOf = (post: BlueskyPost): SubjectInput => ({
-  provider: "bluesky",
-  externalId: post.uri,
-  type: "post",
-  title: postTitleOf({ text: Option.fromNullishOr(post.record.text), fallback: postUrlOf(post) }),
-  url: postUrlOf(post),
-  ...publishedOf(Option.fromNullishOr(post.record.createdAt)),
-  credits: [personOf(post.author)],
-  tags: [],
-});
+export const postOf = (post: BlueskyPost): SubjectInput =>
+  textSubjectIn("bluesky")({
+    externalId: post.uri,
+    type: "post",
+    text: Option.fromNullishOr(post.record.text),
+    url: postUrlOf(post),
+    publishedAt: post.record.createdAt,
+    credits: [personOf(post.author)],
+  });

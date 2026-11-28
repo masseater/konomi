@@ -2,7 +2,7 @@ import { Array as Arr, Option, pipe } from "effect";
 
 import type { SubjectInput } from "#/entities/signal";
 import { stampedObservationsOf } from "#/features/ingest-history/api/providers/observe";
-import { postTitleOf } from "#/features/ingest-history/api/providers/post-title";
+import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import { WEB } from "./api.ts";
 import type { PinterestPin } from "./schemas.ts";
@@ -15,19 +15,17 @@ const pinOf = (pin: PinterestPin): SubjectInput => {
     Arr.getSomes,
     Arr.head,
   );
-  return {
-    provider: "pinterest",
+  return textSubjectIn("pinterest")({
     externalId: pin.id,
     type: "artwork",
-    title: postTitleOf({ text, fallback: url }),
+    text,
     url,
-    credits: [],
     tags: pipe(
       Option.fromNullishOr(pin.link),
       Option.flatMap((link) => Option.liftThrowable(() => new URL(link).hostname)()),
       Option.toArray,
     ),
-  };
+  });
 };
 
 export const pinObservationsOf = stampedObservationsOf("collected")<PinterestPin>({
