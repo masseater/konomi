@@ -2,7 +2,7 @@ import { Effect } from "effect";
 
 import type { Credential } from "#/entities/connection";
 import { cursorStateOf, scheduleOf } from "#/features/ingest-history/api/providers/cursor-state";
-import { pullWithState } from "#/features/ingest-history/api/providers/pull-of.server";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { LIBRARY_INTERVAL_MS } from "./api.ts";
@@ -27,7 +27,7 @@ const listeningOf = ({
 
 const cursorState = cursorStateOf(Cursor)({});
 
-export const pullAppleMusic = pullWithState({
+export const pullAppleMusic = pullOf({
   provider: "apple-music",
   state: cursorState,
   pull: ({ credential, state, fetchedAt }) =>

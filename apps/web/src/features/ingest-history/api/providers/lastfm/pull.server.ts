@@ -8,7 +8,7 @@ import {
 } from "#/features/ingest-history/api/providers/observe";
 import type { Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
-import { pullWithState } from "#/features/ingest-history/api/providers/pull-of.server";
+import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { accountOf, methodUrl, nextOf } from "./methods.ts";
@@ -93,7 +93,7 @@ const latestUtsOf = (
     Arr.match({ onEmpty: Option.none, onNonEmpty: (all) => Option.some(Math.max(...all)) }),
   );
 
-export const pullLastfm = pullWithState({
+export const pullLastfm = pullOf({
   provider: "lastfm",
   state: cursorState,
   pull: ({ credential, state, fetchedAt }) =>

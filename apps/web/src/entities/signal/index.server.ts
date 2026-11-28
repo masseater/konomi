@@ -4,5 +4,5 @@ export { recordObservations } from "./api/record.server.ts";
 export { tasteProfile } from "./api/taste.server.ts";
 export type { Taste } from "./model/taste.ts";
 export { embedPendingSubjects } from "./api/embedding.server.ts";
-export type { SimilarQuery, SimilarSubject } from "./api/similar.server.ts";
+export type { SimilarSubject } from "./api/similar.server.ts";
 export { findSimilar } from "./api/similar.server.ts";

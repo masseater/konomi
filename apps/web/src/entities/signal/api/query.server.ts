@@ -2,7 +2,7 @@ import { and, count, desc, eq, gte, inArray, like, lte, or } from "drizzle-orm";
 import type { SQL, SQLWrapper } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import type { WithSubqueryWithSelection } from "drizzle-orm/sqlite-core";
-import { Array as Arr, Effect, Option, String as Str, pipe } from "effect";
+import { Array as Arr, Effect, Function as Fn, Option, String as Str, pipe } from "effect";
 
 import { credit, signal, subject, subjectTag } from "#/entities/signal/model/signal.table";
 import type { ProviderId, SignalKind, SubjectType } from "#/shared/config";
@@ -98,39 +98,43 @@ export const among =
   (column) =>
     inArray(column, [...keys]);
 
-export const creditsOf = (
+export const relationsOf = (
   match: KeyMatch,
 ): Effect.Effect<
-  readonly Readonly<{
-    subjectKey: string;
-    key: string;
-    title: string;
-    url: string;
-    type: SubjectType;
-  }>[]
+  Readonly<{
+    credits: readonly Readonly<{
+      subjectKey: string;
+      key: string;
+      title: string;
+      url: string;
+      type: SubjectType;
+    }>[];
+    tags: readonly Readonly<{ subjectKey: string; tag: string }>[];
+  }>
 > =>
-  Effect.promise(() =>
-    db
-      .select({
-        subjectKey: credit.subjectKey,
-        key: creator.key,
-        title: creator.title,
-        url: creator.url,
-        type: creator.type,
-      })
-      .from(credit)
-      .innerJoin(creator, eq(creator.key, credit.creatorKey))
-      .where(match(credit.subjectKey)),
-  );
-
-export const tagsOf = (
-  match: KeyMatch,
-): Effect.Effect<readonly Readonly<{ subjectKey: string; tag: string }>[]> =>
-  Effect.promise(() =>
-    db
-      .select({ subjectKey: subjectTag.subjectKey, tag: subjectTag.tag })
-      .from(subjectTag)
-      .where(match(subjectTag.subjectKey)),
+  Effect.all(
+    {
+      credits: Effect.promise(() =>
+        db
+          .select({
+            subjectKey: credit.subjectKey,
+            key: creator.key,
+            title: creator.title,
+            url: creator.url,
+            type: creator.type,
+          })
+          .from(credit)
+          .innerJoin(creator, eq(creator.key, credit.creatorKey))
+          .where(match(credit.subjectKey)),
+      ),
+      tags: Effect.promise(() =>
+        db
+          .select({ subjectKey: subjectTag.subjectKey, tag: subjectTag.tag })
+          .from(subjectTag)
+          .where(match(subjectTag.subjectKey)),
+      ),
+    },
+    { concurrency: 1 },
   );
 
 const FILTERED = {
@@ -158,19 +162,46 @@ export const filteredSignals = (
         .where(conditionsOf(filter)),
     );
 
+export type Filtered = WithSubqueryWithSelection<typeof FILTERED, "filtered">;
+
+const BINARY = 2;
+
+export const overFiltered: {
+  <Row>(
+    build: (filtered: Filtered) => PromiseLike<readonly Row[]>,
+  ): (filter: SignalFilter) => Effect.Effect<readonly Row[]>;
+  <Row>(
+    filter: SignalFilter,
+    build: (filtered: Filtered) => PromiseLike<readonly Row[]>,
+  ): Effect.Effect<readonly Row[]>;
+} = Fn.dual(
+  BINARY,
+  <Row>(
+    filter: SignalFilter,
+    build: (filtered: Filtered) => PromiseLike<readonly Row[]>,
+  ): Effect.Effect<readonly Row[]> => Effect.promise(() => build(filteredSignals(filter))),
+);
+
 type SignalRow = Omit<FoundSignal, "credits" | "tags">;
 
-const signalRows = (filter: SignalFilter): Effect.Effect<readonly SignalRow[]> => {
-  const filtered = filteredSignals(filter);
-  return Effect.promise(() =>
+const signalRows = (filter: SignalFilter): Effect.Effect<readonly SignalRow[]> =>
+  overFiltered(filter, (filtered) =>
     db
       .with(filtered)
-      .select()
+      .select({
+        key: filtered.key,
+        kind: filtered.kind,
+        context: filtered.context,
+        occurredAtMs: filtered.occurredAtMs,
+        provider: filtered.provider,
+        type: filtered.type,
+        title: filtered.title,
+        url: filtered.url,
+      })
       .from(filtered)
       .orderBy(desc(filtered.occurredAtMs))
       .limit(filter.limit),
   );
-};
 
 export const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundSignal[]> =>
   signalRows(filter).pipe(
@@ -181,15 +212,11 @@ export const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundS
         Arr.dedupe,
       );
       return Effect.all(
-        {
-          rows: Effect.succeed(rows),
-          credits: creditsOf(among(keys)),
-          tags: tagsOf(among(keys)),
-        },
+        { rows: Effect.succeed(rows), relations: relationsOf(among(keys)) },
         { concurrency: 1 },
       );
     }),
-    Effect.map(({ rows, credits, tags }) =>
+    Effect.map(({ rows, relations: { credits, tags } }) =>
       pipe(
         rows,
         Arr.map((row): FoundSignal => ({
@@ -217,9 +244,8 @@ export const findSignals = (filter: SignalFilter): Effect.Effect<readonly FoundS
     Effect.withSpan("signal.find"),
   );
 
-export const countByKind = (filter: SignalFilter): Effect.Effect<readonly KindCount[]> => {
-  const filtered = filteredSignals(filter);
-  return Effect.promise(() =>
+export const countByKind = (filter: SignalFilter): Effect.Effect<readonly KindCount[]> =>
+  overFiltered(filter, (filtered) =>
     db
       .with(filtered)
       .select({
@@ -231,7 +257,6 @@ export const countByKind = (filter: SignalFilter): Effect.Effect<readonly KindCo
       .from(filtered)
       .groupBy(filtered.provider, filtered.type, filtered.kind),
   ).pipe(Effect.withSpan("signal.count-by-kind"));
-};
 
 export const existingSubjectKeys = (keys: readonly string[]): Effect.Effect<readonly string[]> =>
   Effect.promise(() =>

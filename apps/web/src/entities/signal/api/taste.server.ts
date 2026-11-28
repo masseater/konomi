@@ -6,14 +6,13 @@ import { tasteOf } from "#/entities/signal/model/taste";
 import type { Link, SignalBucket, SubjectInfo, Taste } from "#/entities/signal/model/taste";
 import { db } from "#/shared/db/index.server";
 
-import { creditsOf, filteredSignals, tagsOf } from "./query.server.ts";
-import type { KeyMatch, SignalFilter } from "./query.server.ts";
+import { filteredSignals, overFiltered, relationsOf } from "./query.server.ts";
+import type { SignalFilter } from "./query.server.ts";
 
 type BucketRow = SignalBucket & SubjectInfo;
 
-const bucketsOf = (filter: SignalFilter): Effect.Effect<readonly BucketRow[]> => {
-  const filtered = filteredSignals(filter);
-  return Effect.promise(() =>
+const bucketsOf = (filter: SignalFilter): Effect.Effect<readonly BucketRow[]> =>
+  overFiltered(filter, (filtered) =>
     db
       .with(filtered)
       .select({
@@ -29,7 +28,6 @@ const bucketsOf = (filter: SignalFilter): Effect.Effect<readonly BucketRow[]> =>
       .from(filtered)
       .groupBy(filtered.key, filtered.kind, filtered.occurredAtMs),
   );
-};
 
 const matchingSubjects = (filter: SignalFilter): SQLWrapper => {
   const filtered = filteredSignals(filter);
@@ -38,30 +36,36 @@ const matchingSubjects = (filter: SignalFilter): SQLWrapper => {
 
 type CreditRow = Link & Readonly<{ creator: SubjectInfo }>;
 
-const rowsOf =
-  <Raw, Row>(query: (match: KeyMatch) => Effect.Effect<readonly Raw[]>, toRow: (raw: Raw) => Row) =>
-  (filter: SignalFilter): Effect.Effect<readonly Row[]> =>
-    query((column) => inArray(column, matchingSubjects(filter))).pipe(Effect.map(Arr.map(toRow)));
-
-const creditRowsOf = rowsOf(creditsOf, ({ subjectKey, key, title, url, type }): CreditRow => ({
-  subjectKey,
-  target: key,
-  creator: { key, title, url, type },
-}));
-
-const tagRowsOf = rowsOf(tagsOf, ({ subjectKey, tag }): Link => ({ subjectKey, target: tag }));
+const linksOf = (
+  filter: SignalFilter,
+): Effect.Effect<Readonly<{ credits: readonly CreditRow[]; tags: readonly Link[] }>> =>
+  relationsOf((column) => inArray(column, matchingSubjects(filter))).pipe(
+    Effect.map(({ credits, tags }) => ({
+      credits: pipe(
+        credits,
+        Arr.map(({ subjectKey, key, title, url, type }): CreditRow => ({
+          subjectKey,
+          target: key,
+          creator: { key, title, url, type },
+        })),
+      ),
+      tags: pipe(
+        tags,
+        Arr.map(({ subjectKey, tag }): Link => ({ subjectKey, target: tag })),
+      ),
+    })),
+  );
 
 export const tasteProfile = (filter: SignalFilter): Effect.Effect<Taste> =>
   Effect.all(
     {
       now: DateTime.now,
       buckets: bucketsOf(filter),
-      credits: creditRowsOf(filter),
-      tags: tagRowsOf(filter),
+      links: linksOf(filter),
     },
     { concurrency: 1 },
   ).pipe(
-    Effect.map(({ now, buckets, credits, tags }) =>
+    Effect.map(({ now, buckets, links: { credits, tags } }) =>
       tasteOf({
         nowMs: DateTime.toEpochMillis(now),
         buckets,
