@@ -32,28 +32,25 @@ const Types = Schema.optionalKey(
   }),
 );
 
+const FILTER_FIELDS = {
+  kinds: Kinds,
+  types: Types,
+  providers: Providers,
+  since: Instant,
+  until: Instant,
+  limit: Limit,
+};
+
 export const SearchInput = Schema.Struct({
   keyword: Schema.optionalKey(
     Schema.String.annotate({
       description: "題名・投稿者やアーティストの名前・タグの部分一致。省略すると新しい順",
     }),
   ),
-  kinds: Kinds,
-  types: Types,
-  providers: Providers,
-  since: Instant,
-  until: Instant,
-  limit: Limit,
+  ...FILTER_FIELDS,
 });
 
-const ProfileInput = Schema.Struct({
-  kinds: Kinds,
-  types: Types,
-  providers: Providers,
-  since: Instant,
-  until: Instant,
-  limit: Limit,
-});
+const ProfileInput = Schema.Struct(FILTER_FIELDS);
 
 const SimilarByText = Schema.Struct({
   by: Schema.Literal("text"),
