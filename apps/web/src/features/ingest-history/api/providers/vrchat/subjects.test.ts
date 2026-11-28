@@ -13,38 +13,34 @@ describe("favoriteObservationsOf", () => {
       authorName: "builder",
       tags: ["author_tag_chill", "system_approved"],
     };
-    expect(favoriteObservationsOf({ kind: "world", fetchedAt: FETCHED_AT })([world])).toStrictEqual(
-      [
-        {
-          kind: "collected",
-          occurredAtMs: FETCHED_AT,
-          subject: {
-            provider: "vrchat",
-            externalId: "world:wrld_1",
-            type: "world",
-            title: "Midnight Rooftop",
-            url: "https://vrchat.com/home/world/wrld_1",
-            credits: [
-              {
-                provider: "vrchat",
-                externalId: "user:usr_9",
-                type: "person",
-                title: "builder",
-                url: "https://vrchat.com/home/user/usr_9",
-              },
-            ],
-            tags: ["chill"],
-          },
+    expect(favoriteObservationsOf("world")(FETCHED_AT)([world])).toStrictEqual([
+      {
+        kind: "collected",
+        occurredAtMs: FETCHED_AT,
+        subject: {
+          provider: "vrchat",
+          externalId: "world:wrld_1",
+          type: "world",
+          title: "Midnight Rooftop",
+          url: "https://vrchat.com/home/world/wrld_1",
+          credits: [
+            {
+              provider: "vrchat",
+              externalId: "user:usr_9",
+              type: "person",
+              title: "builder",
+              url: "https://vrchat.com/home/user/usr_9",
+            },
+          ],
+          tags: ["chill"],
         },
-      ],
-    );
+      },
+    ]);
   });
 
   it("records an avatar as an item", () => {
     const avatar = { id: "avtr_1", name: "Fox", authorName: "maker" };
-    expect(
-      favoriteObservationsOf({ kind: "avatar", fetchedAt: FETCHED_AT })([avatar]),
-    ).toMatchObject([
+    expect(favoriteObservationsOf("avatar")(FETCHED_AT)([avatar])).toMatchObject([
       { subject: { type: "item", url: "https://vrchat.com/home/avatar/avtr_1", credits: [] } },
     ]);
   });

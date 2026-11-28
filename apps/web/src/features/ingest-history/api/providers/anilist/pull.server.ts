@@ -1,9 +1,11 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
+import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import {
-  graphListing,
+  listingOf,
   pulledListings,
+  sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
@@ -25,21 +27,32 @@ const MEDIA_LIST = `query ($user: String, $type: MediaType, $page: Int) {
 }`;
 
 const mediaListOf = (user: string, type: (typeof MEDIA_TYPES)[number]): Listing =>
-  graphListing({
-    url: API,
-    first: String(FIRST),
-    payload: Query,
-    bodyAt: (page) => ({ query: MEDIA_LIST, variables: { user, type, page: Number(page) } }),
-    schema: MediaListPage,
-    pageFrom: ({ data }) => ({
+  listingOf({
+    label: type,
+    source: sourceOf({
+      first: String(FIRST),
+      schema: MediaListPage,
+      fetch: ({ url: page, headers, schema }) =>
+        fetchJson({
+          url: API,
+          headers,
+          schema,
+          post: {
+            payload: Query,
+            value: {
+              query: MEDIA_LIST,
+              variables: { user, type, page: Number(page) },
+            },
+          },
+        }),
+    })(({ data }) => ({
       items: data.Page.mediaList,
       next: pipe(
         Option.liftPredicate(data.Page.pageInfo, ({ hasNextPage }) => hasNextPage),
         Option.map(({ currentPage }) => String(currentPage + FIRST)),
       ),
-    }),
-    observe: (fetchedAt) => Arr.flatMap(entryObservationsOf(fetchedAt)),
-  });
+    })),
+  })((fetchedAt) => Arr.flatMap(entryObservationsOf(fetchedAt)));
 
 export const pullAniList = pullOf({
   provider: "anilist",

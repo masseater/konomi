@@ -35,8 +35,8 @@ export const pullTwilog = pullOf({
       const likes = yield* timeline(TIMELINES.likes);
       const bookmarks = yield* timeline(TIMELINES.bookmarks);
       const observations = [
-        ...logObservationsOf({ kind: "endorsed", fetchedAt })(likes),
-        ...logObservationsOf({ kind: "collected", fetchedAt })(bookmarks),
+        ...logObservationsOf("endorsed")(fetchedAt)(likes),
+        ...logObservationsOf("collected")(fetchedAt)(bookmarks),
       ];
       return observations;
     }),

@@ -1,10 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import {
-  creatorInputOf,
-  withoutRelations,
-} from "#/features/ingest-history/api/providers/creator-input";
+import { withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
 import { durationOf, publishedOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { orEmpty, subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
@@ -59,13 +56,13 @@ const isoSecondsOf = secondsOf((value) => ISO_DURATION.exec(value));
 
 export const clockSecondsOf = secondsOf((value) => CLOCK_DURATION.exec(value));
 
-const channelCreatorOf = ({ id, title }: Channel): CreatorInput =>
-  creatorInputOf("channel")({
-    provider: "youtube",
-    externalId: id,
-    title,
-    url: `${ORIGIN}/channel/${id}`,
-  });
+const channelCreatorOf = ({ id, title }: Channel): CreatorInput => ({
+  provider: "youtube",
+  type: "channel",
+  externalId: id,
+  title,
+  url: `${ORIGIN}/channel/${id}`,
+});
 
 export const channelOf = ({
   id,
@@ -82,7 +79,7 @@ export const videoSubjectOf = (parts: VideoParts): SubjectInput =>
     type: "video",
     title: parts.title,
     url: `${ORIGIN}/watch?v=${parts.id}`,
-    ...durationOf(parts.durationSec),
+    ...durationOf(parts.durationSec, "seconds"),
     ...publishedOf(parts.publishedAt),
     credits: pipe(parts.channel, Option.map(channelCreatorOf), Option.toArray),
     tags: pipe(parts.tags, Arr.take(MAX_TAGS)),

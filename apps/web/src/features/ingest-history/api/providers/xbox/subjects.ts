@@ -1,7 +1,7 @@
 import { Array as Arr, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
-import { personIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
 
 import { GAME, WEB } from "./api.ts";
 import type { XboxPerson, XboxTitle } from "./schemas.ts";
@@ -54,7 +54,7 @@ export const friendObservationsOf =
         kind: "followed" as const,
         occurredAtMs: fetchedAt,
         subject: withoutRelations(
-          personIn("xbox")({
+          creatorIn("xbox")({
             externalId: `user:${xuid}`,
             title: gamertag,
             url: `${WEB}/play/user/${encodeURIComponent(gamertag)}`,

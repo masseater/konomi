@@ -1,6 +1,6 @@
 import { Array as Arr, Clock, Effect, Option, Schema, String as Str, pipe } from "effect";
 
-import { postJson } from "#/features/ingest-history/api/providers/http.server";
+import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 import { digestHex } from "#/shared/crypto/index.server";
 
@@ -71,7 +71,7 @@ const authorizationOf = (cookie: string): Effect.Effect<string, ProviderError> =
 export const pullHistory = (cookie: string): Effect.Effect<readonly VideoParts[], ProviderError> =>
   Effect.gen(function* history() {
     const authorization = yield* authorizationOf(cookie);
-    const page = yield* postJson({
+    const page = yield* fetchJson({
       url: BROWSE_URL,
       headers: {
         Cookie: cookie,
@@ -82,14 +82,16 @@ export const pullHistory = (cookie: string): Effect.Effect<readonly VideoParts[]
         "X-Youtube-Client-Name": CLIENT_ID,
         "X-Youtube-Client-Version": CLIENT_VERSION,
       },
-      payload: BrowseRequest,
-      body: {
-        context: {
-          client: { clientName: CLIENT_NAME, clientVersion: CLIENT_VERSION, hl: "ja", gl: "JP" },
-        },
-        browseId: "FEhistory",
-      },
       schema: Schema.Unknown,
+      post: {
+        payload: BrowseRequest,
+        value: {
+          context: {
+            client: { clientName: CLIENT_NAME, clientVersion: CLIENT_VERSION, hl: "ja", gl: "JP" },
+          },
+          browseId: "FEhistory",
+        },
+      },
     });
     return historyVideosOf(page);
   }).pipe(Effect.withSpan("youtube.history"));

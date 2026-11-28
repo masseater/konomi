@@ -1,11 +1,8 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, SubjectInput } from "#/entities/signal";
-import { personIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
-import {
-  durationFromMs,
-  publishedOf,
-} from "#/features/ingest-history/api/providers/subject-fields";
+import { creatorIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
+import { publishedOf, durationOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import type { SoundcloudPlaylist, SoundcloudTrack, SoundcloudUser } from "./schemas.ts";
@@ -13,7 +10,7 @@ import type { SoundcloudPlaylist, SoundcloudTrack, SoundcloudUser } from "./sche
 const TAG = /"(?<quoted>[^"]+)"|(?<bare>\S+)/gu;
 
 const userOf = (user: SoundcloudUser): CreatorInput =>
-  personIn("soundcloud")({
+  creatorIn("soundcloud")({
     externalId: String(user.id),
     title: user.username,
     url: user.permalink_url,
@@ -52,7 +49,7 @@ const tagsOf = (
 
 const soundcloud = subjectIn("soundcloud");
 
-const durationOf = (track: SoundcloudTrack): Option.Option<number> =>
+const durationMsOf = (track: SoundcloudTrack): Option.Option<number> =>
   Option.orElse(Option.fromNullishOr(track.full_duration), () =>
     Option.fromNullishOr(track.duration),
   );
@@ -62,27 +59,25 @@ const releasedOf = (track: SoundcloudTrack): Option.Option<string> =>
     Option.fromNullishOr(track.created_at),
   );
 
+const entityOf = (type: "track" | "playlist") => (item: SoundcloudTrack | SoundcloudPlaylist) =>
+  ({
+    externalId: String(item.id),
+    type,
+    title: item.title,
+    url: item.permalink_url,
+    credits: creditsOf(item.user),
+    tags: tagsOf(item),
+  }) as const;
+
 export const trackOf = (track: SoundcloudTrack): SubjectInput =>
   soundcloud({
-    externalId: String(track.id),
-    type: "track",
-    title: track.title,
-    url: track.permalink_url,
-    ...durationFromMs(durationOf(track)),
+    ...entityOf("track")(track),
+    ...durationOf(durationMsOf(track), "millis"),
     ...publishedOf(releasedOf(track)),
-    credits: creditsOf(track.user),
-    tags: tagsOf(track),
   });
 
 export const playlistOf = (playlist: SoundcloudPlaylist): SubjectInput =>
-  soundcloud({
-    externalId: String(playlist.id),
-    type: "playlist",
-    title: playlist.title,
-    url: playlist.permalink_url,
-    credits: creditsOf(playlist.user),
-    tags: tagsOf(playlist),
-  });
+  soundcloud(entityOf("playlist")(playlist));
 
 export const followedUserOf = (user: SoundcloudUser): SubjectInput =>
   withoutRelations(userOf(user));

@@ -32,27 +32,27 @@ const titleSubjectOf = ({ provider, title, series, searchUrlOf }: TitledWork): S
     }),
   });
 
-export const splitTitleSubjectOf = ({
-  provider,
-  title,
-  separator,
-  isSeries,
-  searchUrlOf,
-}: Readonly<{
-  provider: ProviderId;
-  title: string;
-  separator: string | RegExp;
-  isSeries: (parts: readonly string[]) => boolean;
-  searchUrlOf: (query: string) => string;
-}>): SubjectInput => {
-  const parts = Str.split(title, separator);
-  return titleSubjectOf({
+export const splitTitleSubjectOf =
+  ({
     provider,
-    title,
-    series: pipe(
-      Arr.head(parts),
-      Option.filter(() => isSeries(parts)),
-    ),
+    separator,
+    isSeries,
     searchUrlOf,
-  });
-};
+  }: Readonly<{
+    provider: ProviderId;
+    separator: string | RegExp;
+    isSeries: (parts: readonly string[]) => boolean;
+    searchUrlOf: (query: string) => string;
+  }>) =>
+  (title: string): SubjectInput => {
+    const parts = Str.split(title, separator);
+    return titleSubjectOf({
+      provider,
+      title,
+      series: pipe(
+        Arr.head(parts),
+        Option.filter(() => isSeries(parts)),
+      ),
+      searchUrlOf,
+    });
+  };

@@ -1,6 +1,7 @@
-import { Array as Arr, Match, Option, String as Str, pipe } from "effect";
+import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { Observation, SubjectInput } from "#/entities/signal";
+import { subjectTypeOf } from "#/features/ingest-history/api/providers/subject-fields";
 import type { SubjectType } from "#/shared/config";
 
 import { LIKED_SCORE, WANTED, WATCHED, WEB } from "./api.ts";
@@ -8,11 +9,14 @@ import type { Card } from "./cards.ts";
 
 const PRODUCED_YEAR = /(?<year>\d{4})年製作/u;
 const SEPARATOR = "/";
+const SECTION = 1;
 
 const typeOf = (path: string): SubjectType =>
-  Match.value(Str.startsWith("/movies/")(path)).pipe(
-    Match.when(true, (): SubjectType => "movie"),
-    Match.orElse((): SubjectType => "series"),
+  pipe(
+    Str.split(path, SEPARATOR),
+    Arr.get(SECTION),
+    Option.getOrElse(() => ""),
+    subjectTypeOf({ movies: "movie" }, "series"),
   );
 
 const yearOf = (label: string): readonly string[] =>

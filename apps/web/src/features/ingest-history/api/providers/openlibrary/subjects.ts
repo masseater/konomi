@@ -1,7 +1,7 @@
 import { Array as Arr, Option, String as Str, pipe } from "effect";
 
 import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
-import { personIn } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
 import { epochOr } from "#/features/ingest-history/api/providers/observe";
 import { orEmpty, subjectIn, textTagsOf } from "#/features/ingest-history/api/providers/subject-in";
 import type { SignalKind } from "#/shared/config";
@@ -13,7 +13,7 @@ const authorsOf = (work: OpenLibraryEntry["work"]): readonly CreatorInput[] =>
   pipe(
     Arr.zip(orEmpty(work.author_keys), orEmpty(work.author_names)),
     Arr.map(([key, title]) =>
-      personIn("openlibrary")({ externalId: key, title, url: `${WEB}${key}` }),
+      creatorIn("openlibrary")({ externalId: key, title, url: `${WEB}${key}` }),
     ),
   );
 
@@ -36,11 +36,8 @@ const isoOf = (logged: string | null | undefined): string | undefined =>
   );
 
 export const shelfObservationsOf =
-  ({
-    kind,
-    context,
-    fetchedAt,
-  }: Readonly<{ kind: SignalKind; context: string; fetchedAt: number }>) =>
+  ({ kind, context }: Readonly<{ kind: SignalKind; context: string }>) =>
+  (fetchedAt: number) =>
   (entries: readonly OpenLibraryEntry[]): readonly Observation[] => {
     const at = epochOr(fetchedAt);
     return pipe(

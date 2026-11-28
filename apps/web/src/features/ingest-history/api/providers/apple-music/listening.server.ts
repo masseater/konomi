@@ -1,55 +1,34 @@
 import { Array as Arr, Effect, Option, pipe } from "effect";
 
-import type { Credential } from "#/entities/connection";
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { freshOf } from "#/features/ingest-history/api/providers/fresh";
-import {
-  datedObservationsOf,
-  fetchedObservationsOf,
-} from "#/features/ingest-history/api/providers/observe";
-import type { Observing } from "#/features/ingest-history/api/providers/observe";
+import { listingOf } from "#/features/ingest-history/api/providers/listing.server";
+import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import type { Fetching, Observing } from "#/features/ingest-history/api/providers/observe";
 import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { API, LIBRARY_LIMIT, RECENT_LIMIT } from "./api.ts";
-import { fetchSongs, headersOf, storefrontOf } from "./fetching.server.ts";
+import { songsFrom } from "./fetching.server.ts";
 import { catalogIdOf, songOf } from "./subjects.ts";
 
 const FIRST_PAGE = 1;
 
-export type Listening = Readonly<{
-  fetch: ReturnType<typeof fetchSongs>;
-  storefront: string;
-  fetchedAt: number;
-}>;
-
-export const listeningOf = ({
-  credential,
-  storefront,
-  fetchedAt,
-}: Readonly<{
-  credential: Credential;
-  storefront: string | undefined;
-  fetchedAt: number;
-}>): Effect.Effect<Listening, ProviderError> =>
-  Effect.gen(function* listening() {
-    const headers = yield* headersOf(credential);
-    return {
-      fetch: fetchSongs(headers),
-      storefront: yield* storefrontOf(headers)(storefront),
-      fetchedAt,
-    };
-  });
+export type Listening = Fetching & Readonly<{ storefront: string }>;
 
 export type Recent = Readonly<{ observations: readonly Observation[]; recent: readonly string[] }>;
 
+const observeRecent = datedObservationsOf({
+  kind: "consumed",
+  subjectOf: (subject: SubjectInput) => Option.some(subject),
+});
+
 export const pullRecent =
-  ({ fetch, storefront, fetchedAt }: Listening) =>
+  ({ headers, storefront, fetchedAt }: Listening) =>
   (previous: readonly string[]): Effect.Effect<Recent, ProviderError> =>
     collectPages({
-      first: `${API}/me/recent/played/tracks?limit=${RECENT_LIMIT}`,
       pages: FIRST_PAGE,
-      fetchPage: fetch,
+      ...songsFrom(`${API}/me/recent/played/tracks?limit=${RECENT_LIMIT}`)(headers),
     }).pipe(
       Effect.map((songs) => {
         const recent = pipe(songs, Arr.map(catalogIdOf));
@@ -60,30 +39,26 @@ export const pullRecent =
             Arr.take(fresh.length),
             Arr.map((song) => songOf({ song, storefront })),
             Arr.getSomes,
-            fetchedObservationsOf("consumed")((subject: SubjectInput) => subject)(fetchedAt),
+            observeRecent(fetchedAt),
           ),
           recent,
         };
       }),
     );
 
-export const pullLibrary = ({ fetch, storefront, fetchedAt }: Listening): Observing =>
-  collectPages({
-    first: `${API}/me/library/songs?limit=${LIBRARY_LIMIT}`,
-    pages: pagesFor(false),
-    fetchPage: fetch,
-  }).pipe(
-    Effect.map(
-      datedObservationsOf({
-        kind: "collected",
-        fetchedAt,
-        subjectOf: (song) => songOf({ song, storefront }),
-        occurredAtOf: ({ attributes }) =>
-          pipe(
-            Option.fromNullishOr(attributes),
-            Option.flatMap(({ dateAdded }) => Option.fromNullishOr(dateAdded)),
-            Option.getOrUndefined,
-          ),
-      }),
-    ),
-  );
+export const pullLibrary = ({ headers, storefront, fetchedAt }: Listening): Observing =>
+  listingOf({
+    label: "library",
+    source: songsFrom(`${API}/me/library/songs?limit=${LIBRARY_LIMIT}`),
+  })(
+    datedObservationsOf({
+      kind: "collected",
+      subjectOf: (song) => songOf({ song, storefront }),
+      occurredAtOf: ({ attributes }) =>
+        pipe(
+          Option.fromNullishOr(attributes),
+          Option.flatMap(({ dateAdded }) => Option.fromNullishOr(dateAdded)),
+          Option.getOrUndefined,
+        ),
+    }),
+  )({ headers, pages: pagesFor(false), fetchedAt });

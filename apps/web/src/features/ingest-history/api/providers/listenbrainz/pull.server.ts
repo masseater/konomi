@@ -2,8 +2,9 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import { requireField } from "#/features/ingest-history/api/providers/credential-field";
 import {
-  pagedListing,
+  listingOf,
   pulledListings,
+  sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
@@ -27,31 +28,32 @@ const nextOffset = (url: string): string =>
   String(Number(new URL(url).searchParams.get(OFFSET)) + LIMIT);
 
 const lovedListing = (user: string): Listing =>
-  pagedListing({
-    first: `${API}/feedback/user/${user}/get-feedback?score=${LOVED}&count=${LIMIT}&metadata=true&${OFFSET}=0`,
-    schema: Feedback,
-    pageOf: ({ feedback }, url) => ({
+  listingOf({
+    label: "loved",
+    source: sourceOf({
+      first: `${API}/feedback/user/${user}/get-feedback?score=${LOVED}&count=${LIMIT}&metadata=true&${OFFSET}=0`,
+      schema: Feedback,
+    })(({ feedback }, url) => ({
       items: feedback,
       next: fullPageNext({ url, items: feedback })({ name: OFFSET, value: nextOffset(url) }),
-    }),
-    observe: () => lovedObservationsOf,
-  });
+    })),
+  })(() => lovedObservationsOf);
 
 const listensListing = (user: string): Listing =>
-  pagedListing({
-    first: `${API}/user/${user}/listens?count=${LIMIT}`,
-    schema: Listens,
-    pageOf: ({ payload: { listens } }, url) => ({
-      items: listens,
-      next: pipe(
-        Arr.last(listens),
-        Option.flatMap(({ listened_at: listenedAt }) =>
-          fullPageNext({ url, items: listens })({ name: "max_ts", value: String(listenedAt) }),
+  listingOf({
+    label: "listens",
+    source: sourceOf({ first: `${API}/user/${user}/listens?count=${LIMIT}`, schema: Listens })(
+      ({ payload: { listens } }, url) => ({
+        items: listens,
+        next: pipe(
+          Arr.last(listens),
+          Option.flatMap(({ listened_at: listenedAt }) =>
+            fullPageNext({ url, items: listens })({ name: "max_ts", value: String(listenedAt) }),
+          ),
         ),
-      ),
-    }),
-    observe: () => listenObservationsOf,
-  });
+      }),
+    ),
+  })(() => listenObservationsOf);
 
 export const pullListenbrainz = pullOf({
   provider: "listenbrainz",

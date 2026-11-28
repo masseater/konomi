@@ -53,13 +53,6 @@ const fetchPageOf =
       Effect.withSpan("pixiv.list", { attributes: { name } }),
     );
 
-const collectListing =
-  (pages: number) =>
-  <Body extends Paged, Item>(
-    listing: Listing<Body, Item>,
-  ): Effect.Effect<readonly Item[], ProviderError> =>
-    collectPages({ first: FIRST_PAGE, pages, fetchPage: fetchPageOf(listing) });
-
 export const collectRestricted =
   (pages: number) =>
   <Restrict extends number | string, Body extends Paged, Item>({
@@ -77,9 +70,13 @@ export const collectRestricted =
     itemsOf: (body: Body) => readonly Item[];
   }>): Effect.Effect<readonly Item[], ProviderError> =>
     flatMapEach(restricts, (restrict) =>
-      collectListing(pages)({
-        name: `${prefix}-${restrict}`,
-        list: (cursor) => list(cursor, restrict),
-        itemsOf,
+      collectPages({
+        first: FIRST_PAGE,
+        pages,
+        fetchPage: fetchPageOf({
+          name: `${prefix}-${restrict}`,
+          list: (cursor) => list(cursor, restrict),
+          itemsOf,
+        }),
       }),
     );

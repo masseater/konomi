@@ -3,7 +3,7 @@ import { Array as Arr, Option, Order, String as Str, pipe } from "effect";
 import type { Observation, SubjectInput } from "#/entities/signal";
 import { parsedEpoch } from "#/features/ingest-history/api/providers/epoch";
 import { cellOf } from "#/features/ingest-history/api/providers/export-cell";
-import { presentObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import { observationsOf } from "#/features/ingest-history/api/providers/observe";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import { LIBRARY_COLUMN, MIN_READ_MS, OWNED_ITEM, SESSION_COLUMN, STORE } from "./api.ts";
@@ -30,7 +30,7 @@ const isOwned = (row: LibraryRow): boolean =>
   Str.toLowerCase(Str.trim(row[LIBRARY_COLUMN.ownership])) ===
     Str.toLowerCase(OWNED_ITEM.ownership);
 
-const ownedObservationsOf = presentObservationsOf("collected")((row: LibraryRow) =>
+const ownedObservationsOf = observationsOf("collected")((row: LibraryRow) =>
   Option.all({
     asin: cellOf(row[LIBRARY_COLUMN.asin]),
     title: cellOf(row[LIBRARY_COLUMN.title]),
@@ -54,7 +54,7 @@ const readLongEnough = (row: SessionRow): boolean =>
     Option.match({ onNone: () => true, onSome: (readMs) => readMs >= MIN_READ_MS }),
   );
 
-const sessionObservationsFrom = presentObservationsOf("consumed")((row: SessionRow) =>
+const sessionObservationsFrom = observationsOf("consumed")((row: SessionRow) =>
   Option.all({
     asin: cellOf(row[SESSION_COLUMN.asin]),
     title: cellOf(row[SESSION_COLUMN.title]),

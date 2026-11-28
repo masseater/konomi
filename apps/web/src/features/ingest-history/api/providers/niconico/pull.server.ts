@@ -31,7 +31,7 @@ const pullMylists = ({ headers, fetchedAt }: Fetching): Observing =>
           schema: MylistPage,
         }).pipe(
           Effect.map(({ data: { mylist } }) =>
-            stampedVideosOf({ kind: "collected", fetchedAt, context: name })(mylist.items),
+            stampedVideosOf({ kind: "collected", context: name })(fetchedAt)(mylist.items),
           ),
         ),
       ),

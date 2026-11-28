@@ -1,134 +1,98 @@
-import { Effect } from "effect";
-import type { Option, Schema } from "effect";
+import { Effect, Option, pipe } from "effect";
+import type { Schema } from "effect";
 
-import type { Observation, SubjectInput } from "#/entities/signal";
-import { postJson } from "#/features/ingest-history/api/providers/http.server";
+import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import type { Headers } from "#/features/ingest-history/api/providers/http.server";
-import { collectNumberedPages } from "#/features/ingest-history/api/providers/numbered-pages.server";
-import type { Numbering } from "#/features/ingest-history/api/providers/numbered-pages.server";
-import { datedObservationsOf, flatMapEach } from "#/features/ingest-history/api/providers/observe";
-import type { Observing } from "#/features/ingest-history/api/providers/observe";
-import {
-  collectJsonPages,
-  collectPages,
-} from "#/features/ingest-history/api/providers/paging.server";
+import { flatMapEach } from "#/features/ingest-history/api/providers/observe";
+import type { Observer, Observing } from "#/features/ingest-history/api/providers/observe";
+import { collectPages, pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 import type { Page } from "#/features/ingest-history/api/providers/paging.server";
+import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
-import type { SignalKind } from "#/shared/config";
 
 export type Reading = Readonly<{ headers: Headers; pages: number; fetchedAt: number }>;
 
 export type Listing = (reading: Reading) => Observing;
 
-const listingOf =
-  <Item>({
-    collect,
-    observe,
-  }: Readonly<{
-    collect: (reading: Reading) => Effect.Effect<readonly Item[], ProviderError>;
-    observe: (fetchedAt: number) => (items: readonly Item[]) => readonly Observation[];
-  }>): Listing =>
-  (reading) =>
-    collect(reading).pipe(Effect.map(observe(reading.fetchedAt)));
+export type Source<Item> = Readonly<{
+  first: string;
+  fetchPage: (cursor: string) => Effect.Effect<Page<Item>, ProviderError>;
+}>;
 
-export const numberedListing = <Body, Item>({
-  label,
-  base,
-  numbering,
-  schema,
-  itemsOf,
-  observe,
-}: Readonly<{
-  label: string;
-  base: string;
-  numbering: Numbering;
-  schema: Schema.Decoder<Body>;
-  itemsOf: (body: Body) => readonly Item[];
-  observe: (fetchedAt: number) => (items: readonly Item[]) => readonly Observation[];
-}>): Listing => {
-  const listing = listingOf({
-    collect: ({ headers, pages }) =>
-      collectNumberedPages({ base, numbering, headers, pages, schema, itemsOf }),
-    observe,
+export type Sourcing<Item> = (headers: Headers) => Source<Item>;
+
+export type BodyFetch<Body> = (
+  request: Readonly<{ url: string; headers: Headers; schema: Schema.Decoder<Body> }>,
+) => Effect.Effect<Body, ProviderError>;
+
+export const sourceOf =
+  <Body>({
+    first,
+    schema,
+    fetch: load = fetchJson,
+  }: Readonly<{
+    first: string;
+    schema: Schema.Decoder<Body>;
+    fetch?: BodyFetch<Body> | undefined;
+  }>) =>
+  <Item>(pageOf: (body: Body, cursor: string) => Page<Item>): Sourcing<Item> =>
+  (headers) => ({
+    first,
+    fetchPage: (cursor) =>
+      load({ url: cursor, headers, schema }).pipe(Effect.map((body) => pageOf(body, cursor))),
   });
-  return (reading) =>
-    listing(reading).pipe(Effect.withSpan("ingest.listing", { attributes: { label } }));
-};
+
+export const cursorPageOf =
+  <Body, Item>({
+    param,
+    itemsOf,
+    cursorOf,
+  }: Readonly<{
+    param: string;
+    itemsOf: (body: Body) => readonly Item[];
+    cursorOf: (body: Body) => Option.Option<string>;
+  }>) =>
+  (body: Body, url: string): Page<Item> => ({
+    items: itemsOf(body),
+    next: pipe(
+      cursorOf(body),
+      Option.map((cursor) => urlWith(url, { [param]: cursor })),
+    ),
+  });
+
+export const collectedFrom =
+  <Item>(source: Sourcing<Item>) =>
+  (headers: Headers): Effect.Effect<readonly Item[], ProviderError> =>
+    collectPages({ pages: pagesFor(false), ...source(headers) });
+
+export const listingOf =
+  <Item>({ label, source }: Readonly<{ label: string; source: Sourcing<Item> }>) =>
+  (observe: Observer<Item>): Listing =>
+  ({ headers, pages, fetchedAt }) =>
+    collectPages({ pages, ...source(headers) }).pipe(
+      Effect.map(observe(fetchedAt)),
+      Effect.withSpan("ingest.listing", { attributes: { label } }),
+    );
 
 export const pulledListings =
   (listings: readonly Listing[]) =>
   (reading: Reading): Observing =>
     flatMapEach(listings, (listing) => listing(reading));
 
-const NO_DATE = (): string => "";
-
-export const pagedListing = <
-  Body extends Schema.Top & Readonly<{ DecodingServices: never }>,
-  Item,
->({
-  first,
-  schema,
-  pageOf,
-  observe,
-}: Readonly<{
-  first: string;
-  schema: Body;
-  pageOf: (body: Body["Type"], url: string) => Page<Item>;
-  observe: (fetchedAt: number) => (items: readonly Item[]) => readonly Observation[];
-}>): Listing =>
-  listingOf({
-    collect: ({ headers, pages }) => collectJsonPages({ first, headers, pages, schema, pageOf }),
-    observe,
-  });
-
-export const jsonListing = <Body extends Schema.Top & Readonly<{ DecodingServices: never }>, Item>({
-  kind,
-  subjectOf,
-  occurredAtOf = NO_DATE,
-  ...paging
-}: Readonly<{
-  kind: SignalKind;
-  first: string;
-  schema: Body;
-  pageOf: (body: Body["Type"], url: string) => Page<Item>;
-  subjectOf: (item: Item) => Option.Option<SubjectInput>;
-  occurredAtOf?: (item: Item) => string | null | undefined;
-}>): Listing =>
-  pagedListing({
-    ...paging,
-    observe: (fetchedAt) => datedObservationsOf({ kind, fetchedAt, subjectOf, occurredAtOf }),
-  });
-
-export const graphListing = <
-  Payload extends Schema.Top & Readonly<{ EncodingServices: never }>,
-  Response extends Schema.Top & Readonly<{ DecodingServices: never }>,
-  Item,
->({
-  url,
-  first,
-  payload,
-  bodyAt,
-  schema,
-  pageFrom,
-  observe,
-}: Readonly<{
-  url: string;
-  first: string;
-  payload: Payload;
-  bodyAt: (token: string) => Payload["Type"];
-  schema: Response;
-  pageFrom: (response: Response["Type"]) => Page<Item>;
-  observe: (fetchedAt: number) => (items: readonly Item[]) => readonly Observation[];
-}>): Listing =>
-  listingOf({
-    collect: ({ headers, pages }) =>
-      collectPages({
-        first,
-        pages,
-        fetchPage: (token) =>
-          postJson({ url, headers, payload, body: bodyAt(token), schema }).pipe(
-            Effect.map(pageFrom),
-          ),
-      }),
-    observe,
-  });
+export const flatListing =
+  <Item>({
+    label,
+    first,
+    schema,
+    fetch,
+  }: Readonly<{
+    label: string;
+    first: string;
+    schema: Schema.Decoder<readonly Item[]>;
+    fetch?: BodyFetch<readonly Item[]> | undefined;
+  }>) =>
+  (observe: Observer<Item>): Listing =>
+    listingOf({
+      label,
+      source: sourceOf({ first, schema, fetch })((items) => ({ items, next: Option.none() })),
+    })(observe);

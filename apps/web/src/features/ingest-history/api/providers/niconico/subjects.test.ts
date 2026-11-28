@@ -2,8 +2,6 @@ import { describe, expect, it } from "vite-plus/test";
 
 import { stampOf, videoSubjectOf } from "./subjects.ts";
 
-const FETCHED_AT = 1_700_000_000_000;
-
 describe("videoSubjectOf", () => {
   it("credits a user owner as a person", () => {
     const subject = videoSubjectOf({
@@ -60,17 +58,12 @@ describe("videoSubjectOf owners", () => {
 
 describe("stampOf", () => {
   it("uses the first time the listing reports", () => {
-    expect(
-      stampOf({
-        entry: { video: { id: "sm9", title: "a" }, likedAt: "2026-11-01T00:00:00Z" },
-        fallback: FETCHED_AT,
-      }),
-    ).toBe(Date.parse("2026-11-01T00:00:00Z"));
+    expect(stampOf({ video: { id: "sm9", title: "a" }, likedAt: "2026-11-01T00:00:00Z" })).toBe(
+      "2026-11-01T00:00:00Z",
+    );
   });
 
-  it("falls back to the fetch time", () => {
-    expect(stampOf({ entry: { video: { id: "sm9", title: "a" } }, fallback: FETCHED_AT })).toBe(
-      FETCHED_AT,
-    );
+  it("is absent when the listing reports no time", () => {
+    expect(stampOf({ video: { id: "sm9", title: "a" } })).toBeUndefined();
   });
 });

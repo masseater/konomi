@@ -1,12 +1,13 @@
 import { Match, Option } from "effect";
 
-import type { Observation } from "#/entities/signal";
 import {
-  pagedListing,
+  listingOf,
   pulledListings,
+  sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
-import { observationsOf } from "#/features/ingest-history/api/providers/observe";
+import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import type { Observer } from "#/features/ingest-history/api/providers/observe";
 import { urlAdvancing } from "#/features/ingest-history/api/providers/url-with";
 import type { SignalKind } from "#/shared/config";
 
@@ -27,30 +28,26 @@ export const firstPageUrl = (path: string): string => pageUrl(path, FIRST_PAGE);
 
 export const stampedVideosOf = ({
   kind,
-  fetchedAt,
   context,
-}: Readonly<{ kind: SignalKind; fetchedAt: number; context?: string | undefined }>): ((
-  entries: readonly VideoEntry[],
-) => readonly Observation[]) =>
-  observationsOf(kind)({
-    subjectOf: videoSubjectOf,
-    occurredAtOf: (entry) => stampOf({ entry, fallback: fetchedAt }),
-    context,
+}: Readonly<{ kind: SignalKind; context?: string | undefined }>): Observer<VideoEntry> =>
+  datedObservationsOf({
+    kind,
+    subjectOf: (entry) => Option.some(videoSubjectOf(entry)),
+    occurredAtOf: stampOf,
+    contextOf: () => Option.fromUndefinedOr(context),
   });
 
 const videoListing = ({ path, kind }: Readonly<{ path: string; kind: SignalKind }>): Listing =>
-  pagedListing({
-    first: pageUrl(path, FIRST_PAGE),
-    schema: VideoPage,
-    pageOf: ({ data }, url) => ({
+  listingOf({
+    label: path,
+    source: sourceOf({ first: pageUrl(path, FIRST_PAGE), schema: VideoPage })(({ data }, url) => ({
       items: data.items,
       next: Match.value(data.hasNext === true).pipe(
         Match.when(true, () => Option.some(urlAdvancing(url, { param: "page", step: FIRST_PAGE }))),
         Match.orElse(() => Option.none<string>()),
       ),
-    }),
-    observe: (fetchedAt) => stampedVideosOf({ kind, fetchedAt }),
-  });
+    })),
+  })(stampedVideosOf({ kind }));
 
 export const pullVideos = pulledListings([
   videoListing({ path: "/v1/users/me/watch/history", kind: "consumed" }),

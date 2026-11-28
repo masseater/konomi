@@ -60,11 +60,6 @@ const descending = ([later, earlier]: readonly [number, number]): boolean => ear
 const isNewestFirst = (epochs: readonly number[]): boolean =>
   pipe(epochs, Arr.zip(Arr.drop(epochs, FIRST)), Arr.every(descending));
 
-const epochsIn =
-  (dates: readonly string[]) =>
-  (order: Order): Option.Option<readonly number[]> =>
-    pipe(dates, Arr.map(epochIn(order)), Option.all);
-
 const sameEpochs = Arr.makeEquivalence(Equivalence.Number);
 
 const onlyReading = (readings: readonly (readonly number[])[]): Option.Option<readonly number[]> =>
@@ -79,7 +74,11 @@ const onlyReading = (readings: readonly (readonly number[])[]): Option.Option<re
   );
 
 export const datesToEpochs = (dates: readonly string[]): Option.Option<readonly number[]> => {
-  const readings = pipe(ORDERS, Arr.map(epochsIn(dates)), Arr.getSomes);
+  const readings = pipe(
+    ORDERS,
+    Arr.map((order) => pipe(dates, Arr.map(epochIn(order)), Option.all)),
+    Arr.getSomes,
+  );
   return pipe(
     onlyReading(readings),
     Option.orElse(() => onlyReading(pipe(readings, Arr.filter(isNewestFirst)))),

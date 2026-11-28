@@ -1,10 +1,9 @@
 import { Option, pipe } from "effect";
 
-import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
-import { personIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
-import { nonEmptyOr, observationsOf } from "#/features/ingest-history/api/providers/observe";
+import type { CreatorInput, SubjectInput } from "#/entities/signal";
+import { creatorIn, withoutRelations } from "#/features/ingest-history/api/providers/creator-input";
+import { nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
 import { orEmpty, textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
-import type { SignalKind } from "#/shared/config";
 
 import type { MisskeyNote, MisskeyUser } from "./schemas.ts";
 
@@ -16,7 +15,7 @@ const accountOf =
       Option.map((host) => `${user.username}@${host}`),
       Option.getOrElse(() => user.username),
     );
-    return personIn("misskey")({
+    return creatorIn("misskey")({
       externalId: `${origin}/users/${user.id}`,
       title: nonEmptyOr(acct)(user.name),
       url: `${origin}/@${acct}`,
@@ -28,7 +27,7 @@ export const followedOf =
   (user: MisskeyUser): SubjectInput =>
     withoutRelations(accountOf(origin)(user));
 
-const noteOf =
+export const noteOf =
   (origin: string) =>
   (note: MisskeyNote): SubjectInput => {
     const url = `${origin}/notes/${note.id}`;
@@ -42,19 +41,3 @@ const noteOf =
       tags: orEmpty(note.tags),
     });
   };
-
-export const notedAs = ({
-  kind,
-  origin,
-  at,
-}: Readonly<{
-  kind: SignalKind;
-  origin: string;
-  at: (text: string) => number;
-}>): ((
-  items: readonly Readonly<{ createdAt: string; note: MisskeyNote }>[],
-) => readonly Observation[]) =>
-  observationsOf(kind)<Readonly<{ createdAt: string; note: MisskeyNote }>>({
-    subjectOf: ({ note }) => noteOf(origin)(note),
-    occurredAtOf: ({ createdAt }) => at(createdAt),
-  });

@@ -130,51 +130,52 @@ const decodedBody =
       }),
     );
 
-const sendJson =
-  <Body extends Schema.Top>(schema: Body) =>
-  <Requirement>(
-    built: Effect.Effect<HttpClientRequest.HttpClientRequest, ProviderError, Requirement>,
-  ): Decoded<Body, Requirement> =>
-    built.pipe(
-      Effect.flatMap((request) =>
-        okResponse(request).pipe(Effect.flatMap(decodedBody(schema, request.url)), withFetch),
+export type Posted<Payload extends Schema.Top = never> =
+  | Readonly<{ form: Readonly<Record<string, string>> }>
+  | Readonly<{ payload: Payload; value: Payload["Type"] }>;
+
+const isForm = (
+  posted: Readonly<Record<string, unknown>>,
+): posted is Readonly<{ form: Readonly<Record<string, string>> }> => "form" in posted;
+
+const requestOf = <Payload extends Schema.Top>(
+  url: string,
+  headers: Headers,
+  posted: Option.Option<Posted<Payload>>,
+): Effect.Effect<HttpClientRequest.HttpClientRequest, ProviderError, Payload["EncodingServices"]> =>
+  Opt.match(posted, {
+    onNone: () => Effect.succeed(HttpClientRequest.get(url, { headers })),
+    onSome: (body) =>
+      Match.value(body).pipe(
+        Match.when(isForm, ({ form }) =>
+          Effect.succeed(
+            HttpClientRequest.post(url, { headers }).pipe(HttpClientRequest.bodyUrlParams(form)),
+          ),
+        ),
+        Match.orElse(({ payload, value }) =>
+          HttpClientRequest.post(url, { headers }).pipe(
+            HttpClientRequest.schemaBodyJson(payload)(value),
+            Effect.mapError(() =>
+              ProviderUnavailable.make({ message: `${url} body was not JSON` }),
+            ),
+          ),
+        ),
       ),
-    );
+  });
 
-export const fetchJson = <Body extends Schema.Top>({
+export const fetchJson = <Body extends Schema.Top, Payload extends Schema.Top = never>({
   url,
   headers,
   schema,
-}: Endpoint & Readonly<{ schema: Body }>): Decoded<Body> =>
-  HttpClientRequest.get(url, { headers }).pipe(Effect.succeed, sendJson(schema));
-
-export const postJson = <Payload extends Schema.Top, Body extends Schema.Top>({
-  url,
-  headers,
-  payload,
-  body,
-  schema,
-}: Endpoint & Readonly<{ payload: Payload; body: Payload["Type"]; schema: Body }>): Decoded<
+  post,
+}: Endpoint & Readonly<{ schema: Body; post?: Posted<Payload> | undefined }>): Decoded<
   Body,
   Payload["EncodingServices"]
 > =>
-  HttpClientRequest.post(url, { headers }).pipe(
-    HttpClientRequest.schemaBodyJson(payload)(body),
-    Effect.mapError(() => ProviderUnavailable.make({ message: `${url} body was not JSON` })),
-    sendJson(schema),
-  );
-
-export const postForm = <Body extends Schema.Top>({
-  url,
-  headers,
-  fields,
-  schema,
-}: Endpoint &
-  Readonly<{ fields: Readonly<Record<string, string>>; schema: Body }>): Decoded<Body> =>
-  HttpClientRequest.post(url, { headers }).pipe(
-    HttpClientRequest.bodyUrlParams(fields),
-    Effect.succeed,
-    sendJson(schema),
+  requestOf(url, headers, Opt.fromUndefinedOr(post)).pipe(
+    Effect.flatMap((request) =>
+      okResponse(request).pipe(Effect.flatMap(decodedBody(schema, url)), withFetch),
+    ),
   );
 
 export const fetchText = ({

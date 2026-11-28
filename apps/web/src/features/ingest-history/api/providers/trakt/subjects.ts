@@ -1,7 +1,7 @@
-import { Match, Option, pipe } from "effect";
+import { Match, Option, pipe, Function as Fn } from "effect";
 
 import type { SubjectInput } from "#/entities/signal";
-import { stampedObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { subjectIn, textTagsOf } from "#/features/ingest-history/api/providers/subject-in";
 
 import { WEB } from "./api.ts";
@@ -57,13 +57,18 @@ const watchableOf = (entry: TraktWatched | TraktRated): SubjectInput =>
     }),
   );
 
-export const historyObservationsOf = stampedObservationsOf("consumed")<TraktWatched>({
-  subjectOf: watchableOf,
-  dateOf: ({ watched_at: watchedAt }) => watchedAt,
+export const historyObservationsOf = datedObservationsOf({
+  kind: "consumed",
+  subjectOf: Fn.flow(watchableOf, Option.some),
+  occurredAtOf: ({ watched_at: watchedAt }: TraktWatched) => watchedAt,
 });
 
-export const ratingObservationsOf = stampedObservationsOf("endorsed")<TraktRated>({
-  subjectOf: watchableOf,
-  dateOf: ({ rated_at: ratedAt }) => ratedAt,
-  keeps: ({ rating }) => rating >= LIKED_RATING,
+export const ratingObservationsOf = datedObservationsOf({
+  kind: "endorsed",
+  subjectOf: (rated: TraktRated) =>
+    pipe(
+      Option.liftPredicate(rated, ({ rating }) => rating >= LIKED_RATING),
+      Option.map(watchableOf),
+    ),
+  occurredAtOf: ({ rated_at: ratedAt }: TraktRated) => ratedAt,
 });

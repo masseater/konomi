@@ -1,7 +1,7 @@
-import { Array as Arr, Option, pipe } from "effect";
+import { Array as Arr, Option, pipe, Function as Fn } from "effect";
 
 import type { SubjectInput } from "#/entities/signal";
-import { stampedObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import { WEB } from "./api.ts";
@@ -28,7 +28,8 @@ const pinOf = (pin: PinterestPin): SubjectInput => {
   });
 };
 
-export const pinObservationsOf = stampedObservationsOf("collected")<PinterestPin>({
-  subjectOf: pinOf,
-  dateOf: ({ created_at: createdAt }) => createdAt,
+export const pinObservationsOf = datedObservationsOf({
+  kind: "collected",
+  subjectOf: Fn.flow(pinOf, Option.some),
+  occurredAtOf: ({ created_at: createdAt }: PinterestPin) => createdAt,
 });

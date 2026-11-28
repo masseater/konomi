@@ -2,7 +2,13 @@ import { Array as Arr, Effect, Option, pipe } from "effect";
 
 import type { Observation } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { jsonListing } from "#/features/ingest-history/api/providers/listing.server";
+import {
+  cursorPageOf,
+  listingOf,
+  sourceOf,
+} from "#/features/ingest-history/api/providers/listing.server";
+import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
+import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, LIMIT } from "./api.ts";
@@ -10,23 +16,28 @@ import { headersOf } from "./headers.server.ts";
 import { FollowedChannels, Users } from "./schemas.ts";
 import { channelOf } from "./subjects.ts";
 
-const followedBy = (userId: string): ReturnType<typeof jsonListing> => {
-  const first = `${API}/channels/followed?user_id=${userId}&first=${LIMIT}`;
-  return jsonListing({
-    kind: "followed",
-    first,
+const followedBy = (userId: string): Listing => {
+  const source = sourceOf({
+    first: `${API}/channels/followed?user_id=${userId}&first=${LIMIT}`,
     schema: FollowedChannels,
-    pageOf: ({ data, pagination }) => ({
-      items: data,
-      next: pipe(
-        Option.fromNullishOr(pagination),
-        Option.flatMap(({ cursor }) => Option.fromNullishOr(cursor)),
-        Option.map((cursor) => `${first}&after=${cursor}`),
-      ),
+  })(
+    cursorPageOf({
+      param: "after",
+      itemsOf: ({ data }) => data,
+      cursorOf: ({ pagination }) =>
+        pipe(
+          Option.fromNullishOr(pagination),
+          Option.flatMapNullishOr(({ cursor }) => cursor),
+        ),
     }),
-    subjectOf: (followed) => Option.some(channelOf(followed)),
-    occurredAtOf: (followed) => followed.followed_at,
-  });
+  );
+  return listingOf({ label: "followed", source })(
+    datedObservationsOf({
+      kind: "followed",
+      subjectOf: (followed) => Option.some(channelOf(followed)),
+      occurredAtOf: (followed) => followed.followed_at,
+    }),
+  );
 };
 
 export const pullTwitch = pullOf({

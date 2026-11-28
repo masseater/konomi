@@ -1,10 +1,10 @@
 import type { PixivUser } from "@book000/pixivts";
-import { Array as Arr, pipe } from "effect";
+import { Array as Arr, Function as Fn, Option, pipe } from "effect";
 
 import type { SubjectInput } from "#/entities/signal";
-import { personMapper } from "#/features/ingest-history/api/providers/creator-input";
+import { creatorMapper } from "#/features/ingest-history/api/providers/creator-input";
 import {
-  fetchedObservationsOf,
+  datedObservationsOf,
   followedCreatorsAt,
 } from "#/features/ingest-history/api/providers/observe";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
@@ -20,7 +20,7 @@ type Work = Readonly<{
   createDate: string;
 }>;
 
-const creatorOf = personMapper({ provider: "pixiv", idPrefix: "user:", urlBase: `${WEB}/users/` });
+const creatorOf = creatorMapper({ provider: "pixiv", idPrefix: "user:", urlBase: `${WEB}/users/` });
 
 const workOf =
   ({ kind, url }: Readonly<{ kind: "artwork" | "book"; url: (id: number) => string }>) =>
@@ -41,8 +41,14 @@ const workOf =
 const illustOf = workOf({ kind: "artwork", url: (id) => `${WEB}/artworks/${id}` });
 const novelOf = workOf({ kind: "book", url: (id) => `${WEB}/novel/show.php?id=${id}` });
 
-export const illustObservationsOf = fetchedObservationsOf("collected")(illustOf);
+export const illustObservationsOf = datedObservationsOf({
+  kind: "collected",
+  subjectOf: Fn.flow(illustOf, Option.some),
+});
 
-export const novelObservationsOf = fetchedObservationsOf("collected")(novelOf);
+export const novelObservationsOf = datedObservationsOf({
+  kind: "collected",
+  subjectOf: Fn.flow(novelOf, Option.some),
+});
 
 export const followObservationsOf = followedCreatorsAt(creatorOf);

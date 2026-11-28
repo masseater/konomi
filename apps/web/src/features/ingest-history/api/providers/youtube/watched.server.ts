@@ -4,7 +4,7 @@ import type { Credential } from "#/entities/connection";
 import type { Observation } from "#/entities/signal";
 import { fieldOf } from "#/features/ingest-history/api/providers/credential-field";
 import { freshOf } from "#/features/ingest-history/api/providers/fresh";
-import { fetchedObservationsOf } from "#/features/ingest-history/api/providers/observe";
+import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
 import { HISTORY_FIELD } from "./api.ts";
@@ -19,6 +19,11 @@ export type Watched = Readonly<{
   history: readonly string[];
 }>;
 
+const observeWatched = datedObservationsOf({
+  kind: "consumed",
+  subjectOf: (video: VideoParts) => Option.some(videoSubjectOf(video)),
+});
+
 const watchedOf =
   ({ previous, fetchedAt }: Readonly<{ previous: readonly string[]; fetchedAt: number }>) =>
   (videos: readonly VideoParts[]): Watched => {
@@ -28,11 +33,7 @@ const watchedOf =
     );
     const fresh = freshOf({ previous, current: ids });
     return {
-      observations: pipe(
-        videos,
-        Arr.take(fresh.length),
-        fetchedObservationsOf("consumed")(videoSubjectOf)(fetchedAt),
-      ),
+      observations: pipe(videos, Arr.take(fresh.length), observeWatched(fetchedAt)),
       history: pipe(ids, Arr.take(KEPT_HISTORY)),
     };
   };

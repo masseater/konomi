@@ -1,9 +1,9 @@
 import { Array as Arr, Option, pipe } from "effect";
 
-import type { CreatorInput, Observation, SubjectInput } from "#/entities/signal";
-import { personIn } from "#/features/ingest-history/api/providers/creator-input";
+import type { CreatorInput, SubjectInput } from "#/entities/signal";
+import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
 import { observationsOf } from "#/features/ingest-history/api/providers/observe";
-import { durationFromMs } from "#/features/ingest-history/api/providers/subject-fields";
+import { durationOf } from "#/features/ingest-history/api/providers/subject-fields";
 import { subjectIn } from "#/features/ingest-history/api/providers/subject-in";
 import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 
@@ -12,26 +12,28 @@ import type { ListenBrainzListen, ListenBrainzLoved, ListenBrainzTrack } from ".
 
 const MS_PER_SECOND = 1000;
 
-const listenbrainz = personIn("listenbrainz");
-
-const mappedArtistOf = ({
-  artist_credit_name: title,
-  artist_mbid: mbid,
-}: Readonly<{ artist_credit_name: string; artist_mbid: string }>): CreatorInput =>
-  listenbrainz({
-    externalId: `artist:${mbid}`,
-    title,
-    url: `${MUSICBRAINZ}/artist/${mbid}`,
-  });
+const listenbrainz = creatorIn("listenbrainz");
 
 const searchUrlFor = (type: string, query: string): string =>
   urlWith(`${MUSICBRAINZ}/search`, { query, type });
 
-const namedArtistOf = (name: string): CreatorInput =>
+const artistOf = ({
+  name,
+  mbid,
+}: Readonly<{ name: string; mbid: Option.Option<string> }>): CreatorInput =>
   listenbrainz({
-    externalId: `artist-name:${name}`,
+    externalId: pipe(
+      mbid,
+      Option.match({ onNone: () => `artist-name:${name}`, onSome: (id) => `artist:${id}` }),
+    ),
     title: name,
-    url: searchUrlFor("artist", name),
+    url: pipe(
+      mbid,
+      Option.match({
+        onNone: () => searchUrlFor("artist", name),
+        onSome: (id) => `${MUSICBRAINZ}/artist/${id}`,
+      }),
+    ),
   });
 
 const artistsOf = (track: ListenBrainzTrack): readonly CreatorInput[] =>
@@ -39,8 +41,12 @@ const artistsOf = (track: ListenBrainzTrack): readonly CreatorInput[] =>
     Option.fromNullishOr(track.mbid_mapping),
     Option.flatMap(({ artists }) => Option.fromUndefinedOr(artists)),
     Option.filter(Arr.isReadonlyArrayNonEmpty),
-    Option.map(Arr.map(mappedArtistOf)),
-    Option.getOrElse(() => [namedArtistOf(track.artist_name)]),
+    Option.map(
+      Arr.map(({ artist_credit_name: name, artist_mbid: mbid }) =>
+        artistOf({ name, mbid: Option.some(mbid) }),
+      ),
+    ),
+    Option.getOrElse(() => [artistOf({ name: track.artist_name, mbid: Option.none() })]),
   );
 
 const recordingMbidOf = (track: ListenBrainzTrack): Option.Option<string> =>
@@ -79,20 +85,18 @@ const trackOf =
         Option.map((found) => `${MUSICBRAINZ}/recording/${found}`),
         Option.getOrElse(() => searchUrlOf(track)),
       ),
-      ...durationFromMs(duration),
+      ...durationOf(duration, "millis"),
       credits: artistsOf(track),
       tags: Option.toArray(Option.fromNullishOr(track.release_name)),
     });
   };
 
-export const listenObservationsOf = (
-  listens: readonly ListenBrainzListen[],
-): readonly Observation[] =>
-  observationsOf("consumed")({
-    subjectOf: (listen: ListenBrainzListen) =>
-      trackOf(listen.recording_msid)(listen.track_metadata),
-    occurredAtOf: (listen: ListenBrainzListen) => listen.listened_at * MS_PER_SECOND,
-  })(listens);
+export const listenObservationsOf = observationsOf("consumed")((listen: ListenBrainzListen) =>
+  Option.some({
+    subject: trackOf(listen.recording_msid)(listen.track_metadata),
+    occurredAtMs: listen.listened_at * MS_PER_SECOND,
+  }),
+);
 
 const lovedIdOf = (recording: ListenBrainzLoved): string =>
   pipe(
@@ -101,18 +105,11 @@ const lovedIdOf = (recording: ListenBrainzLoved): string =>
     Option.getOrElse(() => String(recording.created)),
   );
 
-const lovedObservationOf = (recording: ListenBrainzLoved): Option.Option<Observation> => {
+export const lovedObservationsOf = observationsOf("endorsed")((recording: ListenBrainzLoved) => {
   const lovedTrackOf = trackOf(lovedIdOf(recording));
   return pipe(
     Option.fromNullishOr(recording.track_metadata),
     Option.map(lovedTrackOf),
-    Option.map((subject): Observation => ({
-      kind: "endorsed",
-      subject,
-      occurredAtMs: recording.created * MS_PER_SECOND,
-    })),
+    Option.map((subject) => ({ subject, occurredAtMs: recording.created * MS_PER_SECOND })),
   );
-};
-
-export const lovedObservationsOf = (loved: readonly ListenBrainzLoved[]): readonly Observation[] =>
-  pipe(loved, Arr.map(lovedObservationOf), Arr.getSomes);
+});

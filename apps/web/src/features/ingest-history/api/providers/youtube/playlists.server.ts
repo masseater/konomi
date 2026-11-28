@@ -1,27 +1,27 @@
+import { collectedFrom, sourceOf } from "#/features/ingest-history/api/providers/listing.server";
 import { collectedListsOf } from "#/features/ingest-history/api/providers/observe";
-import { pagesFor } from "#/features/ingest-history/api/providers/paging.server";
 
 import { API, LIMIT } from "./api.ts";
-import { collectTokenPages } from "./page.ts";
+import { tokenPaging } from "./page.ts";
 import { PlaylistItems, Playlists } from "./schemas.ts";
 import { playlistVideoOf } from "./subjects.ts";
 
 export const pullPlaylists = collectedListsOf({
   listsOf: ({ headers }) =>
-    collectTokenPages({
-      first: `${API}/playlists?mine=true&part=snippet&maxResults=${LIMIT}`,
-      headers,
-      pages: pagesFor(false),
-      schema: Playlists,
-    }),
+    collectedFrom(
+      sourceOf({
+        first: `${API}/playlists?mine=true&part=snippet&maxResults=${LIMIT}`,
+        schema: Playlists,
+      })(tokenPaging()),
+    )(headers),
   nameOf: ({ snippet }) => snippet.title,
   entriesOf: ({ headers }, { id }) =>
-    collectTokenPages({
-      first: `${API}/playlistItems?playlistId=${id}&part=snippet,contentDetails&maxResults=${LIMIT}`,
-      headers,
-      pages: pagesFor(false),
-      schema: PlaylistItems,
-    }),
+    collectedFrom(
+      sourceOf({
+        first: `${API}/playlistItems?playlistId=${id}&part=snippet,contentDetails&maxResults=${LIMIT}`,
+        schema: PlaylistItems,
+      })(tokenPaging()),
+    )(headers),
   subjectOf: playlistVideoOf,
   occurredAtOf: (item) => item.snippet.publishedAt,
 });

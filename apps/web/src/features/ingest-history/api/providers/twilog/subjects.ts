@@ -1,12 +1,9 @@
 import { Option } from "effect";
 
-import type { CreatorInput, ListingKind, Observation, SubjectInput } from "#/entities/signal";
-import { personIn } from "#/features/ingest-history/api/providers/creator-input";
-import {
-  epochOr,
-  nonEmptyOr,
-  observationsOf,
-} from "#/features/ingest-history/api/providers/observe";
+import type { CreatorInput, ListingKind, SubjectInput } from "#/entities/signal";
+import { creatorIn } from "#/features/ingest-history/api/providers/creator-input";
+import { datedObservationsOf, nonEmptyOr } from "#/features/ingest-history/api/providers/observe";
+import type { Observer } from "#/features/ingest-history/api/providers/observe";
 import { textSubjectIn } from "#/features/ingest-history/api/providers/subject-in";
 
 import type { TwilogLog } from "./schemas.ts";
@@ -14,7 +11,7 @@ import type { TwilogLog } from "./schemas.ts";
 const X_ORIGIN = "https://x.com";
 
 const authorOf = (log: TwilogLog): CreatorInput =>
-  personIn("twilog")({
+  creatorIn("twilog")({
     externalId: `@${log.authorId}`,
     title: nonEmptyOr(log.authorId)(log.authorName),
     url: `${X_ORIGIN}/${log.authorId}`,
@@ -30,11 +27,9 @@ const postOf = (log: TwilogLog): SubjectInput =>
     credits: [authorOf(log)],
   });
 
-export const logObservationsOf =
-  ({ kind, fetchedAt }: Readonly<{ kind: ListingKind; fetchedAt: number }>) =>
-  (logs: readonly TwilogLog[]): readonly Observation[] => {
-    const at = epochOr(fetchedAt);
-    return observationsOf(kind)({ subjectOf: postOf, occurredAtOf: (log) => at(log.createdAt) })(
-      logs,
-    );
-  };
+export const logObservationsOf = (kind: ListingKind): Observer<TwilogLog> =>
+  datedObservationsOf({
+    kind,
+    subjectOf: (log) => Option.some(postOf(log)),
+    occurredAtOf: ({ createdAt }) => createdAt,
+  });

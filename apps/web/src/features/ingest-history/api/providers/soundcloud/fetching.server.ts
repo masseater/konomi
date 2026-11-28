@@ -2,11 +2,11 @@ import { Effect, Option, pipe } from "effect";
 import type { Schema } from "effect";
 
 import type { Credential } from "#/entities/connection";
-import type { Observation } from "#/entities/signal";
 import { requireFields } from "#/features/ingest-history/api/providers/credential-field";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
-import { pagedListing } from "#/features/ingest-history/api/providers/listing.server";
+import { listingOf, sourceOf } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
+import type { Observer } from "#/features/ingest-history/api/providers/observe";
 import { urlWith } from "#/features/ingest-history/api/providers/url-with";
 import type { ProviderError } from "#/features/ingest-history/model/provider";
 
@@ -61,20 +61,17 @@ export const collectionListing =
   <Entry>({
     path,
     schema,
-    observe,
   }: Readonly<{
     path: string;
     schema: Schema.Decoder<Collected<Entry>>;
-    observe: (fetchedAt: number) => (entries: readonly Entry[]) => readonly Observation[];
-  }>): Listing => {
+  }>): ((observe: Observer<Entry>) => Listing) => {
     const sign = withClientId(clientId);
-    return pagedListing({
-      first: sign(firstUrlOf(path)),
-      schema,
-      pageOf: ({ collection, next_href: next }) => ({
+    const first = sign(firstUrlOf(path));
+    return listingOf({
+      label: path,
+      source: sourceOf({ first, schema })(({ collection, next_href: next }) => ({
         items: collection,
         next: pipe(Option.fromNullishOr(next), Option.map(sign)),
-      }),
-      observe,
+      })),
     });
   };

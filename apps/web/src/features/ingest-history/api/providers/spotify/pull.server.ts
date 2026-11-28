@@ -4,7 +4,7 @@ import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.s
 import type { Fetching } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
-import { pullFollowed, pullRecent, pullSaved } from "./library.server.ts";
+import { pullLibrary } from "./library.server.ts";
 import { pullPlaylists } from "./playlists.server.ts";
 
 export const pullSpotify = pullOf({
@@ -17,9 +17,7 @@ export const pullSpotify = pullOf({
         fetchedAt,
       };
       const observations = [
-        ...(yield* pullRecent(fetching)),
-        ...(yield* pullSaved({ ...fetching, pages })),
-        ...(yield* pullFollowed({ ...fetching, pages })),
+        ...(yield* pullLibrary({ ...fetching, pages })),
         ...(yield* pullPlaylists(fetching)),
       ];
       return observations;

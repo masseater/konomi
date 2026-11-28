@@ -1,42 +1,40 @@
-import { count, eq, inArray } from "drizzle-orm";
+import { count, inArray } from "drizzle-orm";
 import type { SQLWrapper } from "drizzle-orm";
 import { Array as Arr, DateTime, Effect, pipe } from "effect";
 
-import { signal, subject } from "#/entities/signal/model/signal.table";
 import { tasteOf } from "#/entities/signal/model/taste";
 import type { Link, SignalBucket, SubjectInfo, Taste } from "#/entities/signal/model/taste";
 import { db } from "#/shared/db/index.server";
 
-import { conditionsOf, creditsOf, tagsOf } from "./query.server.ts";
+import { creditsOf, filteredSignals, tagsOf } from "./query.server.ts";
 import type { KeyMatch, SignalFilter } from "./query.server.ts";
 
 type BucketRow = SignalBucket & SubjectInfo;
 
-const bucketsOf = (filter: SignalFilter): Effect.Effect<readonly BucketRow[]> =>
-  Effect.promise(() =>
+const bucketsOf = (filter: SignalFilter): Effect.Effect<readonly BucketRow[]> => {
+  const filtered = filteredSignals(filter);
+  return Effect.promise(() =>
     db
+      .with(filtered)
       .select({
-        subjectKey: subject.key,
-        key: subject.key,
-        title: subject.title,
-        url: subject.url,
-        type: subject.type,
-        kind: signal.kind,
-        signals: count(signal.id),
-        atMs: signal.occurredAtMs,
+        subjectKey: filtered.key,
+        key: filtered.key,
+        title: filtered.title,
+        url: filtered.url,
+        type: filtered.type,
+        kind: filtered.kind,
+        signals: count(filtered.id),
+        atMs: filtered.occurredAtMs,
       })
-      .from(signal)
-      .innerJoin(subject, eq(subject.key, signal.subjectKey))
-      .where(conditionsOf(filter))
-      .groupBy(subject.key, signal.kind, signal.occurredAtMs),
+      .from(filtered)
+      .groupBy(filtered.key, filtered.kind, filtered.occurredAtMs),
   );
+};
 
-const matchingSubjects = (filter: SignalFilter): SQLWrapper =>
-  db
-    .selectDistinct({ key: signal.subjectKey })
-    .from(signal)
-    .innerJoin(subject, eq(subject.key, signal.subjectKey))
-    .where(conditionsOf(filter));
+const matchingSubjects = (filter: SignalFilter): SQLWrapper => {
+  const filtered = filteredSignals(filter);
+  return db.with(filtered).selectDistinct({ key: filtered.key }).from(filtered);
+};
 
 type CreditRow = Link & Readonly<{ creator: SubjectInfo }>;
 

@@ -4,8 +4,7 @@ import type { Observation, SubjectInput } from "#/entities/signal";
 import { pulledListings } from "#/features/ingest-history/api/providers/listing.server";
 import {
   datedObservationsOf,
-  fetchedObservationsOf,
-  presentObservationsOf,
+  observationsOf,
 } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
@@ -14,7 +13,7 @@ import { Followings, Me, PlayHistory, PlaylistLikes, TrackLikes } from "./schema
 import type { SoundcloudTrack } from "./schemas.ts";
 import { followedUserOf, playlistOf, trackOf } from "./subjects.ts";
 
-const playedObservationsOf = presentObservationsOf("consumed")(
+const playedObservationsOf = observationsOf("consumed")(
   ({
     played_at: playedAt,
     track,
@@ -32,10 +31,9 @@ const likedObservationsOf =
   (fetchedAt: number): ((entries: readonly Entry[]) => readonly Observation[]) =>
     datedObservationsOf({
       kind: "endorsed",
-      fetchedAt,
       subjectOf,
       occurredAtOf: ({ created_at: createdAt }) => createdAt,
-    });
+    })(fetchedAt);
 
 export const pullSoundcloud = pullOf({
   provider: "soundcloud",
@@ -46,30 +44,23 @@ export const pullSoundcloud = pullOf({
       const me = yield* fetchFrom({ session, schema: Me })(firstUrlOf("/me"));
       const listing = collectionListing(session.clientId);
       const listings = pulledListings([
-        listing({
-          path: "/me/play-history/tracks",
-          schema: PlayHistory,
-          observe: () => playedObservationsOf,
-        }),
-        listing({
-          path: `/users/${me.id}/track_likes`,
-          schema: TrackLikes,
-          observe: likedObservationsOf(({ track }) =>
-            Option.map(Option.fromNullishOr(track), trackOf),
-          ),
-        }),
-        listing({
-          path: `/users/${me.id}/playlist_likes`,
-          schema: PlaylistLikes,
-          observe: likedObservationsOf(({ playlist }) =>
+        listing({ path: "/me/play-history/tracks", schema: PlayHistory })(
+          () => playedObservationsOf,
+        ),
+        listing({ path: `/users/${me.id}/track_likes`, schema: TrackLikes })(
+          likedObservationsOf(({ track }) => Option.map(Option.fromNullishOr(track), trackOf)),
+        ),
+        listing({ path: `/users/${me.id}/playlist_likes`, schema: PlaylistLikes })(
+          likedObservationsOf(({ playlist }) =>
             Option.map(Option.fromNullishOr(playlist), playlistOf),
           ),
-        }),
-        listing({
-          path: `/users/${me.id}/followings`,
-          schema: Followings,
-          observe: fetchedObservationsOf("followed")(followedUserOf),
-        }),
+        ),
+        listing({ path: `/users/${me.id}/followings`, schema: Followings })(
+          datedObservationsOf({
+            kind: "followed",
+            subjectOf: (user) => Option.some(followedUserOf(user)),
+          }),
+        ),
       ]);
       return yield* listings({ headers: session.headers, pages, fetchedAt });
     }),

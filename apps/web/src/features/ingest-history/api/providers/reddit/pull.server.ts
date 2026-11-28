@@ -1,34 +1,36 @@
-import { Effect, Option, pipe } from "effect";
+import { Effect, Option } from "effect";
 
 import type { ListingKind } from "#/entities/signal";
 import { fetchJson } from "#/features/ingest-history/api/providers/http.server";
 import {
-  jsonListing,
+  cursorPageOf,
+  listingOf,
   pulledListings,
+  sourceOf,
 } from "#/features/ingest-history/api/providers/listing.server";
 import type { Listing } from "#/features/ingest-history/api/providers/listing.server";
 import { bearerHeadersOf } from "#/features/ingest-history/api/providers/oauth.server";
+import { datedObservationsOf } from "#/features/ingest-history/api/providers/observe";
 import { pullOf } from "#/features/ingest-history/api/providers/pull-of.server";
 
 import { API, LIMIT, USER_AGENT } from "./api.ts";
 import { Listing as ListingBody, Me } from "./schemas.ts";
 import { thingOf } from "./subjects.ts";
 
-const listingOf = (user: string, path: string, kind: ListingKind): Listing => {
-  const first = `${API}/user/${user}/${path}?limit=${LIMIT}&raw_json=1`;
-  return jsonListing({
-    kind,
-    first,
+const savedListingOf = (user: string, path: string, kind: ListingKind): Listing => {
+  const source = sourceOf({
+    first: `${API}/user/${user}/${path}?limit=${LIMIT}&raw_json=1`,
     schema: ListingBody,
-    pageOf: ({ data }) => ({
-      items: data.children,
-      next: pipe(
-        Option.fromNullishOr(data.after),
-        Option.map((after) => `${first}&after=${after}`),
-      ),
+  })(
+    cursorPageOf({
+      param: "after",
+      itemsOf: ({ data }) => data.children,
+      cursorOf: ({ data }) => Option.fromNullishOr(data.after),
     }),
-    subjectOf: (thing) => Option.some(thingOf(thing)),
-  });
+  );
+  return listingOf({ label: path, source })(
+    datedObservationsOf({ kind, subjectOf: (thing) => Option.some(thingOf(thing)) }),
+  );
 };
 
 export const pullReddit = pullOf({
@@ -40,8 +42,8 @@ export const pullReddit = pullOf({
       const { name } = yield* fetchJson({ url: `${API}/api/v1/me`, headers, schema: Me });
       const user = encodeURIComponent(name);
       return yield* pulledListings([
-        listingOf(user, "upvoted", "endorsed"),
-        listingOf(user, "saved", "collected"),
+        savedListingOf(user, "upvoted", "endorsed"),
+        savedListingOf(user, "saved", "collected"),
       ])({ headers, pages, fetchedAt });
     }),
 });
